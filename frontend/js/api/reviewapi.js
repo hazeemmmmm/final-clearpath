@@ -37,3 +37,11 @@ export const getAllReviews = async (query = {}) => {
     headers: getHeaders(true),
   });
 };
+
+export const deleteReview = async (reviewId) => {
+  return apiCall(`${BASE_URL}/review/${reviewId}`, {
+    method: 'DELETE',
+    headers: getHeaders(true),
+  });
+};
+

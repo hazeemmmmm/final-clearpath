@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar';
-import { createExperience, getTrips } from '../../utils/api';
+import { createExperience, getTrips, getAllReviews, deleteReview } from '../../utils/api';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -9,6 +9,10 @@ const AdminDashboard = () => {
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [recentPackages, setRecentPackages] = useState([]);
+
+  // Admin Reviews State
+  const [allReviews, setAllReviews] = useState([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -26,14 +30,44 @@ const AdminDashboard = () => {
     fetchRecentPackages();
   }, []);
 
+  useEffect(() => {
+    if (activeTab === 'reviews') {
+      fetchAdminReviews();
+    }
+  }, [activeTab]);
+
   const fetchRecentPackages = async () => {
     try {
       // Just fetching all experiences to show recent ones
       const data = await getTrips({ limit: 5, sort: '-createdAt' });
       // The apiCall wrapper returns the data directly
-      setRecentPackages(data.data || []);
+      setRecentPackages(data.data || data || []);
     } catch (err) {
       console.log('Failed to fetch recent packages', err);
+    }
+  };
+
+  const fetchAdminReviews = async () => {
+    try {
+      setLoadingReviews(true);
+      const res = await getAllReviews();
+      const loadedReviews = res.reviews || res.data?.reviews || res.data || res || [];
+      setAllReviews(loadedReviews);
+    } catch (err) {
+      console.log('Failed to fetch admin reviews', err);
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
+
+  const handleAdminDeleteReview = async (reviewId) => {
+    if (window.confirm('Are you sure you want to delete this review? (Admin Action)')) {
+      try {
+        await deleteReview(reviewId);
+        setAllReviews(prev => prev.filter(r => r._id !== reviewId));
+      } catch (err) {
+        alert(err.message || 'Failed to delete review');
+      }
     }
   };
 
@@ -86,6 +120,20 @@ const AdminDashboard = () => {
     }
   };
 
+  const renderStars = (rating) => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <i
+          key={i}
+          className={`${i <= rating ? 'fa-solid' : 'fa-regular'} fa-star`}
+          style={{ color: i <= rating ? '#FFD700' : '#ddd', marginRight: '2px', fontSize: '0.85rem' }}
+        />
+      );
+    }
+    return <div style={{ display: 'inline-block' }}>{stars}</div>;
+  };
+
   return (
     <div className="admin-page">
       <Navbar />
@@ -98,6 +146,12 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab('packages')}
           >
             <i className="fa-solid fa-box-open"></i> Manage Packages
+          </li>
+          <li 
+            className={activeTab === 'reviews' ? 'active' : ''} 
+            onClick={() => setActiveTab('reviews')}
+          >
+            <i className="fa-solid fa-star"></i> Manage Reviews
           </li>
           <li 
             className={activeTab === 'users' ? 'active' : ''} 
@@ -116,7 +170,12 @@ const AdminDashboard = () => {
 
       <main className="admin-content">
         <div className="admin-header">
-          <h1>{activeTab === 'packages' ? 'Manage Packages' : 'Dashboard'}</h1>
+          <h1>
+            {activeTab === 'packages' && 'Manage Packages'}
+            {activeTab === 'reviews' && 'Manage Reviews'}
+            {activeTab === 'users' && 'Manage Users'}
+            {activeTab === 'bookings' && 'Manage Bookings'}
+          </h1>
         </div>
 
         {activeTab === 'packages' && (
@@ -254,7 +313,97 @@ const AdminDashboard = () => {
           </>
         )}
 
-        {activeTab !== 'packages' && (
+        {/* Admin Manage Reviews Tab */}
+        {activeTab === 'reviews' && (
+          <div className="admin-card">
+            <h2 style={{ marginBottom: '20px', fontSize: '1.4rem' }}>User Reviews & Ratings</h2>
+            <p style={{ color: '#666', marginBottom: '25px', fontSize: '0.95rem' }}>
+              Monitor customer feedback and manage user reviews across all published experiences.
+            </p>
+
+            {loadingReviews ? (
+              <div style={{ textAlign: 'center', padding: '50px 0', color: '#666' }}>
+                <i className="fa-solid fa-spinner fa-spin fa-2x" style={{ marginBottom: '15px', color: '#003D59' }}></i>
+                <p>Retrieving reviews database...</p>
+              </div>
+            ) : allReviews.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px 20px', color: '#888' }}>
+                <i className="fa-regular fa-comments" style={{ fontSize: '3rem', marginBottom: '15px', color: '#ccc' }}></i>
+                <h3>No reviews found</h3>
+                <p>No user has rated any experiences in the system yet.</p>
+              </div>
+            ) : (
+              <div className="admin-table-wrapper">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Experience</th>
+                      <th>Rating</th>
+                      <th>Comment</th>
+                      <th>Date</th>
+                      <th style={{ textAlign: 'center' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allReviews.map((rev) => {
+                      const reviewerName = rev.user ? `${rev.user.firstName} ${rev.user.lastName}`.trim() : 'Anonymous';
+                      const reviewerEmail = rev.user?.email || 'N/A';
+                      const experienceName = rev.experience?.name || 'Unknown Experience';
+                      const reviewDate = rev.createdAt ? new Date(rev.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric', month: 'short', day: 'numeric'
+                      }) : 'Recent';
+
+                      return (
+                        <tr key={rev._id}>
+                          <td>
+                            <div style={{ fontWeight: '600', color: '#003D59' }}>{reviewerName}</div>
+                            <div style={{ fontSize: '0.8rem', color: '#666' }}>{reviewerEmail}</div>
+                          </td>
+                          <td>
+                            <span style={{ fontWeight: '500' }}>{experienceName}</span>
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <span style={{ fontWeight: 'bold', fontSize: '0.95rem', color: '#333' }}>
+                                {rev.rating} / 5
+                              </span>
+                              {renderStars(rev.rating)}
+                            </div>
+                          </td>
+                          <td>
+                            <div className="admin-comment-box">
+                              {rev.comment ? rev.comment : <em style={{ color: '#aaa' }}>No text feedback</em>}
+                              {rev.isVerifiedBooking && (
+                                <span className="admin-verified-tag">
+                                  <i className="fa-solid fa-check-double"></i> Verified Booking
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td>
+                            <span style={{ fontSize: '0.9rem', color: '#555' }}>{reviewDate}</span>
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            <button 
+                              className="btn-delete-row-admin"
+                              onClick={() => handleAdminDeleteReview(rev._id)}
+                              title="Delete Review"
+                            >
+                              <i className="fa-solid fa-trash-can"></i> Delete
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {(activeTab === 'users' || activeTab === 'bookings') && (
           <div className="admin-card" style={{ textAlign: 'center', padding: '60px 20px', color: '#888' }}>
             <i className="fa-solid fa-person-digging" style={{ fontSize: '3rem', marginBottom: '15px', color: '#d4af37' }}></i>
             <h2>Under Construction</h2>

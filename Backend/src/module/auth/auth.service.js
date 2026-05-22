@@ -20,6 +20,7 @@ class AuthService {
 
             const hashedPassword =await hashPassword(password);
             const otp = generateOTP();
+            console.log(`\n==============================================\n[DEVELOPMENT] OTP for ${email} is: ${otp}\n==============================================\n`);
             const otpExpiry = generateOTPExpiry(5 * 60 * 60 * 1000);
 
             const newUser = await userRepo.create({

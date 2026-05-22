@@ -4,6 +4,14 @@ import { getAllExperiences, getOneExperience, createExperience as addExp, update
 import { getDestinations as fetchDestinations } from '../../js/api/destinationapi.js';
 import { getWishlist as fetchWishlist, addToWishlist as addWishlist, removeFromWishlist as removeWishlist } from '../../js/api/wishlistapi.js';
 import { createOrder } from '../../js/api/paymentapi.js';
+import { 
+  createReview as addReview, 
+  getExperienceReviews as fetchReviews, 
+  getExperienceStats as fetchStats, 
+  getMyReviews as fetchMyReviews, 
+  getAllReviews as fetchAllReviews,
+  deleteReview as removeReview
+} from '../../js/api/reviewapi.js';
 
 export const login = async (credentials) => authLogin(credentials);
 export const register = async (userData) => authRegister(userData);
@@ -29,6 +37,14 @@ export const removeFromWishlist = async (experienceId) => removeWishlist(experie
 
 export const processPayment = async (bookingId) => createOrder(bookingId);
 
+// Reviews API
+export const createReview = async (data) => addReview(data);
+export const getExperienceReviews = async (experienceId, query) => fetchReviews(experienceId, query);
+export const getExperienceStats = async (experienceId) => fetchStats(experienceId);
+export const getMyReviews = async () => fetchMyReviews();
+export const getAllReviews = async (query) => fetchAllReviews(query);
+export const deleteReview = async (id) => removeReview(id);
+
 // Chatbot API Integration
 export const getChatHistory = async () =>
   apiCall(`${BASE_URL}/chatbot/history`, { method: 'GET', headers: getHeaders(true) });
@@ -45,3 +61,4 @@ export const sendChatMessage = async (message, chatId) =>
 
 export const deleteChatSession = async (chatId) =>
   apiCall(`${BASE_URL}/chatbot/session/${chatId}`, { method: 'DELETE', headers: getHeaders(true) });
+

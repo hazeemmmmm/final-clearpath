@@ -2,28 +2,33 @@ import { Router } from 'express';
 const router = Router();
 import * as destController from './destination.controller.js';
 import * as destValidation from './destination.validation.js';
-import { validation } from '../../../middleware/validation.js';
-import { auth } from '../../../middleware/auth.middleware.js';
+import { isValid as validation } from '../../middleware/validation.middleware.js';
+import { authMiddleware, allowTo } from '../../middleware/auth.middleware.js';
 
-// --- مسارات عامة (للـ Tourists) ---
+// --- public routes (Tourists) ---
 router.get('/', destController.getDestinations);
-router.get('/:destinationId', validation(destValidation.getByIdSchema), destController.getOneDestination);
+router.get('/:destinationId', validation(destValidation.getByIdSchema, 'params'), destController.getOneDestination);
+
+// --- admin routes (Admin only) ---
 router.post('/', 
-    auth(['Admin']), 
+    authMiddleware,
+    allowTo('admin'),
     validation(destValidation.destinationSchema), 
     destController.addDestination
 );
 
 router.patch('/:destinationId', 
-    auth(['Admin']), 
-    validation(destValidation.getByIdSchema), 
+    authMiddleware,
+    allowTo('admin'),
+    validation(destValidation.getByIdSchema, 'params'), 
     validation(destValidation.destinationSchema), 
     destController.updateDestination
 );
 
 router.delete('/:destinationId', 
-    auth(['Admin']), 
-    validation(destValidation.getByIdSchema), 
+    authMiddleware,
+    allowTo('admin'),
+    validation(destValidation.getByIdSchema, 'params'), 
     destController.removeDestination
 );
 

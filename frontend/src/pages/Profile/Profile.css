@@ -1,0 +1,479 @@
+/* Profile.css - High-End Travel Web App UI Design System */
+
+:root {
+  --primary-color: #003D59;
+  --secondary-color: #d4af37;
+  --accent-color: #CE1126;
+  --bg-main: #f8fafc;
+  --card-bg: #ffffff;
+  --text-dark: #1e293b;
+  --text-muted: #64748b;
+  --border-light: #e2e8f0;
+  --success-color: #2e7d32;
+  --error-color: #c62828;
+  --font-family: 'Outfit', 'Inter', sans-serif;
+  --box-shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.04);
+  --box-shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.08);
+}
+
+.profile-page {
+  font-family: var(--font-family);
+  background-color: var(--bg-main);
+  color: var(--text-dark);
+  min-height: 100vh;
+  padding-top: 80px; /* offset for fixed header */
+  line-height: 1.6;
+}
+
+.profile-main-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+/* 🗺️ Profile Page Grid Layout */
+.profile-layout-grid {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+/* 👤 Sidebar / Profile Summary Card */
+.profile-summary-sidebar {
+  background: var(--card-bg);
+  border-radius: 24px;
+  padding: 30px 25px;
+  box-shadow: var(--box-shadow-soft);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  border: 1px solid #f1f5f9;
+}
+
+.avatar-large {
+  width: 90px;
+  height: 90px;
+  border-radius: 50px;
+  background: linear-gradient(135deg, var(--primary-color), #00608c);
+  color: white;
+  font-size: 2.2rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 20px rgba(0, 61, 89, 0.15);
+}
+
+.profile-summary-sidebar h3 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin: 0 0 5px 0;
+}
+
+.user-email {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0 0 15px 0;
+}
+
+.user-email i {
+  margin-right: 5px;
+}
+
+.role-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 14px;
+  border-radius: 50px;
+  letter-spacing: 0.5px;
+}
+
+.role-badge.user {
+  background: rgba(0, 61, 89, 0.08);
+  color: var(--primary-color);
+}
+
+.role-badge.admin {
+  background: rgba(206, 17, 38, 0.08);
+  color: var(--accent-color);
+  border: 1px solid rgba(206, 17, 38, 0.15);
+}
+
+.role-badge.provider {
+  background: rgba(212, 175, 55, 0.08);
+  color: #a17c0b;
+}
+
+.sidebar-divider {
+  border: 0;
+  height: 1px;
+  background: var(--border-light);
+  width: 100%;
+  margin: 25px 0;
+}
+
+/* 🧭 Vertical Navigation Menu */
+.profile-menu-navigation {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.menu-nav-btn {
+  width: 100%;
+  background: none;
+  border: none;
+  outline: none;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.25s ease;
+  text-decoration: none;
+}
+
+.menu-nav-btn i {
+  font-size: 1.1rem;
+  width: 20px;
+}
+
+.menu-nav-btn:hover {
+  background: #f8fafc;
+  color: var(--primary-color);
+  transform: translateX(4px);
+}
+
+.menu-nav-btn.active {
+  background: rgba(0, 61, 89, 0.05);
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+.menu-nav-btn.active::after {
+  content: '';
+  margin-left: auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--secondary-color);
+}
+
+.count-bubble {
+  margin-left: auto;
+  background: var(--secondary-color);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 50px;
+}
+
+.admin-link {
+  color: var(--accent-color);
+  margin-top: 15px;
+  border: 1px dashed rgba(206, 17, 38, 0.2);
+}
+
+.admin-link:hover {
+  background: rgba(206, 17, 38, 0.03);
+  color: var(--accent-color);
+}
+
+/* 🖥️ Tab Content Box */
+.profile-tab-content {
+  flex-grow: 1;
+}
+
+.tab-card {
+  background: var(--card-bg);
+  border-radius: 24px;
+  padding: 35px;
+  box-shadow: var(--box-shadow-soft);
+  border: 1px solid #f1f5f9;
+}
+
+.tab-card h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin: 0 0 5px 0;
+}
+
+.tab-subtitle {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin: 0 0 35px 0;
+}
+
+/* Tab 1: Info Grid display */
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.info-item label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.value-box {
+  padding: 14px 18px;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 12px;
+  font-size: 1rem;
+  color: var(--text-dark);
+  font-weight: 500;
+}
+
+/* Tab 2: Empty Reviews Placeholder */
+.empty-reviews-state {
+  text-align: center;
+  padding: 50px 20px;
+  color: var(--text-muted);
+}
+
+.empty-reviews-state i {
+  font-size: 3rem;
+  color: #cbd5e1;
+  margin-bottom: 15px;
+}
+
+.empty-reviews-state h4 {
+  font-size: 1.2rem;
+  color: var(--primary-color);
+  margin: 0 0 5px 0;
+}
+
+.empty-reviews-state p {
+  font-size: 0.9rem;
+  margin: 0 0 25px 0;
+}
+
+.btn-explore {
+  display: inline-block;
+  background: var(--primary-color);
+  color: white;
+  text-decoration: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 15px rgba(0, 61, 89, 0.15);
+  transition: all 0.3s ease;
+}
+
+.btn-explore:hover {
+  background: #002d42;
+  transform: translateY(-1px);
+}
+
+/* 📝 My Reviews Listing Items */
+.my-reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.user-review-item-card {
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 16px;
+  padding: 22px;
+  transition: all 0.3s ease;
+}
+
+.user-review-item-card:hover {
+  background: white;
+  border-color: var(--primary-color);
+  box-shadow: var(--box-shadow-soft);
+  transform: translateY(-2px);
+}
+
+.review-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.review-item-header h4 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+}
+
+.pkg-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.pkg-link:hover {
+  color: var(--accent-color);
+}
+
+.review-item-date {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.btn-delete-review {
+  background: rgba(206, 17, 38, 0.06);
+  color: var(--accent-color);
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+}
+
+.btn-delete-review:hover {
+  background: var(--accent-color);
+  color: white;
+}
+
+.btn-delete-review i {
+  transition: transform 0.2s ease;
+}
+
+.btn-delete-review:hover i {
+  animation: trash-shake 0.35s infinite alternate;
+}
+
+@keyframes trash-shake {
+  0% { transform: rotate(-5deg); }
+  100% { transform: rotate(5deg); }
+}
+
+.review-item-stars-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.verified-booking-tag {
+  background: #e8f5e9;
+  color: var(--success-color);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.review-item-text {
+  font-size: 0.95rem;
+  color: #334155;
+  margin: 0;
+  white-space: pre-line;
+}
+
+/* Spinner & Error card inside container matches PackageDetails exactly */
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 250px;
+  font-size: 1.2rem;
+  color: var(--text-muted);
+}
+
+.loading-spinner i {
+  font-size: 1.5rem;
+  color: var(--primary-color);
+}
+
+.error-card {
+  text-align: center;
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: var(--box-shadow-soft);
+  max-width: 500px;
+  margin: 50px auto;
+}
+
+.error-card i {
+  font-size: 2.5rem;
+  color: var(--error-color);
+  margin-bottom: 15px;
+}
+
+.btn-back {
+  display: inline-block;
+  background: var(--primary-color);
+  color: white;
+  text-decoration: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  margin-top: 20px;
+  font-weight: 600;
+}
+
+.loading-reviews {
+  text-align: center;
+  padding: 30px 0;
+  color: var(--text-muted);
+}
+
+/* ============================================================== */
+/* 📱 RESPONSIVE MEDIA QUERIES                                    */
+/* ============================================================== */
+
+@media (max-width: 900px) {
+  .profile-layout-grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+}
+
+@media (max-width: 600px) {
+  .tab-card {
+    padding: 25px;
+  }
+  
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .review-item-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .btn-delete-review {
+    align-self: flex-start;
+  }
+}
