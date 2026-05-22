@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClearPath | Tourism Egypt</title>
+    <link rel="stylesheet" href="./home.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+</head>
+<body>
+
+    <!-- Splash Screen -->
+    <div id="splashScreen" class="splash-screen">
+        <div class="splash-content">
+            <h1 class="splash-title">Welcome to <span class="splash-egypt-text">Egypt</span> 👋</h1>
+            <h2 class="splash-subtitle">Where will you stay?</h2>
+        </div>
+    </div>
+
+    <!-- start navbar -->
+<nav id="navbar">
+    <div class="nav-container">
+        <div class="logo">
+            <span class="logo-icon"><i class="fa-solid fa-map-marked-alt"></i></span> Clear<span>Path</span>
+        </div>
+        
+        <div class="nav-links">
+            <a href="../home/home.html" class="active" data-i18n="navHome">🏠 Homes</a>
+            <a href="#" onclick="openExperiences(event)">
+                <span class="compass-icon">🧭</span> <span data-i18n="navExperiences">Experiences</span>
+            </a>
+        </div>
+
+        <div class="nav-actions">
+            <div class="lang-dropdown">
+                <button class="dropbtn" onclick="toggleLang()">🌐 <span id="currentLang">EN</span></button>
+                <div id="langMenu" class="dropdown-content">
+                    <a href="#" onclick="changeLang('EN', event)">English</a>
+                    <a href="#" onclick="changeLang('AR', event)">العربية</a>
+                </div>
+            </div>  
+            
+            <!-- Dark / Light Mode Toggle -->
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme" style="background: none; border: none; cursor: pointer; font-size: 18px; margin: 0 10px; color: inherit;">
+                <i class="fa-solid fa-moon theme-icon"></i>
+            </button>
+            
+            <!-- updated buttons with navigations -->
+            <button class="btn-login" onclick="window.location.href='../auth/login/my_project/login.html'" data-i18n="btnLogin">Login</button>
+            <button class="btn-register" onclick="window.location.href='../auth/registration/regestration.html'" data-i18n="btnRegister">Register</button>
+
+        </div>
+    </div>
+</nav>
+    <!-- end navbar -->
+
+    
+
+    <!-- start auth modal -->
+<div id="authModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeAuth()">&times;</span>
+        <h2 id="modalTitle" data-i18n="modalLogin">Login</h2>
+        <form id="authForm">
+            <input type="email" data-i18n-placeholder="phEmail" placeholder="Email Address" required>
+            <input type="password" data-i18n-placeholder="phPassword" placeholder="Password" required>
+            <button type="submit" class="submit-btn" data-i18n="modalContinue">Continue</button>
+        </form>
+    </div>
+</div>
+    <!-- end auth modal -->
+
+    <!-- start experiences modal -->
+<div id="experiencesModal" class="modal">
+    <div class="modal-content" style="text-align: center;">
+        <span class="close" onclick="closeExperiences()">&times;</span>
+        <h2 data-i18n="expChoose">Choose Experience</h2>
+        <p data-i18n="expSubtitle" style="margin: 15px 0; color: #555; font-size: 14px;">What kind of adventure are you looking for?</p>
+        <div style="display: flex; gap: 15px; margin-top: 20px;">
+            <button class="submit-btn btn-trips" onclick="window.location.href='../trips/trips.html'" data-i18n="expTrips">Trips</button>
+            <button class="submit-btn btn-dayuse" onclick="window.location.href='../dayuse/dayuse.html'" data-i18n="expDayuse">Dayuse</button>
+        </div>
+    </div>
+</div>
+    <!-- end experiences modal -->
+
+
+
+
+
+    <!-- start hero section -->
+<header class="hero-section">
+    <div class="hero-content">
+        <h1 class="hero-title"><span data-i18n="heroDiscover">DISCOVER</span> <span data-i18n="heroEgypt">EGYPT</span></h1>
+        <p class="hero-subtitle" data-i18n="heroSubtitle">Where History Begins and Wonders Never End</p>
+        <p class="hero-description" data-i18n="heroDescription">Explore the treasures of an ancient land, from the timeless pyramids to the beauty of the Nile.</p>
+        <button class="hero-cta" onclick="openProtocolModal()" data-i18n="heroProtocol">Our Protocol</button>
+    </div>
+
+
+
+    <!-- start footer -->
+    <footer class="home-footer">
+        <div class="footer-content" style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+            <div class="footer-logo" style="font-size: 18px;">
+                <span class="logo-icon"><i class="fa-solid fa-map-marked-alt"></i></span> Clear<span>Path</span>
+            </div>
+            <div class="footer-contact" style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; font-size: 13px; margin: 0;">
+                <p style="margin: 0;"><i class="fa-solid fa-phone"></i> 01001799282</p>
+                <p style="margin: 0;"><i class="fa-solid fa-headset"></i> Hotline: 19555</p>
+                <p style="margin: 0;"><i class="fa-solid fa-envelope"></i> info@clearpath.com</p>
+            </div>
+            <div class="footer-socials" style="display: flex; gap: 15px; font-size: 16px; margin: 0;">
+                <a href="#" style="color: inherit;"><i class="fa-brands fa-facebook"></i></a>
+                <a href="#" style="color: inherit;"><i class="fa-brands fa-instagram"></i></a>
+            </div>
+            <p data-i18n="footerRights" style="font-size: 11px; color: #ddd; margin: 0;">&copy; 2026 ClearPath. All rights reserved.</p>
+        </div>
+    </footer>
+    <!-- end footer -->
+</header>
+    <!-- end hero section -->
+
+    <!-- start stay type modal -->
+<div id="stayTypeModal" class="modal">
+    <div class="modal-content" style="text-align: center;">
+        <span class="close" onclick="closeStayTypeModal()">&times;</span>
+        <h2>Where will you stay?</h2>
+        <p style="margin: 15px 0; color: #555; font-size: 14px;">Choose your preferred accommodation style</p>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
+            <button class="submit-btn" style="background-color: #CE1126; color: #ffffff;" onclick="openDestinationModal('Hotel')">Hotel</button>
+            <button class="submit-btn" style="background-color: #ffffff; color: #000000; border: 1px solid #ccc;" onclick="openDestinationModal('Apartments')">Apartments</button>
+            <button class="submit-btn" style="background-color: #000000; color: #ffffff;" onclick="openDestinationModal('Pension')">Pension</button>
+        </div>
+    </div>
+</div>
+    <!-- end stay type modal -->
+
+    <!-- start destinations modal -->
+<div id="destinationsModal" class="modal">
+    <div class="modal-content" style="text-align: center;">
+        <span class="close" onclick="closeDestinationsModal()">&times;</span>
+        <h2>Select Destination</h2>
+        <p id="selectedStayTypeText" style="margin: 15px 0; color: #555; font-size: 14px;">Where would you like to go?</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px;">
+            <button class="submit-btn" style="background: linear-gradient(135deg, #ffcf54 0%, #ff8f00 100%); color: #222; font-weight: bold;" onclick="goToDestination('cairo')">Cairo</button>
+            <button class="submit-btn" style="background: linear-gradient(135deg, #ffcf54 0%, #ff8f00 100%); color: #222; font-weight: bold;" onclick="goToDestination('giza')">Giza</button>
+            <button class="submit-btn" style="background: linear-gradient(135deg, #ffcf54 0%, #ff8f00 100%); color: #222; font-weight: bold;" onclick="goToDestination('alex')">Alexandria</button>
+            <button class="submit-btn" style="background: linear-gradient(135deg, #ffcf54 0%, #ff8f00 100%); color: #222; font-weight: bold;" onclick="goToDestination('matrouh')">Matrouh</button>
+            <button class="submit-btn" style="background: linear-gradient(135deg, #ffcf54 0%, #ff8f00 100%); color: #222; font-weight: bold;" onclick="goToDestination('dahab')">Dahab</button>
+            <button class="submit-btn" style="background: linear-gradient(135deg, #ffcf54 0%, #ff8f00 100%); color: #222; font-weight: bold;" onclick="goToDestination('northcoast')">North Coast</button>
+        </div>
+    </div>
+</div>
+    <!-- end destinations modal -->
+
+    <!-- start protocol modal -->
+<div id="protocolModal" class="modal">
+    <div class="modal-content" style="text-align: left; max-width: 550px; padding: 30px; border-radius: 12px; background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%); margin: 5vh auto; max-height: 90vh; overflow-y: auto;">
+        <span class="close" onclick="closeProtocolModal()">&times;</span>
+        <h2 data-i18n="protocolTitle" style="color: #CE1126; margin-bottom: 20px; text-align: center; font-size: 26px;"><i class="fa-solid fa-shield-halved"></i> Our Protocol</h2>
+        
+        <div style="margin-bottom: 20px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+            <h3 data-i18n="protocolTransportTitle" style="color: #222; font-size: 18px; margin-bottom: 10px;"><i class="fa-solid fa-car" style="color: #CE1126;"></i> Transportation</h3>
+            <p data-i18n="protocolTransportDesc" style="color: #555; font-size: 15px; line-height: 1.6;">From the moment you arrive until your departure, we ensure a seamless experience. We provide dedicated transportation from the airport to your target destination, and back upon the completion of your program.</p>
+        </div>
+        
+        <div style="padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+            <h3 data-i18n="protocolHotelTitle" style="color: #222; font-size: 18px; margin-bottom: 10px;"><i class="fa-solid fa-hotel" style="color: #CE1126;"></i> Accommodation & Dining</h3>
+            <p data-i18n="protocolHotelDesc" style="color: #555; font-size: 15px; line-height: 1.6;">When you choose a Trip or Dayuse program, we recommend premium hotels perfectly tailored to your package. However, this is completely optional—you are free to choose any other hotel or location you prefer. If you opt for our recommended stay, it includes complimentary access to a lavish open-buffet breakfast served until 1:00 PM, alongside exceptional lunch and dinner experiences.</p>
+        </div>
+    </div>
+</div>
+    <!-- end protocol modal -->
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
+<script src="./home.js"></script>
+<script src="../assets/js/theme.js"></script>
+</body>
+</html>

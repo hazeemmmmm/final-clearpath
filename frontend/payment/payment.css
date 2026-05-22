@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+body {
+    background: linear-gradient(135deg, #0B1021 0%, #b026ff 100%);
+    background-attachment: fixed;
+    color: #ffffff;
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+}
+
+/* Background Decorations */
+.bg-shapes {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.shape-cluster {
+    position: absolute;
+    width: 600px;
+    height: 930px;
+    transform: rotate(45deg);
+}
+
+.top-right {
+    top: -300px;
+    right: -150px;
+}
+
+.bottom-left {
+    bottom: -300px;
+    left: -300px;
+}
+
+.box {
+    position: absolute;
+    background: linear-gradient(135deg, #df37ff 0%, #3023ae 100%);
+    border-radius: 20px;
+    opacity: 0.85;
+    box-shadow: 0 10px 30px rgba(48, 35, 174, 0.4);
+}
+
+.box-4 { border-radius: 12px; }
+
+/* Specific Box Dimensions */
+.box-1 { left: 110px; width: 480px; top: 0; height: 300px; }
+.box-2 { left: 290px; width: 300px; top: 330px; height: 600px; }
+.box-3 { left: 110px; width: 150px; top: 330px; height: 150px; }
+.box-4 { left: 0; width: 80px; top: 330px; height: 80px; }
+
+/* Glassmorphism Container */
+.glass-container {
+    background: rgba(15, 22, 45, 0.6);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* Credit Card Gradients */
+.card-gradient-1 {
+    background: linear-gradient(135deg, #4dd0e1 0%, #ab47bc 50%, #7e57c2 100%);
+}
+
+.card-gradient-2 {
+    background: linear-gradient(135deg, #ce93d8 0%, #5e35b1 50%, #1e88e5 100%);
+    opacity: 0.5;
+    transform: scale(0.9) translateY(-20px);
+    z-index: -1;
+}
+
+/* Glowing Button */
+.btn-glow {
+    background: linear-gradient(90deg, #A635FF, #E0218A);
+    box-shadow: 0 0 15px rgba(224, 33, 138, 0.5);
+    transition: all 0.3s ease;
+}
+
+.btn-glow:hover {
+    box-shadow: 0 0 25px rgba(224, 33, 138, 0.8);
+    transform: translateY(-2px);
+}
+
+/* Custom Input */
+.input-dark {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.input-dark:focus {
+    border-color: #A635FF;
+    outline: none;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+select.input-dark option {
+    background-color: #4b5563;
+    color: white;
+}
+
+/* Form Label */
+.label-sm {
+    font-size: 0.75rem;
+    color: #8b95a5;
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+/* Hide scrollbar */
+::-webkit-scrollbar {
+    display: none;
+}
+
+/* Custom Radio */
+input[type="radio"] {
+    accent-color: #A635FF;
+}

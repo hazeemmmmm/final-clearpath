@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment | ClearPath</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <script src="payment-tailwind.js"></script>
+    
+    <link rel="stylesheet" href="payment.css">
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 sm:p-8 relative">
+
+    <!-- Decorative shapes -->
+    <div class="bg-shapes">
+        <!-- Top Right Cluster -->
+        <div class="shape-cluster top-right">
+            <div class="box box-1"></div>
+            <div class="box box-2"></div>
+            <div class="box box-3"></div>
+            <div class="box box-4"></div>
+        </div>
+        
+        <!-- Bottom Left Cluster -->
+        <div class="shape-cluster bottom-left">
+            <div class="box box-1"></div>
+            <div class="box box-2"></div>
+            <div class="box box-3"></div>
+            <div class="box box-4"></div>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div class="glass-container w-full max-w-md rounded-[2.5rem] p-6 relative overflow-hidden sm:h-auto h-[95vh] flex flex-col">
+        
+        <!-- Header -->
+        <div class="flex items-center mb-6">
+            <button onclick="window.history.back()" class="text-white hover:text-gray-300 transition-colors p-2 -ml-2 rounded-full">
+                <i class="fa-solid fa-chevron-left text-xl"></i>
+            </button>
+            <h1 class="text-2xl font-semibold ml-2">Pay with PayPal</h1>
+        </div>
+
+        <!-- Clear Path Brand -->
+        <div class="mb-6 flex items-center justify-center">
+            <div class="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/10 px-4 py-2">
+                <span class="w-8 h-8 rounded-full bg-theme-purple/20 text-theme-purple flex items-center justify-center">
+                    <i class="fa-solid fa-route text-sm"></i>
+                </span>
+                <div class="leading-tight">
+                    <p class="text-xs text-gray-400">Powered by</p>
+                    <p class="text-sm font-semibold tracking-wide">Clear Path</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scrollable Content Area -->
+        <div class="flex-1 overflow-y-auto pb-24">
+
+            <div id="paypal-section" class="space-y-6">
+                <!-- PayPal Banner -->
+                <div class="flex flex-col items-center justify-center p-6 bg-white/5 rounded-2xl border border-white/10 text-center mt-4">
+                    <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-lg">
+                        <i class="fa-brands fa-paypal text-4xl text-[#00457C]"></i>
+                    </div>
+                    <h2 class="text-lg font-semibold">Secure Payment via PayPal</h2>
+                    <p class="text-sm text-gray-400 mt-2 leading-relaxed">
+                        By clicking Next, you will authorize the payment through your PayPal account securely.
+                    </p>
+                </div>
+
+                <!-- PayPal Email Input -->
+                <form id="paypalForm" class="space-y-4 mt-6">
+                    <h3 class="text-sm font-semibold border-b border-white/10 pb-2 mb-4">PayPal Account Details</h3>
+                    <div>
+                        <label class="label-sm">Email Address</label>
+                        <div class="relative">
+                            <input type="email" placeholder="example@email.com" class="input-dark w-full rounded-xl p-3 pl-10 text-sm font-medium tracking-wide">
+                            <i class="fa-regular fa-envelope absolute left-3.5 top-3.5 text-gray-400"></i>
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+
+        </div>
+
+        <!-- Footer Button / Fixed at bottom of container -->
+        <div class="absolute bottom-6 left-6 right-6">
+            <button class="btn-glow w-full py-3.5 rounded-xl text-white font-semibold flex items-center justify-center" onclick="processPayment()">
+                <span>Next</span> <i class="fa-solid fa-arrow-right ml-2 text-sm"></i>
+            </button>
+            <p class="text-center text-xs text-gray-400 mt-3">
+                Clear Path &copy; 2026 - Secure payments for your journey
+            </p>
+        </div>
+
+    </div>
+
+    <!-- Modal for feedback -->
+    <div id="successModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-app-surface border border-white/10 p-8 rounded-3xl max-w-sm w-full mx-4 text-center transform scale-95 transition-transform duration-300">
+            <div class="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-check text-3xl text-green-500"></i>
+            </div>
+            <h2 class="text-xl font-bold mb-2">Payment Successful!</h2>
+            <p class="text-sm text-gray-400 mb-6">Your booking has been confirmed successfully.</p>
+            <button onclick="window.location.href='index.html'" class="btn-glow w-full py-3 rounded-xl text-white font-medium">Return Home</button>
+        </div>
+    </div>
+
+    <script src="payment.js"></script>
+</body>
+</html>

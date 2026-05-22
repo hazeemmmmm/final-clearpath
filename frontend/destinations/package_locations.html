@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClearPath | Package Locations</title>
+    <link rel="stylesheet" href="../home/home.css">
+    <link rel="stylesheet" href="package_locations.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+</head>
+<body>
+
+    <!-- start navbar -->
+<nav id="navbar">
+    <div class="nav-container">
+        <div class="logo" onclick="window.location.href='../home/home.html'">
+            <span class="logo-icon"><i class="fa-solid fa-map-marked-alt"></i></span> Clear<span>Path</span>
+        </div>
+        
+        <div class="nav-links">
+            <a href="../home/home.html" data-i18n="navHome">🏠 Homes</a>
+            <a href="#" class="active" onclick="openExperiences(event)">
+                <span class="compass-icon">🧭</span> <span data-i18n="navExperiences">Experiences</span>
+            </a>
+            <a href="contact.html" data-i18n="navContact" style="display: none;">📞 Contact Us</a>
+        </div>
+
+        <div class="nav-actions">
+            <div class="lang-dropdown">
+                <button class="dropbtn" onclick="toggleLang()">🌐 <span id="currentLang">EN</span></button>
+                <div id="langMenu" class="dropdown-content">
+                    <a href="#" onclick="changeLang('EN', event)">English</a>
+                    <a href="#" onclick="changeLang('AR', event)">العربية</a>
+                </div>
+            </div>  
+            
+            <!-- Dark / Light Mode Toggle -->
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme" style="background: none; border: none; cursor: pointer; font-size: 18px; margin: 0 10px; color: inherit;">
+                <i class="fa-solid fa-moon theme-icon"></i>
+            </button>
+            
+            <button class="btn-login" onclick="window.location.href='../auth/login/my_project/login.html'" data-i18n="btnLogin">Login</button>
+            <button class="btn-register" onclick="window.location.href='../auth/registration/regestration.html'" data-i18n="btnRegister">Register</button>
+        </div>
+    </div>
+</nav>
+    <!-- end navbar -->
+
+    <!-- start experiences modal -->
+<div id="experiencesModal" class="modal">
+    <div class="modal-content" style="text-align: center;">
+        <span class="close" onclick="closeExperiences()">&times;</span>
+        <h2 data-i18n="expChoose">Choose Experience</h2>
+        <p data-i18n="expSubtitle" style="margin: 15px 0; color: #555; font-size: 14px;">What kind of adventure are you looking for?</p>
+        <div style="display: flex; gap: 15px; margin-top: 20px;">
+            <button class="submit-btn btn-trips" onclick="window.location.href='../trips/trips.html'" data-i18n="expTrips">Trips</button>
+            <button class="submit-btn btn-dayuse" onclick="window.location.href='../dayuse/dayuse.html'" data-i18n="expDayuse">Dayuse</button>
+        </div>
+    </div>
+</div>
+    <!-- end experiences modal -->
+
+<div class="page-header" style="margin-top: 100px; text-align: center; padding: 40px 20px;">
+    <h1 style="font-size: 36px; color: #005073;">Explore Our Destinations</h1>
+    <p style="color: #555; margin-top: 10px; font-size: 18px;">Find the perfect stay for your next adventure.</p>
+</div>
+
+    <!-- Cairo - Group 1 -->
+<main class="content" id="cairo">
+    <div class="section-title">
+        <h2>🌆 Famous Hotels on the Nile & Downtown</h2>
+        <div class="arrows">
+            <button onclick="scrollL(this)"><i class="fa-solid fa-chevron-left"></i></button>
+            <button onclick="scrollR(this)"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+    </div>
+    <div class="scroll-wrapper">
+        <a href="../package_details/package-details.html" class="card card--link"><div class="img-box"><img src="" alt="The St. Regis Cairo"></div><div class="info"><h4>The St. Regis Cairo</h4><p>21,000 EGP ($420) / night</p></div></a>
+        <a href="../package_details/package-details.html" class="card card--link"><div class="img-box"><img src="" alt="The Nile Ritz-Carlton, Cairo"></div><div class="info"><h4>The Nile Ritz-Carlton, Cairo</h4><p>15,200 EGP ($304) / night</p></div></a>
+        <a href="../package_details/package-details.html" class="card card--link"><div class="img-box"><img src="" alt="Four Seasons Hotel Cairo at Nile Plaza"></div><div class="info"><h4>Four Seasons Hotel Cairo at Nile Plaza</h4><p>18,500 EGP ($370) / night</p></div></a>
+        <a href="../package_details/package-details.html" class="card card--link"><div class="img-box"><img src="" alt="Four Seasons Hotel Cairo at The First Residence"></div><div class="info"><h4>Four Seasons Hotel Cairo at The First Residence</h4><p>17,800 EGP ($356) / night</p></div></a>
+        <a href="../package_details/package-details.html" class="card card--link"><div class="img-box"><img src="" alt="Sofitel Cairo Nile El Gezirah"></div><div class="info"><h4>Sofitel Cairo Nile El Gezirah</h4><p>9,500 EGP ($190) / night</p></div></a>
+        <a href="../package_details/package-details.html" class="card card--link"><div class="img-box"><img src="" alt="Fairmont Nile City"></div><div class="info"><h4>Fairmont Nile City</h4><p>11,800 EGP ($236) / night</p></div></a>
+        <a href="../package_details/package-details.html" class="card card--link"><div class="img-box"><img src="" alt="Kempinski Nile Hotel Garden City Cairo"></div><div class="info"><h4>Kempinski Nile Hotel Garden City Cairo</h4><p>12,300 EGP ($246) / night</p></div></a>
+    </div>
+</main>
+
+    <!-- Cairo - Group 2 -->
+<main class="content">
+    <div class="section-title">
+        <h2>🏛️ Historic & Unique Hotels</h2>
+        <div class="arrows">
+            <button onclick="scrollL(this)"><i class="fa-solid fa-chevron-left"></i></button>
+            <button onclick="scrollR(this)"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+    </div>
+    <div class="scroll-wrapper">
+        <a href="../package_details/package-details.html" class="card card--link"><div class="img-box"><img src="" alt="InterContinental Cairo Semiramis"></div><div class="info"><h4>InterContinental Cairo Semiramis</h4><p>8,900 EGP ($178) / night</p></div></a>
+        <a href="../package_details/package-details.html" class="card card--link"><div class="img-box"><img src="" alt="Ramses Hilton"></div><div class="info"><h4>Ramses Hilton</h4><p>5,400 EGP ($108) / night</p></div></a>
+        <a href="../package_details/package-details.html" class="card card--link"><div class="img-box"><img src="" alt="Cairo Marriott Hotel"></div><div class="info"><h4>Cairo Marriott Hotel</h4><p>8,200 EGP ($164) / night</p></div></a>
+        <a href="../package_details/package-details.html" class="card card--link"><div class="img-box"><img src="" alt="Sheraton Cairo Hotel & Casino"></div><div class="info"><h4>Sheraton Cairo Hotel & Casino</h4><p>7,100 EGP ($142) / night</p></div></a>
+        <a href="../package_details/package-details.html" class="card card--link"><div class="img-box"><img src="" alt="Sofitel Cairo Downtown Nile"></div><div class="info"><h4>Sofitel Cairo Downtown Nile</h4><p>9,200 EGP ($184) / night</p></div></a>
+        <a href="../package_details/package-details.html" class="card card--link"><div class="img-box"><img src="" alt="Steigenberger Hotel El Tahrir Cairo"></div><div class="info"><h4>Steigenberger Hotel El Tahrir Cairo</h4><p>7,200 EGP ($144) / night</p></div></a>
+    </div>
+</main>
+
+    <!-- Cairo - Group 3 -->
+<main class="content">
+    <div class="section-title">
+        <h2>🏨 Strong & Famous Additional Hotels</h2>
+        <div class="arrows">
+            <button onclick="scrollL(this)"><i class="fa-solid fa-chevron-left"></i></button>
+            <button onclick="scrollR(this)"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+    </div>
+    <div class="scroll-wrapper">
+        <a href="../package_details/package-details.html" class="card card--link"><div class="img-box"><img src="" alt="Marriott Mena House Cairo"></div><div class="info"><h4>Marriott Mena House Cairo</h4><p>16,800 EGP ($336) / night</p></div></a>
+        <a href="../package_details/package-details.html" class="card card--link"><div class="img-box"><img src="" alt="Windsor Hotel Cairo"></div><div class="info"><h4>Windsor Hotel Cairo</h4><p>3,500 EGP ($70) / night</p></div></a>
+        <a href="../package_details/package-details.html" class="card card--link"><div class="img-box"><img src="" alt="Concorde El Salam Hotel Cairo"></div><div class="info"><h4>Concorde El Salam Hotel Cairo</h4><p>6,500 EGP ($130) / night</p></div></a>
+        <a href="../package_details/package-details.html" class="card card--link"><div class="img-box"><img src="" alt="Hilton Cairo Grand Nile"></div><div class="info"><h4>Hilton Cairo Grand Nile</h4><p>7,800 EGP ($156) / night</p></div></a>
+        <a href="../package_details/package-details.html" class="card card--link"><div class="img-box"><img src="" alt="Dusit Thani LakeView Cairo"></div><div class="info"><h4>Dusit Thani LakeView Cairo</h4><p>10,500 EGP ($210) / night</p></div></a>
+        <a href="../package_details/package-details.html" class="card card--link"><div class="img-box"><img src="" alt="JW Marriott Hotel Cairo"></div><div class="info"><h4>JW Marriott Hotel Cairo</h4><p>11,200 EGP ($224) / night</p></div></a>
+        <a href="../package_details/package-details.html" class="card card--link"><div class="img-box"><img src="" alt="Royal Maxim Palace Kempinski Cairo"></div><div class="info"><h4>Royal Maxim Palace Kempinski Cairo</h4><p>13,000 EGP ($260) / night</p></div></a>
+    </div>
+</main>
+
+
+
+    <!-- start footer -->
+    <footer>
+        <div class="footer-content" style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+            <div class="footer-logo" style="font-size: 18px;">
+                <span class="logo-icon"><i class="fa-solid fa-map-marked-alt"></i></span> Clear<span>Path</span>
+            </div>
+            <div class="footer-contact" style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; font-size: 13px; margin: 0;">
+                <p style="margin: 0;"><i class="fa-solid fa-phone"></i> 01001799282</p>
+                <p style="margin: 0;"><i class="fa-solid fa-headset"></i> Hotline: 19555</p>
+                <p style="margin: 0;"><i class="fa-solid fa-envelope"></i> info@clearpath.com</p>
+            </div>
+            <div class="footer-socials" style="display: flex; gap: 15px; font-size: 16px; margin: 0;">
+                <a href="#" style="color: inherit;"><i class="fa-brands fa-facebook"></i></a>
+                <a href="#" style="color: inherit;"><i class="fa-brands fa-instagram"></i></a>
+            </div>
+            <p data-i18n="footerRights" style="font-size: 11px; margin: 0;">&copy; 2026 ClearPath. All rights reserved.</p>
+        </div>
+    </footer>
+    <!-- end footer -->
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
+<script src="../home/home.js"></script>
+<script src="package_locations.js"></script>
+<script src="../assets/js/theme.js"></script>
+</body>
+</html>

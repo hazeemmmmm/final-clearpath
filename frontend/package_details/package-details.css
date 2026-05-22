@@ -1,0 +1,378 @@
+/* Package details — layout inspired by listing detail pages */
+/* trips.css sets body { height: 120vh } which leaves a gap below the footer; reset here */
+body.package-details-page {
+    padding-bottom: 0;
+    margin-bottom: 0;
+    height: auto;
+    min-height: unset;
+}
+
+body.package-details-page footer {
+    margin-bottom: 0;
+}
+
+.package-details-main {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 88px 5% 40px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: start;
+}
+
+@media (max-width: 900px) {
+    .package-details-main {
+        grid-template-columns: 1fr;
+        padding-top: 80px;
+    }
+}
+
+.package-gallery {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.package-gallery img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+    background: #f0f0f0;
+}
+
+@media (max-width: 500px) {
+    .package-gallery img {
+        height: 140px;
+    }
+}
+
+.package-info-col {
+    padding-top: 8px;
+}
+
+.package-info-col h1 {
+    font-size: clamp(1.5rem, 3vw, 1.85rem);
+    font-weight: 700;
+    color: #222;
+    line-height: 1.25;
+    margin-bottom: 12px;
+}
+
+.package-desc {
+    font-size: 1rem;
+    color: #555;
+    line-height: 1.55;
+    margin-bottom: 18px;
+}
+
+.package-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    font-size: 0.95rem;
+    color: #333;
+    margin-bottom: 16px;
+}
+
+.package-meta-row .stars {
+    color: #e61e4d;
+    font-weight: 600;
+}
+
+.package-meta-row .muted {
+    color: #717171;
+}
+
+.package-actions-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.package-actions-row button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: #222;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 0;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.package-actions-row button:hover {
+    color: #e61e4d;
+}
+
+.host-block {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 0;
+    border-top: 1px solid #ebebeb;
+    border-bottom: 1px solid #ebebeb;
+    margin-bottom: 20px;
+}
+
+.host-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #005073, #e61e4d);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+.host-text .host-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #222;
+}
+
+.host-text .host-tagline {
+    font-size: 0.9rem;
+    color: #717171;
+    margin-top: 2px;
+}
+
+/* Booking bar — in page flow, directly above footer */
+.package-booking-bar {
+    position: relative;
+    max-width: 1120px;
+    margin: 40px auto 0;
+    padding: 24px 5% 28px;
+    background: #fff;
+    border-top: 1px solid #ebebeb;
+    border-bottom: 1px solid #ebebeb;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.package-booking-inner {
+    max-width: 1120px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.booking-price-block .price-line {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #222;
+}
+
+.booking-price-block .cancel-note {
+    font-size: 0.85rem;
+    color: #e61e4d;
+    margin-top: 4px;
+}
+
+.booking-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.btn-pink-pill {
+    background: #e61e4d;
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: 14px 22px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    white-space: nowrap;
+}
+
+.btn-pink-pill:hover {
+    background: #c91842;
+    transform: translateY(-1px);
+}
+
+body.dark-mode .package-info-col h1,
+body.dark-mode .package-desc,
+body.dark-mode .package-meta-row,
+body.dark-mode .host-text .host-name {
+    color: #e6e6e6;
+}
+
+body.dark-mode .package-meta-row .muted,
+body.dark-mode .host-text .host-tagline {
+    color: #aaa;
+}
+
+body.dark-mode .package-booking-bar {
+    background: #1a1c23;
+    border-top-color: #333;
+    border-bottom-color: #333;
+}
+
+body.dark-mode .booking-price-block .price-line {
+    color: #fff;
+}
+
+body.dark-mode .host-block {
+    border-color: #333;
+}
+
+body.dark-mode .package-gallery img {
+    background: #2a2d39;
+}
+
+html[dir="rtl"] .package-booking-inner {
+    flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .booking-buttons {
+    flex-direction: row-reverse;
+}
+
+/* Customize package modal */
+#customizeModal .customize-modal-content {
+    max-width: 520px;
+    width: 92%;
+    margin: 8% auto;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    padding: 28px 28px 22px;
+    text-align: left;
+}
+
+#customizeModal .customize-modal-content h2 {
+    font-size: 1.35rem;
+    margin-bottom: 8px;
+    color: #222;
+}
+
+.customize-sub {
+    font-size: 0.95rem;
+    color: #555;
+    margin-bottom: 16px;
+    line-height: 1.45;
+}
+
+.customize-activities {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    max-height: min(48vh, 380px);
+    padding: 4px 4px 12px 0;
+    border-top: 1px solid #ebebeb;
+    border-bottom: 1px solid #ebebeb;
+    margin-bottom: 18px;
+}
+
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 8px;
+    margin: 0 -4px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.92rem;
+    color: #222;
+    line-height: 1.4;
+}
+
+.activity-item:hover {
+    background: #fff5f7;
+}
+
+.activity-item input {
+    margin-top: 3px;
+    width: 18px;
+    height: 18px;
+    accent-color: #e61e4d;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.activity-item span {
+    flex: 1;
+}
+
+.customize-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: flex-end;
+    align-items: center;
+    padding-top: 4px;
+}
+
+.btn-customize-cancel {
+    background: transparent;
+    border: 1px solid #ddd;
+    color: #333;
+    border-radius: 999px;
+    padding: 12px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.btn-customize-cancel:hover {
+    background: #f5f5f5;
+    border-color: #ccc;
+}
+
+.btn-customize-save {
+    padding: 12px 22px;
+    font-size: 15px;
+}
+
+body.dark-mode #customizeModal .customize-modal-content h2 {
+    color: #e6e6e6;
+}
+
+body.dark-mode .customize-sub {
+    color: #aaa;
+}
+
+body.dark-mode .customize-activities {
+    border-color: #333;
+}
+
+body.dark-mode .activity-item {
+    color: #e6e6e6;
+}
+
+body.dark-mode .activity-item:hover {
+    background: #2a2d39;
+}
+
+body.dark-mode .btn-customize-cancel {
+    border-color: #444;
+    color: #e6e6e6;
+}
+
+body.dark-mode .btn-customize-cancel:hover {
+    background: #333;
+}
+
+html[dir="rtl"] .customize-actions {
+    flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .activity-item {
+    flex-direction: row-reverse;
+}

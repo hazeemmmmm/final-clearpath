@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful | ClearPath</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="payment-tailwind.js"></script>
+    <link rel="stylesheet" href="payment.css">
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 sm:p-8 relative">
+
+    <div class="bg-shapes">
+        <!-- Top Right Cluster -->
+        <div class="shape-cluster top-right">
+            <div class="box box-1"></div>
+            <div class="box box-2"></div>
+            <div class="box box-3"></div>
+            <div class="box box-4"></div>
+        </div>
+        <!-- Bottom Left Cluster -->
+        <div class="shape-cluster bottom-left">
+            <div class="box box-1"></div>
+            <div class="box box-2"></div>
+            <div class="box box-3"></div>
+            <div class="box box-4"></div>
+        </div>
+    </div>
+
+    <div class="glass-container w-full max-w-md rounded-[2.5rem] p-8 relative overflow-hidden text-center">
+        
+        <div id="loadingState">
+            <i class="fa-solid fa-spinner fa-spin text-5xl text-theme-purple mb-4"></i>
+            <h2 class="text-xl font-bold mb-2">Finalizing Payment...</h2>
+            <p class="text-sm text-gray-400">Please wait while we confirm your payment with PayPal.</p>
+        </div>
+
+        <div id="successState" class="hidden">
+            <div class="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-check text-4xl text-green-500"></i>
+            </div>
+            <h2 class="text-2xl font-bold mb-2">Payment Successful!</h2>
+            <p class="text-sm text-gray-400 mb-6">Your booking has been confirmed. Thank you for choosing ClearPath.</p>
+            <button onclick="window.location.href='index.html'" class="btn-glow w-full py-3.5 rounded-xl text-white font-medium shadow-lg">Return Home</button>
+        </div>
+
+        <div id="errorState" class="hidden">
+            <div class="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-xmark text-4xl text-red-500"></i>
+            </div>
+            <h2 class="text-2xl font-bold mb-2 text-red-400">Payment Failed</h2>
+            <p id="errorMessage" class="text-sm text-gray-400 mb-6">Something went wrong while capturing your payment.</p>
+            <button onclick="window.location.href='../payment/payment.html'" class="w-full py-3.5 rounded-xl bg-white/10 hover:bg-white/20 transition-colors text-white font-medium border border-white/10">Try Again</button>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token'); // PayPal order ID
+            const authToken = localStorage.getItem('token');
+
+            const loadingState = document.getElementById('loadingState');
+            const successState = document.getElementById('successState');
+            const errorState = document.getElementById('errorState');
+            const errorMessage = document.getElementById('errorMessage');
+
+            if (!token) {
+                loadingState.classList.add('hidden');
+                errorState.classList.remove('hidden');
+                errorMessage.innerText = "No payment order ID found in the URL.";
+                return;
+            }
+
+            if (!authToken) {
+                loadingState.classList.add('hidden');
+                errorState.classList.remove('hidden');
+                errorMessage.innerText = "You are not logged in. Unable to verify payment.";
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/payment/capture/${token}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+
+                loadingState.classList.add('hidden');
+
+                if (response.ok && data.status === 'COMPLETED') {
+                    successState.classList.remove('hidden');
+                    // Clear temporary booking data if needed
+                    localStorage.removeItem('currentBookingId');
+                } else {
+                    errorState.classList.remove('hidden');
+                    errorMessage.innerText = data.message || "Failed to capture payment.";
+                }
+            } catch (error) {
+                console.error('Capture error:', error);
+                loadingState.classList.add('hidden');
+                errorState.classList.remove('hidden');
+                errorMessage.innerText = "A network error occurred while verifying your payment.";
+            }
+        });
+    </script>
+</body>
+</html>

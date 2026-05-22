@@ -1,0 +1,119 @@
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Global Light Mode Variables */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f4f7f6;
+  --bg-tertiary: #f9f9f9;
+  
+  --text-primary: #222222;
+  --text-secondary: #555555;
+  --text-muted: #888888;
+  
+  --brand-color: #003D59; /* Dark Blue */
+  --brand-accent: #d4af37; /* Gold */
+  --brand-highlight: #e61e4d; /* Pink/Red */
+
+  --card-bg: #ffffff;
+  --border-color: #dddddd;
+  
+  --shadow-sm: 0 2px 5px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+/* Global Dark Mode Variables */
+body.dark-mode {
+  --bg-primary: #121212;
+  --bg-secondary: #1e1e1e;
+  --bg-tertiary: #2a2a2a;
+  
+  --text-primary: #f0f0f0;
+  --text-secondary: #cccccc;
+  --text-muted: #999999;
+  
+  --brand-color: #0b587d; /* Lighter Blue for visibility */
+  --brand-accent: #e5c35b; /* Brighter Gold */
+  
+  --card-bg: #1e1e1e;
+  --border-color: #333333;
+  
+  --shadow-sm: 0 2px 5px rgba(0,0,0,0.5);
+  --shadow-md: 0 4px 15px rgba(0,0,0,0.8);
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+#root {
+  padding: 0 !important;
+  margin: 0 !important;
+  max-width: 100% !important;
+}
+
+a {
+  font-weight: 500;
+  color: var(--brand-color);
+  text-decoration: inherit;
+  transition: color 0.3s ease;
+}
+a:hover {
+  color: var(--brand-accent);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary);
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.25s;
+}
+
+button:hover {
+  border-color: var(--brand-color);
+}
+
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+/* Base Card Styles */
+.card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+}
+
+/* Input Styles */
+input, select, textarea {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--brand-color);
+  outline: none;
+}

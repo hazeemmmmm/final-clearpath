@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClearPath | Famous Trips in Cairo</title>
+    <link rel="stylesheet" href="trips.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+    <!-- start navbar -->
+<nav id="navbar">
+    <div class="nav-container">
+        <div class="logo">
+            <span class="logo-icon"><i class="fa-solid fa-map-marked-alt"></i></span> Clear<span>Path</span>
+        </div>
+        
+        <div class="nav-links">
+            <a href="../home/home.html" data-i18n="navHome">🏠 Homes</a>
+            <a href="#" class="active" onclick="openExperiences(event)">
+                <span class="compass-icon">🧭</span> <span data-i18n="navExperiences">Experiences</span>
+            </a>
+            <a href="../wishlist/wishlist.html"><i class="fa-regular fa-heart"></i> Wishlist</a>
+            <a href="contact.html" data-i18n="navContact" style="display: none;">📞 Contact Us</a>
+        </div>
+
+        <div class="nav-actions">
+            <div class="lang-dropdown">
+                <button class="dropbtn" onclick="toggleLang()">🌐 <span id="currentLang">EN</span></button>
+                <div id="langMenu" class="dropdown-content">
+                    <a href="#" onclick="changeLang('EN', event)">English</a>
+                    <a href="#" onclick="changeLang('AR', event)">العربية</a>
+                </div>
+            </div>  
+            
+            <!-- Dark / Light Mode Toggle -->
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme" style="background: none; border: none; cursor: pointer; font-size: 18px; margin: 0 10px; color: inherit;">
+                <i class="fa-solid fa-moon theme-icon"></i>
+            </button>
+            
+            <!-- updated buttons with navigations -->
+            <button class="btn-login" onclick="window.location.href='../auth/login/my_project/login.html'" data-i18n="btnLogin">Login</button>
+            <button class="btn-register" onclick="window.location.href='../auth/registration/regestration.html'" data-i18n="btnRegister">Register</button>
+
+        </div>
+    </div>
+</nav>
+    <!-- end navbar -->
+
+    <!-- start auth modal -->
+<div id="authModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeAuth()">&times;</span>
+        <h2 id="modalTitle" data-i18n="modalLogin">Login</h2>
+        <form id="authForm">
+            <input type="email" data-i18n-placeholder="phEmail" placeholder="Email Address" required>
+            <input type="password" data-i18n-placeholder="phPassword" placeholder="Password" required>
+            <button type="submit" class="submit-btn" data-i18n="modalContinue">Continue</button>
+        </form>
+    </div>
+</div>
+    <!-- end auth modal -->
+
+    <!-- start experiences modal -->
+<div id="experiencesModal" class="modal">
+    <div class="modal-content" style="text-align: center;">
+        <span class="close" onclick="closeExperiences()">&times;</span>
+        <h2 data-i18n="expChoose">Choose Experience</h2>
+        <p data-i18n="expSubtitle" style="margin: 15px 0; color: #555; font-size: 14px;">What kind of adventure are you looking for?</p>
+        <div style="display: flex; gap: 15px; margin-top: 20px;">
+            <button class="submit-btn btn-trips" onclick="window.location.href='../trips/trips.html'" data-i18n="expTrips">Trips</button>
+            <button class="submit-btn btn-dayuse" onclick="window.location.href='../dayuse/dayuse.html'" data-i18n="expDayuse">Dayuse</button>
+        </div>
+    </div>
+</div>
+    <!-- end experiences modal -->
+
+<div class="page-header hero-banner">
+    <div class="header-content">
+        <h1>Famous Trips in <span class="egypt-flag-text">Egypt</span></h1>
+        <p>Explore the timeless wonders, ancient monuments, and golden beaches from North to South.</p>
+    </div>
+</div>
+
+<div id="tripsContainer"></div>
+
+    <!-- start footer -->
+    <footer>
+        <div class="footer-content" style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+            <div class="footer-logo" style="font-size: 18px;">
+                <span class="logo-icon"><i class="fa-solid fa-map-marked-alt"></i></span> Clear<span>Path</span>
+            </div>
+            <div class="footer-contact" style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; font-size: 13px; margin: 0;">
+                <p style="margin: 0;"><i class="fa-solid fa-phone"></i> 01001799282</p>
+                <p style="margin: 0;"><i class="fa-solid fa-headset"></i> Hotline: 19555</p>
+                <p style="margin: 0;"><i class="fa-solid fa-envelope"></i> info@clearpath.com</p>
+            </div>
+            <div class="footer-socials" style="display: flex; gap: 15px; font-size: 16px; margin: 0;">
+                <a href="#" style="color: inherit;"><i class="fa-brands fa-facebook"></i></a>
+                <a href="#" style="color: inherit;"><i class="fa-brands fa-instagram"></i></a>
+            </div>
+            <p data-i18n="footerRights" style="font-size: 11px; margin: 0;">&copy; 2026 ClearPath. All rights reserved.</p>
+        </div>
+    </footer>
+    <!-- end footer -->
+
+<script src="trips_data.js"></script>
+<script src="../home/home.js"></script>
+<script src="../assets/js/theme.js"></script>
+</body>
+</html>

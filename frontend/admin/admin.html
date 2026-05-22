@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClearPath | Admin Panel</title>
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <nav id="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon"><i class="fa-solid fa-map-marked-alt"></i></span> Clear<span>Path</span> Admin
+            </div>
+
+            <div class="nav-links">
+                <a href="../home/home.html">Home</a>
+                <a href="admin.html" class="active">Admin</a>
+            </div>
+
+            <div class="nav-actions">
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+                    <i class="fa-solid fa-moon theme-icon"></i>
+                </button>
+                <button id="logoutBtn" class="btn-login" type="button">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="page-wrap">
+        <section class="card auth-card" id="authCard">
+            <h1>Admin Access</h1>
+            <p class="hint">Sign in with an admin account to manage project data.</p>
+            <form id="loginForm" class="grid-2">
+                <label>
+                    Email
+                    <input id="emailInput" type="email" required placeholder="admin@example.com">
+                </label>
+                <label>
+                    Password
+                    <input id="passwordInput" type="password" required placeholder="********">
+                </label>
+                <button type="submit" class="btn-register full">Login</button>
+            </form>
+        </section>
+    </main>
+
+    <script src="../assets/js/theme.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

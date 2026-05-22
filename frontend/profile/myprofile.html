@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clear Path | Profile</title>
+  <link rel="stylesheet" href="myprofile.css">
+</head>
+<body>
+<div class="profile-bg-overlay"></div>
+
+<nav class="navbar">
+    <a href="#" class="navbar-brand">Clear Path</a>
+    <div class="nav-links">
+        <a href="../home/home.html">Home</a> <a href="#">Trips</a>
+        <a href="myprofile.html">Profile</a>
+    </div>
+</nav>
+
+<div class="main-wrapper">
+    <section class="account-settings-card">
+        
+        <aside class="settings-sidebar">
+            <div class="avatar-container">
+                <img src="photo_6014992194021821506_y.jpg" alt="Traveler" id="avatarPreview">
+            </div>
+            <label for="imgUpload" class="change-photo-btn">CHANGE PHOTO</label>
+            <input type="file" id="imgUpload" accept="image/*" hidden>
+        </aside>
+
+        <main class="settings-content">
+            <header class="content-header">
+                <h1>My Profile</h1>
+            </header>
+
+            <div class="profile-form">
+                <div class="form-grid">
+                    <div class="data-field">
+                        <label>FIRST NAME</label>
+                        <div class="input-wrapper"><span id="displayFirstName">---</span></div>
+                    </div>
+                    <div class="data-field">
+                        <label>LAST NAME</label>
+                        <div class="input-wrapper"><span id="displayLastName">---</span></div>
+                    </div>
+                    <div class="data-field">
+                        <label>EMAIL ADDRESS</label>
+                        <div class="input-wrapper"><span id="displayEmail">---</span></div>
+                    </div>
+                    <div class="data-field">
+                        <label>BIRTHDAY</label>
+                        <div class="input-wrapper"><span id="displayBirthDate">---</span></div>
+                    </div>
+                    <div class="data-field">
+                        <label>GENDER</label>
+                        <div class="input-wrapper"><span id="displayGender">---</span></div>
+                    </div>
+
+    </section>
+</div>
+
+<script src="myprofile.js"></script>
+</body>
+</html>
