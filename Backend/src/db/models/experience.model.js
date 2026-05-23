@@ -81,6 +81,15 @@ const experienceSchema = new mongoose.Schema(
       },
     ],
 
+    // 🖼️ Curated High-Quality Real Egyptian Travel Images
+    image: {
+      type: String,
+    },
+    images: {
+      type: [String],
+      default: [],
+    },
+
     itinerary: [itineraryDaySchema],
   },
   {

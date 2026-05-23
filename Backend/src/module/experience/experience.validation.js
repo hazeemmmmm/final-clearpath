@@ -43,6 +43,8 @@ export const createExperienceSchema = Joi.object({
   base_price: Joi.number().positive().optional(),
   destination: destinationField.optional(),
   capacity: Joi.number().integer().positive().optional(),
+  image: Joi.string().optional(),
+  images: Joi.array().items(Joi.string()).optional(),
   availableDates: Joi.array().items(Joi.object({
     date: Joi.date().optional(),
     availableSeats: Joi.number().integer().positive().optional()
@@ -65,6 +67,8 @@ export const updateExperienceSchema = Joi.object({
   base_price: Joi.number().positive(),
   destination: destinationField,
   capacity: Joi.number().integer().positive(),
+  image: Joi.string(),
+  images: Joi.array().items(Joi.string()),
   availableDates: Joi.array().items(Joi.object({
     date: Joi.date(),
     availableSeats: Joi.number().integer().positive()

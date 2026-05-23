@@ -53,7 +53,11 @@ const AdminDashboard = () => {
     base_price: '',
     duration_days: '',
     capacity: '',
-    description: ''
+    description: '',
+    image: '',
+    safari_image: '',
+    hotel_image: '',
+    dining_image: ''
   });
 
   // Mock booking items for preview if database bookings list is empty, ensuring a "real-life look"
@@ -253,6 +257,13 @@ const AdminDashboard = () => {
         base_price: Number(formData.base_price),
         duration_days: Number(formData.duration_days),
         capacity: Number(formData.capacity),
+        image: formData.image || undefined,
+        images: [
+          formData.image,
+          formData.safari_image,
+          formData.hotel_image,
+          formData.dining_image
+        ].filter(Boolean),
         itinerary: formattedItinerary
       };
 
@@ -267,7 +278,11 @@ const AdminDashboard = () => {
         base_price: '',
         duration_days: '',
         capacity: '',
-        description: ''
+        description: '',
+        image: '',
+        safari_image: '',
+        hotel_image: '',
+        dining_image: ''
       });
       setItinerary([]);
 
@@ -923,6 +938,69 @@ const AdminDashboard = () => {
                             placeholder="Enter a compelling outline of what this premium package has in store..." 
                             required
                           ></textarea>
+                        </div>
+
+                        {/* 🖼️ Premium Package Images (Main, Safari, Hotel, Dining) */}
+                        <div className="form-row-two" style={{ gridColumn: '1 / -1', borderTop: '1px dashed rgba(255,255,255,0.08)', paddingTop: '20px', marginTop: '10px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                          <h4 style={{ color: '#ffffff', margin: '0 0 5px 0', fontSize: '0.95rem', gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <i className="fa-solid fa-images" style={{ color: '#fbbf24' }}></i> Curated Package Images (URLs)
+                          </h4>
+                          
+                          <div className="form-field">
+                            <label>Main Scenic Landmark Image URL</label>
+                            <div className="input-with-icon">
+                              <i className="fa-solid fa-image"></i>
+                              <input 
+                                type="text" 
+                                name="image" 
+                                value={formData.image} 
+                                onChange={handleInputChange} 
+                                placeholder="e.g. https://images.unsplash.com/photo-1503177119275-0aa32b31d468" 
+                              />
+                            </div>
+                          </div>
+
+                          <div className="form-field">
+                            <label>Desert Safari / Activity Image URL</label>
+                            <div className="input-with-icon">
+                              <i className="fa-solid fa-campground"></i>
+                              <input 
+                                type="text" 
+                                name="safari_image" 
+                                value={formData.safari_image} 
+                                onChange={handleInputChange} 
+                                placeholder="e.g. https://images.unsplash.com/photo-1547234935-80c7145ec969" 
+                              />
+                            </div>
+                          </div>
+
+                          <div className="form-field">
+                            <label>Luxury Hotel / Lodging Image URL</label>
+                            <div className="input-with-icon">
+                              <i className="fa-solid fa-hotel"></i>
+                              <input 
+                                type="text" 
+                                name="hotel_image" 
+                                value={formData.hotel_image} 
+                                onChange={handleInputChange} 
+                                placeholder="e.g. https://images.unsplash.com/photo-1566073771259-6a8506099945" 
+                              />
+                            </div>
+                          </div>
+
+                          <div className="form-field">
+                            <label>Traditional Dining / Restaurant Image URL</label>
+                            <div className="input-with-icon">
+                              <i className="fa-solid fa-utensils"></i>
+                              <input 
+                                type="text" 
+                                name="dining_image" 
+                                value={formData.dining_image} 
+                                onChange={handleInputChange} 
+                                placeholder="e.g. https://images.unsplash.com/photo-1541532713592-79a0317b6b77" 
+                              />
+                            </div>
+                          </div>
                         </div>
 
                         {itinerary.length > 0 && (

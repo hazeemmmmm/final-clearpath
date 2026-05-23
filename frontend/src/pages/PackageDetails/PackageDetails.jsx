@@ -24,6 +24,7 @@ import './PackageDetails.css';
 const PackageDetails = () => {
   const { id } = useParams();
   const [packageData, setPackageData] = useState(null);
+  const [activeImage, setActiveImage] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -82,7 +83,11 @@ const PackageDetails = () => {
       }
 
       const response = await getTripDetails(id);
-      setPackageData(response.data || response.experience || response);
+      const pkg = response.data || response.experience || response;
+      setPackageData(pkg);
+      if (pkg) {
+        setActiveImage(pkg.image || (pkg.images && pkg.images[0]) || 'https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=1200&q=80');
+      }
       
       try {
         const acts = await getActivities({ limit: 100 });
@@ -465,12 +470,40 @@ const PackageDetails = () => {
                   )}
                 </div>
 
-                <div className="image-wrapper">
-                  <img 
-                    src={packageData.image || 'https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=1200&q=80'} 
-                    alt={packageData.name || packageData.title} 
-                  />
-                  <div className="type-badge">{packageData.type}</div>
+                {/* 📸 Premium Interactive Travel Experience Gallery */}
+                <div className="premium-gallery-container">
+                  {/* Large Active Image */}
+                  <div className="image-wrapper">
+                    <img 
+                      src={activeImage || packageData.image || 'https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=1200&q=80'} 
+                      alt={packageData.name || packageData.title} 
+                      className="main-gallery-image"
+                    />
+                    <div className="type-badge">{packageData.type}</div>
+                  </div>
+
+                  {/* Thumbnails Row */}
+                  {packageData.images && packageData.images.length > 0 && (
+                    <div className="thumbnails-grid">
+                      {packageData.images.map((imgUrl, idx) => {
+                        let label = "Sight";
+                        if (idx === 1) label = "Safari";
+                        if (idx === 2) label = "Hotel";
+                        if (idx === 3) label = "Dining";
+                        
+                        return (
+                          <div 
+                            key={idx} 
+                            className={`thumbnail-item ${activeImage === imgUrl ? 'active' : ''}`}
+                            onClick={() => setActiveImage(imgUrl)}
+                          >
+                            <img src={imgUrl} alt={`${label} view`} />
+                            <span className="thumbnail-label">{label}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 <div className="details-section">
