@@ -1,105 +1,239 @@
-.verify-container {
+.verify-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-image: url("/images/register-bg.png");
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  font-family: "Oswald", sans-serif;
+  letter-spacing: 1px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.verify-wrapper .mainpage {
+  position: relative;
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #f5f5f5;
-  padding: 20px;
+  padding: 40px 0;
 }
 
-.verify-container form {
-  background: white;
-  padding: 40px;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+.verify-wrapper .verifyform {
   width: 100%;
-  max-width: 400px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.verify-wrapper .verifyr {
+  margin: 0 auto;
+}
+
+.verify-wrapper .form {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 18px;
+  max-width: 400px;
+  width: 100%;
+  padding: 35px 30px;
+  position: relative;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+  color: white;
+  transition: all 0.4s ease;
+  animation: verifyFadeInScale 0.8s ease-out forwards;
 }
 
-.verify-container h2 {
-  text-align: center;
-  margin-bottom: 10px;
-  color: #333;
+@keyframes verifyFadeInScale {
+  0% { opacity: 0; transform: scale(0.92); }
+  100% { opacity: 1; transform: scale(1); }
 }
 
-.verify-container .subtitle {
-  text-align: center;
-  color: #666;
-  margin-bottom: 20px;
-  font-size: 0.9em;
+.verify-wrapper .form:hover {
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.25);
+  transform: translateY(-4px);
 }
 
-.verify-container input {
+.verify-wrapper .title {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding-left: 30px;
+  color: whitesmoke;
+  margin-bottom: 5px;
+  justify-content: center;
+}
+
+.verify-wrapper .title::before,
+.verify-wrapper .title::after {
+  position: absolute;
+  content: "";
+  border-radius: 50%;
+  left: 20px;
+}
+
+.verify-wrapper .title::before {
+  width: 16px;
+  height: 16px;
+  background-color: #4c9df2;
+}
+
+.verify-wrapper .title::after {
+  width: 16px;
+  height: 16px;
+  background-color: #4c9df2;
+  animation: verifyPulse 1.2s linear infinite;
+}
+
+@keyframes verifyPulse {
+  from {
+    transform: scale(0.9);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+
+.verify-wrapper .form label {
+  position: relative;
+  width: 100%;
+  display: block;
+}
+
+.verify-wrapper .form label .input {
+  width: 100%;
   padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 16px;
+  outline: 0;
+  border: none;
+  border-radius: 8px;
+  background-color: #fff;
+  color: #333;
+  font-size: 15px;
+  box-sizing: border-box;
+}
+
+.verify-wrapper .form label .input.readonly-input {
+  background-color: rgba(255, 255, 255, 0.4);
+  color: #f1f5f9;
+  cursor: not-allowed;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.verify-wrapper .form label .input+span {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  color: #64748b;
+  font-size: 0.88rem;
+  cursor: text;
+  transition: 0.3s ease;
+  pointer-events: none;
+}
+
+.verify-wrapper .form label .input:placeholder-shown+span {
+  top: 12px;
+  font-size: 0.88rem;
+}
+
+.verify-wrapper .form label .input:focus+span,
+.verify-wrapper .form label .input:valid+span,
+.verify-wrapper .form label .input.readonly-input+span {
+  top: -18px;
+  left: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.verify-wrapper .submit {
+  border: none;
   outline: none;
-  transition: border-color 0.3s;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(15px);
+  padding: 12px;
+  border-radius: 30px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  transition: 0.3s ease;
+  margin-top: 10px;
+  width: 100%;
 }
 
-.verify-container input:focus {
-  border-color: #0056b3;
+.verify-wrapper .submit:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transform: scale(1.02);
 }
 
-.verify-container input.readonly-input {
-  background-color: #e9ecef;
-  color: #6c757d;
+.verify-wrapper .submit:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
-.verify-container button {
-  padding: 12px;
-  background-color: #0056b3;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.3s;
+.verify-wrapper .signin {
+  text-align: center;
+  font-size: 14px;
+  color: #fff;
   margin-top: 10px;
 }
 
-.verify-container button:hover:not(:disabled) {
-  background-color: #004494;
-}
-
-.verify-container button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
-.verify-container p {
-  text-align: center;
-  margin-top: 15px;
-}
-
-.verify-container a {
-  color: #0056b3;
+.verify-wrapper .loginBtn {
   text-decoration: none;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(15px);
+  color: #fff;
+  padding: 5px 15px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: 0.3s ease;
+  margin-left: 8px;
 }
 
-.verify-container a:hover {
-  text-decoration: underline;
+.verify-wrapper .loginBtn:hover {
+  background-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
 }
 
-.success-msg {
-  color: #155724;
-  background-color: #d4edda;
+.verify-wrapper .alert {
   padding: 10px;
-  border-radius: 4px;
-  font-size: 0.9em;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
   text-align: center;
 }
 
-.error-msg {
-  color: #721c24;
-  background-color: #f8d7da;
-  padding: 10px;
-  border-radius: 4px;
-  font-size: 0.9em;
-  text-align: center;
+.verify-wrapper .alert-error-custom {
+  background: rgba(220, 53, 69, 0.25);
+  border: 1px solid rgba(220, 53, 69, 0.5);
+  color: #fca5a5;
+}
+
+.verify-wrapper .alert-success-custom {
+  background: rgba(16, 185, 129, 0.25);
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  color: #a7f3d0;
+}
+
+@media screen and (max-width: 450px) {
+  .verify-wrapper .form {
+    width: 90%;
+    padding: 20px;
+  }
 }

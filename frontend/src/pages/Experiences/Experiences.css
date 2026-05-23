@@ -135,6 +135,10 @@
   background: #ff8f00;
 }
 
+.exp-badge.trip {
+  background: var(--brand-color);
+}
+
 .wishlist-btn {
   position: absolute;
   top: 15px;

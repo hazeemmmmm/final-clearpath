@@ -7,7 +7,17 @@ import {
   getUserProfile, 
   getExperienceReviews, 
   getExperienceStats, 
-  createReview 
+  createReview,
+  getFinalTrip,
+  createCustomTrip,
+  addActivityToCustomTrip,
+  removeActivityFromCustomTrip,
+  removeDayFromCustomTrip,
+  addExtraActivityToCustomTrip,
+  removeExtraActivityFromCustomTrip,
+  createBooking,
+  getActivities,
+  getProviders
 } from '../../utils/api';
 import './PackageDetails.css';
 
@@ -30,6 +40,19 @@ const PackageDetails = () => {
   const [reviewError, setReviewError] = useState('');
   const [userHasReviewed, setUserHasReviewed] = useState(false);
 
+  // Customization State
+  const [customTrip, setCustomTrip] = useState(null);
+  const [isCustomizing, setIsCustomizing] = useState(false);
+  const [activitiesList, setActivitiesList] = useState([]);
+  const [providersList, setProvidersList] = useState([]);
+  const [showAddActivityDay, setShowAddActivityDay] = useState(null);
+  const [newActivitySelection, setNewActivitySelection] = useState({ activityId: '', providerId: '', price: '' });
+  const [showAddExtra, setShowAddExtra] = useState(false);
+  const [bookingLoading, setBookingLoading] = useState(false);
+  const [customizationError, setCustomizationError] = useState('');
+  const [lang, setLang] = useState('EN');
+  const [guestCount, setGuestCount] = useState(1);
+
   const token = localStorage.getItem('token') || localStorage.getItem('clearpath_access_token');
 
   // Fetch package details, user profile, reviews and stats
@@ -45,13 +68,222 @@ const PackageDetails = () => {
   const fetchPackageDetails = async () => {
     try {
       setLoading(true);
+      
+      if (token) {
+        try {
+          const response = await getFinalTrip(id);
+          if (response && response.source === 'customTrip') {
+            setCustomTrip(response.data);
+            setIsCustomizing(true);
+          }
+        } catch (err) {
+          console.log('No existing customization or error fetching custom trip', err);
+        }
+      }
+
       const response = await getTripDetails(id);
       setPackageData(response.data || response.experience || response);
+      
+      try {
+        const acts = await getActivities({ limit: 100 });
+        setActivitiesList(acts.data || acts.activities || acts || []);
+        
+        const provs = await getProviders({ limit: 100 });
+        setProvidersList(provs.data || provs.providers || provs || []);
+      } catch (err) {
+        console.error('Failed to load customization catalogs', err);
+      }
+
     } catch (err) {
       console.error('Failed to load package details', err);
       setError('Failed to load package details. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStartCustomization = async () => {
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      await createCustomTrip(id);
+      
+      const viewRes = await getFinalTrip(id);
+      setCustomTrip(viewRes.data);
+      setIsCustomizing(true);
+      setCustomizationError('');
+    } catch (err) {
+      console.error('Failed to start customization', err);
+      setCustomizationError(err.message || 'Failed to start customizing this experience.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleCustomization = () => {
+    setIsCustomizing(!isCustomizing);
+  };
+
+  const handleToggleDayCheckbox = async (day_number) => {
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
+
+    try {
+      let activeTrip = customTrip;
+      if (!activeTrip) {
+        // Initialize custom trip first in the background
+        await createCustomTrip(id);
+        const viewRes = await getFinalTrip(id);
+        activeTrip = viewRes.data;
+        setCustomTrip(activeTrip);
+        setIsCustomizing(true);
+      }
+
+      await removeDayFromCustomTrip(activeTrip._id, day_number);
+      const viewRes = await getFinalTrip(id);
+      setCustomTrip(viewRes.data);
+    } catch (err) {
+      console.error('Failed to toggle day', err);
+      alert(err.message || 'Failed to update day.');
+    }
+  };
+
+  const handleToggleActivityCheckbox = async (day_number, activityId) => {
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
+
+    try {
+      let activeTrip = customTrip;
+      if (!activeTrip) {
+        // Initialize custom trip first in the background
+        await createCustomTrip(id);
+        const viewRes = await getFinalTrip(id);
+        activeTrip = viewRes.data;
+        setCustomTrip(activeTrip);
+        setIsCustomizing(true);
+      }
+
+      await removeActivityFromCustomTrip(activeTrip._id, day_number, activityId);
+      const viewRes = await getFinalTrip(id);
+      setCustomTrip(viewRes.data);
+    } catch (err) {
+      console.error('Failed to toggle activity', err);
+      alert(err.message || 'Failed to update activity.');
+    }
+  };
+
+  const handleToggleOptionalCheckbox = async (day_number, activity) => {
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
+
+    try {
+      let activeTrip = customTrip;
+      if (!activeTrip) {
+        // Initialize custom trip first in the background
+        await createCustomTrip(id);
+        const viewRes = await getFinalTrip(id);
+        activeTrip = viewRes.data;
+        setCustomTrip(activeTrip);
+        setIsCustomizing(true);
+      }
+
+      // Check if this activity already exists in customTrip itinerary for this day
+      const customDay = activeTrip.itinerary?.find(d => d.day_number === day_number);
+      const existingAct = customDay?.activities?.find(a => (a.activity?._id || a.activity) === activity._id);
+
+      if (existingAct) {
+        // Just toggle its status
+        await removeActivityFromCustomTrip(activeTrip._id, day_number, activity._id);
+      } else {
+        // Add it as a new custom activity
+        await addActivityToCustomTrip(activeTrip._id, day_number, {
+          activity: activity._id,
+          price: activity.price,
+          provider: (activity.providers && activity.providers[0]) || null
+        });
+      }
+
+      const viewRes = await getFinalTrip(id);
+      setCustomTrip(viewRes.data);
+    } catch (err) {
+      console.error('Failed to toggle optional activity', err);
+      alert(err.message || 'Failed to update optional activity.');
+    }
+  };
+
+  const handleAddActivitySubmit = async (dayNumber) => {
+    if (!newActivitySelection.activityId) {
+      alert('Please select an activity.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      let activeTrip = customTrip;
+      if (!activeTrip) {
+        await createCustomTrip(id);
+        const viewRes = await getFinalTrip(id);
+        activeTrip = viewRes.data;
+        setCustomTrip(activeTrip);
+        setIsCustomizing(true);
+      }
+
+      await addActivityToCustomTrip(activeTrip._id, dayNumber, {
+        activity: newActivitySelection.activityId,
+        price: Number(newActivitySelection.price) || 0,
+        provider: newActivitySelection.providerId || null
+      });
+
+      const viewRes = await getFinalTrip(id);
+      setCustomTrip(viewRes.data);
+      setShowAddActivityDay(null);
+      setNewActivitySelection({ activityId: '', providerId: '', price: '' });
+      setCustomizationError('');
+    } catch (err) {
+      console.error('Failed to add custom activity', err);
+      setCustomizationError(err.message || 'Failed to add activity.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBookNow = async () => {
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
+
+    try {
+      setBookingLoading(true);
+      let res;
+      if (isCustomizing && customTrip) {
+        res = await createBooking({ customTrip: customTrip._id, numberOfGuests: guestCount });
+      } else {
+        res = await createBooking({ experienceId: packageData._id, numberOfGuests: guestCount });
+      }
+      
+      const booking = res.data || res.booking || res;
+      if (booking && booking._id) {
+        localStorage.setItem('currentBookingId', booking._id);
+        window.location.href = '/payment';
+      } else {
+        throw new Error('Booking could not be created.');
+      }
+    } catch (err) {
+      console.error('Failed to create booking', err);
+      alert(err.message || 'Failed to create booking.');
+    } finally {
+      setBookingLoading(false);
     }
   };
 
@@ -181,9 +413,13 @@ const PackageDetails = () => {
     return Math.round((count / stats.totalReviews) * 100);
   };
 
+  const displayItinerary = customTrip && customTrip.itinerary && customTrip.itinerary.length > 0
+    ? customTrip.itinerary
+    : (packageData ? packageData.itinerary : []);
+
   return (
     <div className="package-details-page">
-      <Navbar />
+      <Navbar lang={lang} setLang={setLang} isScrolled={true} />
 
       <main className="details-container">
         {loading ? (
@@ -244,45 +480,399 @@ const PackageDetails = () => {
                   </p>
                 </div>
 
-                {/* Itinerary Section if available */}
-                {packageData.itinerary && packageData.itinerary.length > 0 && (
-                  <div className="itinerary-section">
-                    <h2>Planned Itinerary</h2>
-                    <div className="itinerary-timeline">
-                      {packageData.itinerary.map((day) => (
-                        <div key={day.day_number} className="itinerary-day">
-                          <div className="day-badge">Day {day.day_number}</div>
-                          <div className="day-content">
-                            {day.activities && day.activities.length > 0 ? (
-                              <ul className="activity-list">
-                                {day.activities.map((act, index) => (
-                                  <li key={index} className="activity-item">
-                                    <span className="act-name">
-                                      <i className="fa-solid fa-circle-check"></i> {act.activity?.name || 'Exciting Activity'}
-                                    </span>
-                                    {act.price > 0 && <span className="act-price">+{act.price} EGP</span>}
-                                  </li>
-                                ))}
-                              </ul>
-                            ) : (
-                              <p>Free leisure time to explore the city.</p>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                {/* Itinerary Section */}
+                <div className="itinerary-section">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                    <h2>{isCustomizing ? '⚡ Your Customized Itinerary' : 'Planned Itinerary'}</h2>
+                    {token && customTrip && (
+                      <button 
+                        onClick={handleToggleCustomization} 
+                        className="btn-toggle-custom"
+                        style={{
+                          background: 'rgba(212, 175, 55, 0.1)',
+                          border: '1px solid #d4af37',
+                          color: '#d4af37',
+                          padding: '6px 12px',
+                          borderRadius: '20px',
+                          cursor: 'pointer',
+                          fontSize: '0.85rem',
+                          fontWeight: '600',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        {isCustomizing ? 'View Standard Plan' : 'View Customized Plan'}
+                      </button>
+                    )}
                   </div>
-                )}
+
+                  <p style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <i className="fa-solid fa-circle-info" style={{ color: '#d4af37' }}></i>
+                    {token 
+                      ? 'يمكنك تخصيص رحلتك بمجرد تحديد أو إلغاء تحديد الأيام والأنشطة أدناه!' 
+                      : 'سجل دخولك لتتمكن من إلغاء أو تفعيل أي يوم أو نشاط وتعديل سعر الرحلة فوراً!'}
+                  </p>
+
+                  {customizationError && (
+                    <div className="alert alert-error" style={{ marginBottom: '15px' }}>
+                      <i className="fa-solid fa-circle-exclamation"></i> {customizationError}
+                    </div>
+                  )}
+
+                  <div className="itinerary-timeline customized">
+                    {displayItinerary && displayItinerary.length > 0 ? (
+                      <>
+                        {displayItinerary.map((day) => {
+                          const customDay = customTrip?.itinerary?.find(d => d.day_number === day.day_number);
+                          const isDayRemoved = customDay ? customDay.status === 'removed' : false;
+
+                          // Optional Activities for this destination
+                          const pkgDestId = packageData?.destination?._id || packageData?.destination;
+                          const optionalActs = activitiesList.filter(act => {
+                            const actDestId = act.destination?._id || act.destination;
+                            return actDestId && pkgDestId && actDestId.toString() === pkgDestId.toString();
+                          }) || [];
+                          const finalAddActivityOptions = optionalActs.length > 0 ? optionalActs : activitiesList;
+
+                          return (
+                            <div key={day.day_number} className="itinerary-day" style={{ borderLeft: '2px dashed rgba(212, 175, 55, 0.3)', opacity: isDayRemoved ? 0.55 : 1, transition: 'opacity 0.2s' }}>
+                              <div className="day-badge" style={{ background: isDayRemoved ? '#555' : '#d4af37', color: '#000' }}>Day {day.day_number}</div>
+                              
+                              <div className="day-content" style={{ background: 'rgba(212, 175, 55, 0.02)', border: isDayRemoved ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(212, 175, 55, 0.1)', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                                  <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', margin: 0 }}>
+                                    <input 
+                                      type="checkbox"
+                                      checked={!isDayRemoved}
+                                      onChange={() => handleToggleDayCheckbox(day.day_number)}
+                                      style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: '#d4af37' }}
+                                    />
+                                    <h3 style={{ color: isDayRemoved ? '#777' : '#d4af37', margin: 0, fontSize: '1.15rem', textDecoration: isDayRemoved ? 'line-through' : 'none' }}>
+                                      Day {day.day_number} Plan {isDayRemoved && ' (Removed)'}
+                                    </h3>
+                                  </label>
+                                </div>
+
+                                {day.activities && day.activities.length > 0 ? (
+                                  <ul className="activity-list" style={{ paddingLeft: 0, listStyle: 'none', margin: 0 }}>
+                                    {day.activities.map((act, index) => {
+                                      const actObj = act.activity;
+                                      const customAct = customDay?.activities?.find(a => (a.activity?._id || a.activity) === (actObj?._id || actObj));
+                                      const isActRemoved = customAct ? customAct.status === 'removed' : false;
+                                      const isDisabled = isDayRemoved;
+
+                                      return (
+                                        <li key={index} className="activity-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', opacity: (isDisabled || isActRemoved) ? 0.5 : 1 }}>
+                                          <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: isDisabled ? 'not-allowed' : 'pointer', margin: 0, color: (isDisabled || isActRemoved) ? '#777' : '#e2e8f0', width: '80%' }}>
+                                            <input 
+                                              type="checkbox"
+                                              disabled={isDisabled}
+                                              checked={!isDisabled && !isActRemoved}
+                                              onChange={() => handleToggleActivityCheckbox(day.day_number, actObj?._id || actObj)}
+                                              style={{ width: '17px', height: '17px', cursor: isDisabled ? 'not-allowed' : 'pointer', accentColor: '#d4af37' }}
+                                            />
+                                            <span style={{ textDecoration: isActRemoved ? 'line-through' : 'none' }}>
+                                              {actObj?.name || 'Exciting Activity'}
+                                              {act.provider && <span style={{ fontSize: '0.8rem', color: '#888', marginLeft: '8px' }}>({act.provider.name || 'Provider'})</span>}
+                                            </span>
+                                          </label>
+                                          <span className="act-price" style={{ color: (isDisabled || isActRemoved) ? '#777' : '#d4af37', fontWeight: '600', textDecoration: isActRemoved ? 'line-through' : 'none' }}>
+                                            +{act.price} EGP
+                                          </span>
+                                        </li>
+                                      );
+                                    })}
+                                  </ul>
+                                ) : (
+                                  <p style={{ color: '#666', fontStyle: 'italic', margin: 0 }}>Free leisure time to explore the city.</p>
+                                )}
+
+                                {/* Inline Add Custom Activity Form */}
+                                {isCustomizing && customTrip && !isDayRemoved && (
+                                  <div style={{ marginTop: '15px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '10px' }}>
+                                    {showAddActivityDay === day.day_number ? (
+                                      <div className="add-activity-inline-form" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(212, 175, 55, 0.2)', padding: '15px', borderRadius: '8px', marginTop: '10px' }}>
+                                        <h4 style={{ color: '#d4af37', fontSize: '0.9rem', margin: '0 0 10px 0' }}>
+                                          {lang === 'AR' ? 'إضافة نشاط مخصص لهذا اليوم:' : 'Add Custom Activity to Day:'}
+                                        </h4>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                          <select 
+                                            value={newActivitySelection.activityId}
+                                            onChange={(e) => {
+                                              const actId = e.target.value;
+                                              const actObj = activitiesList.find(a => a._id === actId);
+                                              setNewActivitySelection(prev => ({
+                                                ...prev,
+                                                activityId: actId,
+                                                price: actObj ? actObj.price : '',
+                                                providerId: actObj && actObj.provider?._id ? actObj.provider._id : (actObj?.provider || '')
+                                              }));
+                                            }}
+                                            style={{ padding: '8px', background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '4px' }}
+                                          >
+                                            <option value="">-- {lang === 'AR' ? 'اختر نشاطاً' : 'Select an Activity'} --</option>
+                                            {finalAddActivityOptions.map(act => (
+                                              <option key={act._id} value={act._id}>{act.name} ({act.type}) - {act.price} EGP</option>
+                                            ))}
+                                          </select>
+
+                                          {newActivitySelection.activityId && (
+                                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                              <span style={{ fontSize: '0.85rem', color: '#aaa' }}>
+                                                {lang === 'AR' ? `السعر: ${newActivitySelection.price} جنيه` : `Price: ${newActivitySelection.price} EGP`}
+                                              </span>
+                                            </div>
+                                          )}
+
+                                          <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
+                                            <button 
+                                              onClick={() => handleAddActivitySubmit(day.day_number)}
+                                              style={{ background: 'var(--brand-accent)', color: '#000', border: 'none', padding: '6px 15px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem' }}
+                                            >
+                                              {lang === 'AR' ? 'تأكيد الإضافة' : 'Confirm Add'}
+                                            </button>
+                                            <button 
+                                              onClick={() => {
+                                                setShowAddActivityDay(null);
+                                                setNewActivitySelection({ activityId: '', providerId: '', price: '' });
+                                              }}
+                                              style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '6px 15px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}
+                                            >
+                                              {lang === 'AR' ? 'إلغاء' : 'Cancel'}
+                                            </button>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <button 
+                                        onClick={() => setShowAddActivityDay(day.day_number)}
+                                        style={{ background: 'transparent', border: '1px dashed rgba(212, 175, 55, 0.4)', color: '#d4af37', padding: '6px 12px', borderRadius: '20px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '5px' }}
+                                      >
+                                        <i className="fa-solid fa-plus"></i> {lang === 'AR' ? 'إضافة نشاط لهذا اليوم' : 'Add Activity to this Day'}
+                                      </button>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        {/* Timeline Node for Adding a New Day */}
+                        {isCustomizing && customTrip && (
+                          <div className="add-day-timeline-node" style={{ display: 'flex', alignItems: 'center', gap: '15px', borderLeft: '2px dashed rgba(212, 175, 55, 0.3)', paddingLeft: '20px', position: 'relative', marginTop: '20px', minHeight: '60px' }}>
+                            <button 
+                              className="btn-add-day-plus"
+                              onClick={() => {
+                                const nextDayNum = displayItinerary.length + 1;
+                                setShowAddActivityDay(nextDayNum);
+                              }}
+                              style={{
+                                position: 'absolute',
+                                left: '-16px',
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '50%',
+                                background: 'var(--brand-accent, #d4af37)',
+                                color: '#121212',
+                                border: 'none',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '1.2rem',
+                                fontWeight: 'bold',
+                                boxShadow: '0 4px 10px rgba(212, 175, 55, 0.4)',
+                                transition: 'all 0.2s'
+                              }}
+                              title={lang === 'AR' ? 'إضافة يوم جديد للخطة' : 'Add New Day to Itinerary'}
+                            >
+                              <i className="fa-solid fa-plus"></i>
+                            </button>
+                            
+                            <div style={{ marginLeft: '15px' }}>
+                              {showAddActivityDay === (displayItinerary.length + 1) ? (
+                                <div className="add-activity-inline-form" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(212, 175, 55, 0.2)', padding: '15px', borderRadius: '8px', width: '320px' }}>
+                                  <h4 style={{ color: '#d4af37', fontSize: '0.9rem', margin: '0 0 10px 0' }}>
+                                    {lang === 'AR' ? `إضافة نشاط لليوم الجديد (اليوم ${displayItinerary.length + 1}):` : `Add Activity to Start Day ${displayItinerary.length + 1}:`}
+                                  </h4>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                    <select 
+                                      value={newActivitySelection.activityId}
+                                      onChange={(e) => {
+                                        const actId = e.target.value;
+                                        const actObj = activitiesList.find(a => a._id === actId);
+                                        setNewActivitySelection(prev => ({
+                                          ...prev,
+                                          activityId: actId,
+                                          price: actObj ? actObj.price : '',
+                                          providerId: actObj && actObj.provider?._id ? actObj.provider._id : (actObj?.provider || '')
+                                        }));
+                                      }}
+                                      style={{ padding: '8px', background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '4px' }}
+                                    >
+                                      <option value="">-- {lang === 'AR' ? 'اختر نشاطاً' : 'Select an Activity'} --</option>
+                                      {(() => {
+                                        const pkgDestId = packageData?.destination?._id || packageData?.destination;
+                                        const optionalActs = activitiesList.filter(act => {
+                                          const actDestId = act.destination?._id || act.destination;
+                                          return actDestId && pkgDestId && actDestId.toString() === pkgDestId.toString();
+                                        }) || [];
+                                        const finalOptions = optionalActs.length > 0 ? optionalActs : activitiesList;
+                                        return finalOptions.map(act => (
+                                          <option key={act._id} value={act._id}>{act.name} ({act.type}) - {act.price} EGP</option>
+                                        ));
+                                      })()}
+                                    </select>
+
+                                    {newActivitySelection.activityId && (
+                                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                        <span style={{ fontSize: '0.85rem', color: '#aaa' }}>
+                                          {lang === 'AR' ? `السعر: ${newActivitySelection.price} جنيه` : `Price: ${newActivitySelection.price} EGP`}
+                                        </span>
+                                      </div>
+                                    )}
+
+                                    <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
+                                      <button 
+                                        onClick={() => handleAddActivitySubmit(displayItinerary.length + 1)}
+                                        style={{ background: 'var(--brand-accent)', color: '#000', border: 'none', padding: '6px 15px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem' }}
+                                      >
+                                        {lang === 'AR' ? 'إنشاء اليوم وإضافة النشاط' : 'Create Day & Add Activity'}
+                                      </button>
+                                      <button 
+                                        onClick={() => {
+                                          setShowAddActivityDay(null);
+                                          setNewActivitySelection({ activityId: '', providerId: '', price: '' });
+                                        }}
+                                        style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '6px 15px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}
+                                      >
+                                        {lang === 'AR' ? 'إلغاء' : 'Cancel'}
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              ) : (
+                                <span 
+                                  onClick={() => {
+                                    const nextDayNum = displayItinerary.length + 1;
+                                    setShowAddActivityDay(nextDayNum);
+                                  }}
+                                  style={{ color: '#d4af37', fontWeight: '700', cursor: 'pointer', fontSize: '0.95rem' }}
+                                >
+                                  {lang === 'AR' ? 'أضف يوماً إضافياً إلى خطتك اليومية (+)' : 'Add an extra day to your itinerary (+)'}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <p style={{ color: '#888', fontStyle: 'italic' }}>Leisure trip with open explore days.</p>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Right Column: Sticky Booking Card */}
               <div className="package-sidebar">
                 <div className="booking-card">
-                  <div className="booking-price">
-                    <span className="price-label">Price starts at</span>
-                    <span className="price-amount">{packageData.base_price || packageData.price} EGP</span>
-                  </div>
+                  {(() => {
+                    const singlePrice = isCustomizing && customTrip 
+                      ? (packageData.base_price + customTrip.total_price) 
+                      : (packageData ? (packageData.base_price || packageData.price || 0) : 0);
+                    const totalPrice = singlePrice * guestCount;
+
+                    return (
+                      <>
+                        <div className="booking-price" style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                            <span className="price-label">{isCustomizing ? (lang === 'AR' ? 'السعر المخصص للفرد' : 'Customized price per guest') : (lang === 'AR' ? 'يبدأ سعر الفرد من' : 'Price starts at')}</span>
+                            <span className="price-amount" style={{ fontSize: '1.2rem' }}>
+                              {singlePrice} EGP
+                            </span>
+                          </div>
+                          {guestCount > 1 && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '6px', marginTop: '4px' }}>
+                              <span className="price-label" style={{ color: '#d4af37', fontWeight: '700' }}>
+                                {lang === 'AR' ? `الإجمالي لـ ${guestCount} مسافرين` : `Total for ${guestCount} guests`}
+                              </span>
+                              <span className="price-amount" style={{ color: '#d4af37', fontSize: '1.4rem', fontWeight: '800' }}>
+                                {totalPrice} EGP
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Interactive Guest Selector */}
+                        <div className="guest-selector-container" style={{
+                          margin: '15px 0',
+                          padding: '12px',
+                          background: 'rgba(255, 255, 255, 0.02)',
+                          border: '1px solid rgba(212, 175, 55, 0.15)',
+                          borderRadius: '10px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '8px'
+                        }}>
+                          <label style={{ fontSize: '0.85rem', color: '#aaa', fontWeight: '600', display: 'flex', justifyContent: 'space-between', margin: 0 }}>
+                            <span>{lang === 'AR' ? 'عدد المسافرين (الضيوف)' : 'Number of Travelers (Guests)'}</span>
+                            <span style={{ color: '#d4af37', fontWeight: 'bold' }}>{guestCount} {guestCount === 1 ? (lang === 'AR' ? 'مسافر' : 'Guest') : (lang === 'AR' ? 'مسافرين' : 'Guests')}</span>
+                          </label>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
+                            <button 
+                              type="button"
+                              onClick={() => setGuestCount(prev => Math.max(1, prev - 1))}
+                              disabled={guestCount <= 1}
+                              style={{
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '50%',
+                                background: guestCount <= 1 ? '#333' : '#d4af37',
+                                color: '#000',
+                                border: 'none',
+                                cursor: guestCount <= 1 ? 'not-allowed' : 'pointer',
+                                fontWeight: 'bold',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'all 0.2s'
+                              }}
+                            >
+                              <i className="fa-solid fa-minus"></i>
+                            </button>
+                            <span style={{ fontSize: '1.15rem', fontWeight: 'bold', color: '#fff' }}>{guestCount}</span>
+                            <button 
+                              type="button"
+                              onClick={() => setGuestCount(prev => prev + 1)}
+                              style={{
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '50%',
+                                background: '#d4af37',
+                                color: '#000',
+                                border: 'none',
+                                cursor: 'pointer',
+                                fontWeight: 'bold',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'all 0.2s'
+                              }}
+                            >
+                              <i className="fa-solid fa-plus"></i>
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    );
+                  })()}
                   
+                  {isCustomizing && customTrip && (
+                    <div style={{ background: 'rgba(212, 175, 55, 0.1)', border: '1px solid #d4af37', borderRadius: '8px', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '15px', color: '#d4af37', fontSize: '0.85rem', fontWeight: '600' }}>
+                      <i className="fa-solid fa-sparkles"></i> {lang === 'AR' ? 'الخطة المخصصة نشطة' : 'Custom Plan Active'}
+                    </div>
+                  )}
+
                   <div className="booking-benefits">
                     <div className="benefit-item">
                       <i className="fa-solid fa-shield-halved"></i>
@@ -307,10 +897,72 @@ const PackageDetails = () => {
                     </div>
                   </div>
 
-                  <button className="btn-book-now">
-                    <i className="fa-solid fa-calendar-days"></i> Book This Trip
-                  </button>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', boxSizing: 'border-box' }}>
+                    <button 
+                      onClick={handleBookNow} 
+                      className="btn-book-now" 
+                      disabled={bookingLoading}
+                      style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer' }}
+                    >
+                      {bookingLoading ? (
+                        <><i className="fa-solid fa-spinner fa-spin"></i> Creating Booking...</>
+                      ) : (
+                        <><i className="fa-solid fa-calendar-days"></i> {isCustomizing ? 'Book Customized Plan' : 'Book This Trip'}</>
+                      )}
+                    </button>
+
+                    {token && (
+                      !customTrip ? (
+                        <button 
+                          onClick={handleStartCustomization} 
+                          className="btn-start-custom"
+                          style={{
+                            width: '100%',
+                            background: 'transparent',
+                            border: '1px solid #d4af37',
+                            color: '#d4af37',
+                            padding: '12px',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontWeight: '600',
+                            fontSize: '0.95rem',
+                            transition: 'all 0.2s',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px'
+                          }}
+                        >
+                          <i className="fa-solid fa-sliders"></i> Customize This Plan
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={handleToggleCustomization} 
+                          className="btn-start-custom"
+                          style={{
+                            width: '100%',
+                            background: 'transparent',
+                            border: '1px solid #d4af37',
+                            color: '#d4af37',
+                            padding: '12px',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontWeight: '600',
+                            fontSize: '0.95rem',
+                            transition: 'all 0.2s',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px'
+                          }}
+                        >
+                          <i className="fa-solid fa-rotate-left"></i> {isCustomizing ? 'Switch to Standard Plan' : 'Switch to Custom Plan'}
+                        </button>
+                      )
+                    )}
+                  </div>
                 </div>
+
               </div>
 
             </div>

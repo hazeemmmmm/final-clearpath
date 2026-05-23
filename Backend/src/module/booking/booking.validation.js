@@ -4,7 +4,8 @@ export const createBookingSchema = {
     body: Joi.object({
         customTrip: Joi.string().hex().length(24),
         experienceId: Joi.string().hex().length(24),
-        travel_date: Joi.date().optional()
+        travel_date: Joi.date().optional(),
+        numberOfGuests: Joi.number().integer().min(1).optional()
     }).or('customTrip', 'experienceId').required()
 };
 

@@ -44,3 +44,21 @@ export const deleteBooking = async (req, res, next) => {
         return next(new Error(error.message, { cause: 400 }));
     }
 };
+
+export const getAllBookingsAdmin = async (req, res, next) => {
+    try {
+        const bookings = await bookingService.getAllBookings();
+        return res.status(200).json({ message: "All bookings retrieved successfully", bookings });
+    } catch (error) {
+        return next(new Error(error.message, { cause: 500 }));
+    }
+};
+
+export const updateBookingStatusAdmin = async (req, res, next) => {
+    try {
+        const booking = await bookingService.updateBookingStatus(req.params.bookingId, req.body.status);
+        return res.status(200).json({ message: "Booking status updated successfully", booking });
+    } catch (error) {
+        return next(new Error(error.message, { cause: 400 }));
+    }
+};

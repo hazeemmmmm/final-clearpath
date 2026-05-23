@@ -79,35 +79,25 @@ class CustomTripService {
     // 🔥 CUSTOM TRIP → calculate final result
     let total = 0;
 
-    const finalItinerary = [];
-
-    custom.itinerary.forEach(day => {
-
-      if (day.status === "removed") return;
-
-      const activities = [];
-
-      day.activities.forEach(act => {
-        if (act.status === "active") {
-          activities.push(act);
-          total += act.price;
+    if (custom.itinerary) {
+      custom.itinerary.forEach(day => {
+        if (day.status !== "removed" && day.activities) {
+          day.activities.forEach(act => {
+            if (act.status === "active") {
+              total += act.price || 0;
+            }
+          });
         }
       });
+    }
 
-      finalItinerary.push({
-        day_number: day.day_number,
-        activities,
+    if (custom.extra_activities) {
+      custom.extra_activities.forEach(act => {
+        if (act.status === "active") {
+          total += act.price || 0;
+        }
       });
-    });
-
-    const extras = [];
-
-    custom.extra_activities.forEach(act => {
-      if (act.status === "active") {
-        extras.push(act);
-        total += act.price;
-      }
-    });
+    }
 
     return {
       source: "customTrip",
@@ -115,8 +105,8 @@ class CustomTripService {
         _id: custom._id,
         user: custom.user,
         experience: custom.experience,
-        itinerary: finalItinerary,
-        extra_activities: extras,
+        itinerary: custom.itinerary || [],
+        extra_activities: custom.extra_activities || [],
         total_price: total,
       },
     };
@@ -151,7 +141,7 @@ class CustomTripService {
   }
 
   // =========================
-  // ❌ REMOVE ACTIVITY
+  // ❌ REMOVE ACTIVITY (TOGGLE)
   // =========================
   async removeActivity(tripId, dayNumber, activityId) {
     const trip = await CustomTrip.findById(tripId);
@@ -167,7 +157,7 @@ class CustomTripService {
     );
 
     if (activity) {
-      activity.status = "removed";
+      activity.status = activity.status === "removed" ? "active" : "removed";
     }
 
     await trip.save();
@@ -175,7 +165,7 @@ class CustomTripService {
   }
 
   // =========================
-  // ❌ REMOVE DAY
+  // ❌ REMOVE DAY (TOGGLE)
   // =========================
   async removeDay(tripId, dayNumber) {
     const trip = await CustomTrip.findById(tripId);
@@ -185,7 +175,7 @@ class CustomTripService {
     const day = trip.itinerary.find(d => d.day_number === dayNumber);
 
     if (day) {
-      day.status = "removed";
+      day.status = day.status === "removed" ? "active" : "removed";
     }
 
     await trip.save();

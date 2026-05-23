@@ -32,14 +32,14 @@ export const deleteAccount = async () => {
 
 // Admin functions (if needed)
 export const getAllUsers = async () => {
-  return apiCall(`${BASE_URL}/user/all`, {
+  return apiCall(`${BASE_URL}/user/admin/all`, {
     method: 'GET',
     headers: getHeaders(true),
   });
 };
 
 export const adminDeleteUser = async (userId) => {
-  return apiCall(`${BASE_URL}/user/${userId}`, {
+  return apiCall(`${BASE_URL}/user/admin/delete/${userId}`, {
     method: 'DELETE',
     headers: getHeaders(true),
   });

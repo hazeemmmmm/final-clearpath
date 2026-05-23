@@ -22,19 +22,13 @@ const Experiences = () => {
 
   useEffect(() => {
     fetchExperiences();
-  }, [activeTab]);
+  }, []); // Fetch all experiences once on mount
 
   const fetchExperiences = async () => {
     setLoading(true);
     try {
-      const params = {};
-      if (activeTab !== 'all') {
-        params.type = activeTab;
-      }
-
-      const data = await getTrips(params);
-      
-      // Use backend data unconditionally. If empty, the UI will handle the empty state correctly.
+      // Fetch all packages/experiences in one request
+      const data = await getTrips({});
       if (data && data.data) {
         setExperiences(data.data);
       } else {
@@ -75,6 +69,13 @@ const Experiences = () => {
     }
   };
 
+  const displayedExperiences = experiences.filter((exp) => {
+    if (activeTab === 'all') return true;
+    if (activeTab === 'dayuse') return exp.duration_days === 1;
+    if (activeTab === 'trip') return exp.duration_days > 1;
+    return true;
+  });
+
   return (
     <div className="experiences-page">
       <Navbar lang={lang} setLang={setLang} isScrolled={true} />
@@ -108,49 +109,55 @@ const Experiences = () => {
       <div className="experiences-container">
         {loading ? (
           <div className="loading-state">
-            <i className="fa-solid fa-spinner"></i>
+            <i className="fa-solid fa-spinner fa-spin"></i>
             <h2>Loading experiences...</h2>
           </div>
-        ) : experiences.length > 0 ? (
+        ) : displayedExperiences.length > 0 ? (
           <div className="experiences-grid">
-            {experiences.map((exp) => (
-              <div key={exp._id} className="exp-card" onClick={() => handleCardClick(exp._id)}>
-                <div className={`exp-badge ${exp.type === 'dayuse' ? 'dayuse' : ''}`}>
-                  {exp.type}
-                </div>
-                
-                <button 
-                  className={`wishlist-btn ${wishlistIds.has(exp._id) ? 'active' : ''}`}
-                  onClick={(e) => handleWishlistToggle(e, exp._id)}
-                  title="Add to Wishlist"
-                >
-                  <i className={`${wishlistIds.has(exp._id) ? 'fa-solid' : 'fa-regular'} fa-heart`}></i>
-                </button>
-
-                <div className="exp-image">
-                  {/* Fallback image if exp has no image array yet */}
-                  <img src={exp.images?.[0] || "/img/cairo_pyramids_1775971845389.png"} alt={exp.name} />
-                </div>
-                <div className="exp-content">
-                  <h3 className="exp-title">{exp.name}</h3>
-                  <div className="exp-location">
-                    <i className="fa-solid fa-location-dot"></i> 
-                    {exp.destination?.name || 'Multiple Locations'}
+            {displayedExperiences.map((exp) => {
+              const isDayuse = exp.duration_days === 1;
+              const typeLabel = isDayuse 
+                ? (lang === 'AR' ? 'داي يوز' : 'Dayuse')
+                : (lang === 'AR' ? 'رحلة' : 'Trip');
+              
+              return (
+                <div key={exp._id} className="exp-card" onClick={() => handleCardClick(exp._id)}>
+                  <div className={`exp-badge ${isDayuse ? 'dayuse' : 'trip'}`}>
+                    {typeLabel}
                   </div>
-                  <p className="exp-desc">{exp.description || 'Experience the beauty and history of Egypt with our expertly guided tours.'}</p>
                   
-                  <div className="exp-footer">
-                    <div className="exp-price">
-                      ${exp.calculatedPrice || exp.base_price || 0} <span>/ person</span>
+                  <button 
+                    className={`wishlist-btn ${wishlistIds.has(exp._id) ? 'active' : ''}`}
+                    onClick={(e) => handleWishlistToggle(e, exp._id)}
+                    title="Add to Wishlist"
+                  >
+                    <i className={`${wishlistIds.has(exp._id) ? 'fa-solid' : 'fa-regular'} fa-heart`}></i>
+                  </button>
+
+                  <div className="exp-image">
+                    <img src={exp.images?.[0] || "/img/cairo_pyramids_1775971845389.png"} alt={exp.name} />
+                  </div>
+                  <div className="exp-content">
+                    <h3 className="exp-title">{exp.name}</h3>
+                    <div className="exp-location">
+                      <i className="fa-solid fa-location-dot"></i> 
+                      {exp.destination?.name || 'Multiple Locations'}
                     </div>
-                    <div className="exp-duration">
-                      <i className="fa-regular fa-clock"></i> 
-                      {exp.duration_days} {exp.duration_days === 1 ? 'Day' : 'Days'}
+                    <p className="exp-desc">{exp.description || 'Experience the beauty and history of Egypt with our expertly guided tours.'}</p>
+                    
+                    <div className="exp-footer">
+                      <div className="exp-price">
+                        ${exp.calculatedPrice || exp.base_price || 0} <span>/ person</span>
+                      </div>
+                      <div className="exp-duration">
+                        <i className="fa-regular fa-clock"></i> 
+                        {exp.duration_days} {exp.duration_days === 1 ? 'Day' : 'Days'}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="empty-state">

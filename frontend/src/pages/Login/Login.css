@@ -5,7 +5,7 @@
     width: 100vw;
     height: 100vh;
     display: flex;
-    justify-content: center; 
+    justify-content: center;
     align-items: center;
     background: url('/images/login-bg.png') no-repeat center center/cover;
     overflow: hidden;
@@ -74,8 +74,8 @@
     color: rgba(255, 255, 255, 0.8);
 }
 
-.login-wrapper .input-group input:focus ~ label,
-.login-wrapper .input-group input:valid ~ label {
+.login-wrapper .input-group input:focus~label,
+.login-wrapper .input-group input:valid~label {
     top: -10px;
     font-size: 0.8rem;
     color: #fff;
@@ -173,12 +173,20 @@
         justify-content: center;
         padding-left: 0;
     }
+
     .login-wrapper .login-box {
         width: 90%;
     }
 }
 
 @keyframes fadeInScale {
-    0% { opacity: 0; transform: scale(0.9); }
-    100% { opacity: 1; transform: scale(1); }
+    0% {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
 }

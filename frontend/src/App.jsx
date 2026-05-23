@@ -8,12 +8,14 @@ import Wishlist from './pages/Wishlist/Wishlist'
 import Trips from './pages/Trips/Trips'
 import Dayuse from './pages/Dayuse/Dayuse'
 import Profile from './pages/Profile/Profile'
+import MyBookings from './pages/MyBookings'
 import PackageDetails from './pages/PackageDetails/PackageDetails'
 import Payment from './pages/Payment/Payment'
 import AdminDashboard from './pages/Admin/AdminDashboard'
 import Destinations from './pages/Destinations/Destinations'
 import Experiences from './pages/Experiences/Experiences'
 import Verify from './pages/Verify/Verify'
+import ForgotPassword from './pages/ForgotPassword/ForgotPassword'
 import Chatbot from './components/Chatbot'
 
 // Protected Route Component
@@ -38,6 +40,7 @@ function App() {
         
         {/* Protected Routes */}
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
         <Route path="/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
 
@@ -45,6 +48,7 @@ function App() {
         <Route path="/login" element={isAuthenticated ? <Navigate to="/" replace /> : <Login />} />
         <Route path="/register" element={isAuthenticated ? <Navigate to="/" replace /> : <Register />} />
         <Route path="/verify" element={isAuthenticated ? <Navigate to="/" replace /> : <Verify />} />
+        <Route path="/forgot-password" element={isAuthenticated ? <Navigate to="/" replace /> : <ForgotPassword />} />
         
         {/* Catch-all redirect for any unknown route like /home */}
         <Route path="*" element={<Navigate to="/" replace />} />

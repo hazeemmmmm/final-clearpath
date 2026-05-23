@@ -31,37 +31,60 @@ const Verify = () => {
   };
 
   return (
-    <div className="verify-container">
-      <form onSubmit={handleVerify}>
-        <h2>Verify Account</h2>
-        <p className="subtitle">An OTP has been sent to your email.</p>
-        
-        {message && <p className="success-msg">{message}</p>}
-        {error && <p className="error-msg">{error}</p>}
-        
-        <input
-          type="email"
-          placeholder="Email Address"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          readOnly={!!location.state?.email}
-          className={location.state?.email ? 'readonly-input' : ''}
-        />
-        <input
-          type="text"
-          placeholder="Enter OTP (e.g. 12345)"
-          value={otp}
-          onChange={(e) => setOtp(e.target.value)}
-          required
-        />
-        <button type="submit" disabled={isLoading}>
-          {isLoading ? 'Verifying...' : 'Verify Account'}
-        </button>
-        <p>
-          Already verified? <Link to="/login">Login here</Link>
-        </p>
-      </form>
+    <div className="verify-wrapper">
+      <div className="mainpage">
+        <div className="verifyform">
+          <div className="verifyr d-flex justify-content-center align-items-center">
+            <div className="formholder">
+              <form className="form" onSubmit={handleVerify}>
+                <p className="title">Verify Account</p>
+                <p className="subtitle" style={{ textAlign: 'center', color: '#e2e8f0', margin: '0 0 15px 0', fontSize: '0.88rem', opacity: 0.8 }}>
+                  An OTP verification code has been dispatched to your email address.
+                </p>
+                
+                {message && <div className="alert alert-success-custom">{message}</div>}
+                {error && <div className="alert alert-error-custom">{error}</div>}
+                
+                <label htmlFor="email">
+                  <input
+                    type="email"
+                    placeholder=""
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    readOnly={!!location.state?.email}
+                    className={`input ${location.state?.email ? 'readonly-input' : ''}`}
+                    id="email"
+                  />
+                  <span>Email Address</span>
+                </label>
+
+                <label htmlFor="otp">
+                  <input
+                    type="text"
+                    placeholder=""
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    required
+                    className="input"
+                    id="otp"
+                    autoComplete="off"
+                  />
+                  <span>Enter 6-Digit OTP</span>
+                </label>
+
+                <button className="submit" type="submit" disabled={isLoading}>
+                  {isLoading ? 'Verifying...' : 'Verify OTP'}
+                </button>
+                
+                <p className="signin">
+                  Already verified? <Link className="loginBtn btn btn-primary" to="/login">Login here</Link>
+                </p>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

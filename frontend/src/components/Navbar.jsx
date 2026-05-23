@@ -7,6 +7,7 @@ import { LanguageContext } from '../context/LanguageContext';
 
 const Navbar = ({ isScrolled }) => {
   const [showLangMenu, setShowLangMenu] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -14,6 +15,60 @@ const Navbar = ({ isScrolled }) => {
   const { lang, toggleLanguage } = React.useContext(LanguageContext);
 
   const isAuthenticated = useSelector((state) => state.auth?.isAuthenticated || !!localStorage.getItem('token'));
+  const reduxUser = useSelector((state) => state.auth?.user);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  const syncUser = () => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser && storedUser !== 'undefined') {
+      try {
+        setCurrentUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error(e);
+      }
+    } else if (reduxUser) {
+      setCurrentUser(reduxUser);
+    }
+  };
+
+  useEffect(() => {
+    syncUser();
+    window.addEventListener('storage', syncUser);
+    return () => window.removeEventListener('storage', syncUser);
+  }, []);
+
+  useEffect(() => {
+    syncUser();
+  }, [reduxUser, showProfileMenu]);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (isAuthenticated && !currentUser?.firstName) {
+        try {
+          const { getUserProfile } = await import('../utils/api');
+          const res = await getUserProfile();
+          const userData = res.user || res.data?.user || res.data || res;
+          if (userData) {
+            setCurrentUser(userData);
+            localStorage.setItem('user', JSON.stringify(userData));
+          }
+        } catch (err) {
+          console.error("Failed to fetch user in Navbar", err);
+        }
+      }
+    };
+    fetchUser();
+  }, [isAuthenticated, currentUser]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.nav-profile-dropdown-container')) {
+        setShowProfileMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -33,6 +88,10 @@ const Navbar = ({ isScrolled }) => {
     e.preventDefault();
     dispatch(toggleChat());
   };
+
+  const activeUser = currentUser || reduxUser;
+  const userInitial = activeUser?.firstName ? activeUser.firstName.charAt(0).toUpperCase() : 'U';
+  const fullName = activeUser ? `${activeUser.firstName || ''} ${activeUser.lastName || ''}`.trim() : (lang === 'AR' ? 'مستخدم' : 'User');
 
   return (
     <nav id="navbar" className={isScrolled ? 'shrink' : ''}>
@@ -71,7 +130,42 @@ const Navbar = ({ isScrolled }) => {
             </div>
           </div>
           {isAuthenticated ? (
-            <button className="btn-login" onClick={handleLogout}>{lang === 'AR' ? 'خروج' : 'Logout'}</button>
+            <div className="nav-profile-dropdown-container">
+              <button className="nav-profile-btn" onClick={() => setShowProfileMenu(!showProfileMenu)}>
+                <div className="nav-profile-avatar">
+                  {userInitial}
+                </div>
+                <div className="nav-profile-info">
+                  <span className="nav-profile-name">{fullName}</span>
+                  <span className="nav-profile-level">{lang === 'AR' ? 'عبقري Genius' : 'Genius'}</span>
+                </div>
+              </button>
+              {showProfileMenu && (
+                <div className="nav-profile-dropdown-content show">
+                  <div className="dropdown-header">
+                    <h4>{fullName}</h4>
+                    <p>{activeUser?.email || ''}</p>
+                  </div>
+                  <hr className="dropdown-divider" />
+                  <Link to="/profile?tab=info" onClick={() => setShowProfileMenu(false)}>
+                    <i className="fa-solid fa-user-circle"></i> {lang === 'AR' ? 'حسابي' : 'My Profile'}
+                  </Link>
+                  <Link to="/my-bookings" onClick={() => setShowProfileMenu(false)}>
+                    <i className="fa-solid fa-briefcase"></i> {lang === 'AR' ? 'الحجوزات والرحلات' : 'Bookings & Trips'}
+                  </Link>
+                  <Link to="/profile?tab=reviews" onClick={() => setShowProfileMenu(false)}>
+                    <i className="fa-solid fa-star"></i> {lang === 'AR' ? 'التقييمات' : 'My Reviews'}
+                  </Link>
+                  <Link to="/wishlist" onClick={() => setShowProfileMenu(false)}>
+                    <i className="fa-solid fa-heart"></i> {lang === 'AR' ? 'خياراتي المفضلة' : 'Wish List'}
+                  </Link>
+                  <hr className="dropdown-divider" />
+                  <button className="dropdown-logout-btn" onClick={() => { setShowProfileMenu(false); handleLogout(); }}>
+                    <i className="fa-solid fa-right-from-bracket"></i> {lang === 'AR' ? 'تسجيل الخروج' : 'Logout'}
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             <>
               <button className="btn-login" onClick={() => handleOpenAuth('login')}>{lang === 'AR' ? 'دخول' : 'Login'}</button>

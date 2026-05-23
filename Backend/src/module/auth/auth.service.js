@@ -125,6 +125,49 @@ class AuthService {
             next(err);
         }
     }
+    async forgotPassword(req, res, next) {
+        try {
+            const { email } = req.body;
+            const user = await userRepo.getOne({ email });
+            if (!user) throw new AppError.BadRequestException("User not found");
+
+            const otp = generateOTP();
+            console.log(`\n==============================================\n[DEVELOPMENT] Forgot Password OTP for ${email} is: ${otp}\n==============================================\n`);
+            const otpExpiry = generateOTPExpiry(5 * 60 * 60 * 1000);
+
+            await userRepo.update({ email }, { otp, otpExpiry });
+
+            await sendMail({
+                to: email,
+                subject: "Reset Password OTP",
+                html: `<h1>Your Password Reset OTP is ${otp}</h1>`,
+            });
+
+            return res.status(200).json({ message: "OTP sent successfully to email" });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async resetPassword(req, res, next) {
+        try {
+            const { email, otp, newPassword } = req.body;
+            const user = await userRepo.getOne({ email });
+            if (!user) throw new AppError.BadRequestException("User not found");
+
+            if (!user.otp || !user.otpExpiry) throw new AppError.BadRequestException("OTP not found or expired");
+            if (user.otp !== otp) throw new AppError.BadRequestException("Invalid OTP");
+            if (user.otpExpiry < new Date()) throw new AppError.BadRequestException("OTP expired");
+
+            const hashedPassword = await hashPassword(newPassword);
+
+            await userRepo.update({ email }, { password: hashedPassword, $unset: { otp: "", otpExpiry: "" } });
+
+            return res.status(200).json({ message: "Password reset successfully" });
+        } catch (err) {
+            next(err);
+        }
+    }
     async logout(req, res, next) {
     try {
         

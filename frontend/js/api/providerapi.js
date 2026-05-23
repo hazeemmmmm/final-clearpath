@@ -4,14 +4,14 @@ export const getAllProviders = async (query = {}) => {
   const queryString = new URLSearchParams(query).toString();
   return apiCall(`${BASE_URL}/provider?${queryString}`, {
     method: 'GET',
-    headers: getHeaders(),
+    headers: getHeaders(true),
   });
 };
 
 export const getProvider = async (id) => {
   return apiCall(`${BASE_URL}/provider/${id}`, {
     method: 'GET',
-    headers: getHeaders(),
+    headers: getHeaders(true),
   });
 };
 

@@ -87,3 +87,32 @@ export const verifySchema = Joi.object({
 export const googleLoginSchema = Joi.object({
   idToken: Joi.string().min(10).required(),
 });
+
+/* =========================
+   FORGOT PASSWORD SCHEMA
+========================= */
+export const forgotPasswordSchema = Joi.object({
+  email: Joi.string().email().required().messages({
+    "string.email": "Invalid email format",
+    "any.required": "Email is required"
+  })
+});
+
+/* =========================
+   RESET PASSWORD SCHEMA
+========================= */
+export const resetPasswordSchema = Joi.object({
+  email: Joi.string().email().required(),
+  otp: Joi.string().length(6).required(),
+  newPassword: Joi.string()
+    .min(8)
+    .max(30)
+    .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/)
+    .required()
+    .messages({
+      "string.min": "New password must be at least 8 characters",
+      "string.max": "New password must be at most 30 characters",
+      "string.pattern.base": "New password must contain uppercase, lowercase, and number",
+      "any.required": "New password is required"
+    })
+});
