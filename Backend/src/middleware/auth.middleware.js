@@ -17,8 +17,6 @@ export const authMiddleware = async (req, res, next) => {
 
     const payload = verifyAccessToken(token);
 
-    console.log("PAYLOAD:", payload); // 👈 debug مهم
-
   const user = await userRepo.getOne({
   _id: payload.payload.id,
 });

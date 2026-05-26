@@ -5,6 +5,7 @@ import Footer from '../../components/Footer';
 import { LanguageContext } from '../../context/LanguageContext';
 import { 
   getTripDetails, 
+  getTrips,
   getUserProfile, 
   getExperienceReviews, 
   getExperienceStats, 
@@ -12,6 +13,7 @@ import {
   getFinalTrip,
   getAllUsersAdmin,
   createCustomTrip,
+  addDayToCustomTrip,
   addActivityToCustomTrip,
   removeActivityFromCustomTrip,
   removeDayFromCustomTrip,
@@ -52,12 +54,14 @@ const PackageDetails = () => {
   const [activitiesList, setActivitiesList] = useState([]);
   const [providersList, setProvidersList] = useState([]);
   const [showAddActivityDay, setShowAddActivityDay] = useState(null);
+  const [addDayTab, setAddDayTab] = useState('custom'); // 'custom' | 'ready'
   const [newActivitySelection, setNewActivitySelection] = useState({ activityId: '', providerId: '', price: '' });
   const [showAddExtra, setShowAddExtra] = useState(false);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [customizationError, setCustomizationError] = useState('');
   const { lang, setLang } = useContext(LanguageContext);
   const [guestCount, setGuestCount] = useState(1);
+  const [suggestedPackages, setSuggestedPackages] = useState([]);
 
   // Wishlist State
   const [isInWishlist, setIsInWishlist] = useState(false);
@@ -151,6 +155,22 @@ const PackageDetails = () => {
         
         const provs = await getProviders({ limit: 100 });
         setProvidersList(provs.data || provs.providers || provs || []);
+
+        // Load other packages/dayuse of the same region to suggest
+        try {
+          const allPkgsRes = await getTrips({ limit: 100 });
+          const allPkgs = allPkgsRes.data || allPkgsRes || [];
+          if (Array.isArray(allPkgs) && pkg && pkg.destination) {
+            const currentDestId = pkg.destination._id || pkg.destination;
+            const filtered = allPkgs.filter(p => {
+              const pDestId = p.destination?._id || p.destination;
+              return pDestId && currentDestId && pDestId.toString() === currentDestId.toString() && (p._id || p.id) !== (pkg._id || pkg.id);
+            });
+            setSuggestedPackages(filtered);
+          }
+        } catch (perr) {
+          console.error("Failed to load suggested packages for this destination region", perr);
+        }
       } catch (err) {
         console.error('Failed to load customization catalogs', err);
       }
@@ -313,6 +333,49 @@ const PackageDetails = () => {
     } catch (err) {
       console.error('Failed to add custom activity', err);
       setCustomizationError(err.message || 'Failed to add activity.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInjectDayuseDay = async (dayusePkg) => {
+    try {
+      setLoading(true);
+      let activeTrip = customTrip;
+      if (!activeTrip) {
+        await createCustomTrip(id);
+        const viewRes = await getFinalTrip(id);
+        activeTrip = viewRes.data;
+        setCustomTrip(activeTrip);
+        setIsCustomizing(true);
+      }
+
+      const sourceDay = dayusePkg.itinerary?.[0] || {};
+      
+      const payload = {
+        title: dayusePkg.name || sourceDay.title || 'Day Use Plan',
+        description: dayusePkg.description || sourceDay.description || 'Pre-designed single-day itinerary.',
+        image: dayusePkg.image || sourceDay.image || '',
+        activities: (sourceDay.activities || []).map(act => {
+          const actId = act.activity?._id || act.activity;
+          const matchedActObj = activitiesList.find(a => a._id === actId);
+          return {
+            activity: actId,
+            price: Number(act.price) || (matchedActObj ? Number(matchedActObj.price) : 0),
+            provider: act.provider?._id || act.provider || (matchedActObj?.provider?._id || matchedActObj?.provider) || null
+          };
+        })
+      };
+
+      await addDayToCustomTrip(activeTrip._id, payload);
+
+      const viewRes = await getFinalTrip(id);
+      setCustomTrip(viewRes.data);
+      setShowAddActivityDay(null);
+      setCustomizationError('');
+    } catch (err) {
+      console.error('Failed to inject Dayuse day', err);
+      setCustomizationError(err.message || 'Failed to inject Dayuse day.');
     } finally {
       setLoading(false);
     }
@@ -509,6 +572,18 @@ const PackageDetails = () => {
     ? end.toLocaleDateString(lang === 'AR' ? 'ar-EG' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : '—';
 
+  const getDayDate = (dayNumber) => {
+    if (!start) return '';
+    const dayDate = new Date(start);
+    dayDate.setDate(start.getDate() + (dayNumber - 1));
+    return dayDate.toLocaleDateString(lang === 'AR' ? 'ar-EG' : 'en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
   return (
     <div className="package-details-page">
       <Navbar lang={lang} setLang={setLang} isScrolled={true} />
@@ -586,28 +661,43 @@ const PackageDetails = () => {
                     <div className="type-badge">{packageData.type}</div>
                   </div>
 
-                  {/* Thumbnails Row */}
-                  {packageData.images && packageData.images.length > 0 && (
-                    <div className="thumbnails-grid">
-                      {packageData.images.map((imgUrl, idx) => {
-                        let label = "Sight";
-                        if (idx === 1) label = "Safari";
-                        if (idx === 2) label = "Hotel";
-                        if (idx === 3) label = "Dining";
-                        
-                        return (
-                          <div 
-                            key={idx} 
-                            className={`thumbnail-item ${activeImage === imgUrl ? 'active' : ''}`}
-                            onClick={() => setActiveImage(imgUrl)}
-                          >
-                            <img src={imgUrl} alt={`${label} view`} />
-                            <span className="thumbnail-label">{label}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
+                   {/* Thumbnails Row */}
+                   {packageData.images && packageData.images.length > 0 && (
+                     <div className="thumbnails-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginTop: '15px' }}>
+                       {packageData.images.map((imgUrl, idx) => {
+                         const isValidUrl = imgUrl && (imgUrl.trim().startsWith('http') || imgUrl.trim().startsWith('/') || imgUrl.trim().startsWith('data:image'));
+                         
+                         let finalImgUrl = imgUrl;
+                         if (!isValidUrl) {
+                           if (idx === 0) finalImgUrl = 'https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=600&q=80';
+                           else if (idx === 1) finalImgUrl = 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=600&q=80';
+                           else if (idx === 2) finalImgUrl = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80';
+                           else finalImgUrl = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80';
+                         }
+                         
+                         return (
+                           <div 
+                             key={idx} 
+                             className={`thumbnail-item ${activeImage === finalImgUrl ? 'active' : ''}`}
+                             onClick={() => setActiveImage(finalImgUrl)}
+                             style={{
+                               background: '#121212',
+                               position: 'relative',
+                               overflow: 'hidden',
+                               border: activeImage === finalImgUrl ? '2.5px solid var(--secondary-color, #d4af37)' : '1px solid rgba(212, 175, 55, 0.25)',
+                               borderRadius: '10px',
+                               height: '80px',
+                               cursor: 'pointer',
+                               boxSizing: 'border-box',
+                               transition: 'all 0.2s'
+                             }}
+                           >
+                             <img src={finalImgUrl} alt="Experience view" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                           </div>
+                         );
+                       })}
+                     </div>
+                   )}
                 </div>
 
                 <div className="details-section">
@@ -671,67 +761,248 @@ const PackageDetails = () => {
                           const finalAddActivityOptions = optionalActs.length > 0 ? optionalActs : activitiesList;
 
                           return (
-                            <div key={day.day_number} className="itinerary-day" style={{ borderLeft: '2px dashed rgba(212, 175, 55, 0.3)', opacity: isDayRemoved ? 0.55 : 1, transition: 'opacity 0.2s' }}>
-                              <div className="day-badge" style={{ background: isDayRemoved ? '#555' : '#d4af37', color: '#000' }}>Day {day.day_number}</div>
+                            <div key={day.day_number} className="itinerary-day-card" style={{ 
+                              background: 'var(--card-bg, #ffffff)', 
+                              border: isDayRemoved ? '1px solid var(--border-light, #333)' : '1.5px solid var(--secondary-color, #d4af37)',
+                              borderRadius: '16px', 
+                              overflow: 'hidden',
+                              marginBottom: '30px',
+                              opacity: isDayRemoved ? 0.6 : 1,
+                              transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                              boxShadow: 'var(--box-shadow-soft)',
+                              display: 'flex',
+                              flexDirection: 'column'
+                            }}>
                               
-                              <div className="day-content" style={{ background: 'rgba(212, 175, 55, 0.02)', border: isDayRemoved ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(212, 175, 55, 0.1)', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                                  <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', margin: 0 }}>
-                                    <input 
-                                      type="checkbox"
-                                      checked={!isDayRemoved}
-                                      onChange={() => handleToggleDayCheckbox(day.day_number)}
-                                      style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: '#d4af37' }}
-                                    />
-                                    <h3 style={{ color: isDayRemoved ? '#777' : '#d4af37', margin: 0, fontSize: '1.15rem', textDecoration: isDayRemoved ? 'line-through' : 'none' }}>
-                                      Day {day.day_number} Plan {isDayRemoved && ' (Removed)'}
-                                    </h3>
+                              {/* 🖼️ Scenic Airbnb-style Day Illustration Image Banner */}
+                              <div className="day-image-banner" style={{ 
+                                height: '220px', 
+                                position: 'relative',
+                                background: '#121212',
+                                overflow: 'hidden'
+                              }}>
+                                <img 
+                                  src={day.image || packageData.image || 'https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=1200&q=80'} 
+                                  alt={day.title || `Day ${day.day_number}`} 
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s' }}
+                                />
+                                
+                                {/* Overlay Gradient */}
+                                <div style={{
+                                  position: 'absolute',
+                                  left: 0, right: 0, top: 0, bottom: 0,
+                                  background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.85) 100%)'
+                                }}></div>
+
+                                {/* Custom Day Number Badge */}
+                                <div className="day-number-badge" style={{
+                                  position: 'absolute',
+                                  top: '15px',
+                                  left: '15px',
+                                  background: isDayRemoved ? '#555' : 'var(--secondary-color, #d4af37)',
+                                  color: '#000000',
+                                  padding: '5px 12px',
+                                  borderRadius: '20px',
+                                  fontWeight: '800',
+                                  fontSize: '0.8rem',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.5px',
+                                  zIndex: 2
+                                }}>
+                                  Day {day.day_number}
+                                </div>
+
+                                {/* Day Calendar Date Badge */}
+                                <div className="day-calendar-date-badge" style={{
+                                  position: 'absolute',
+                                  top: '15px',
+                                  left: '95px',
+                                  background: 'rgba(0, 0, 0, 0.75)',
+                                  color: '#fff',
+                                  padding: '5px 12px',
+                                  borderRadius: '20px',
+                                  fontWeight: '700',
+                                  fontSize: '0.78rem',
+                                  border: '1px solid rgba(255,255,255,0.2)',
+                                  zIndex: 2,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '5px'
+                                }}>
+                                  <i className="fa-solid fa-calendar-day" style={{ color: 'var(--secondary-color, #d4af37)' }}></i>
+                                  {getDayDate(day.day_number)}
+                                </div> 
+
+                                {/* Toggle checkbox overlay */}
+                                <div className="day-toggle-action" style={{
+                                  position: 'absolute',
+                                  top: '15px',
+                                  right: '15px',
+                                  background: 'rgba(0, 0, 0, 0.6)',
+                                  padding: '6px 12px',
+                                  borderRadius: '20px',
+                                  border: '1px solid rgba(255,255,255,0.2)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '8px'
+                                }}>
+                                  <input 
+                                    type="checkbox"
+                                    checked={!isDayRemoved}
+                                    onChange={() => handleToggleDayCheckbox(day.day_number)}
+                                    style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--secondary-color, #d4af37)' }}
+                                    id={`check-day-${day.day_number}`}
+                                  />
+                                  <label htmlFor={`check-day-${day.day_number}`} style={{ color: '#fff', fontSize: '0.78rem', cursor: 'pointer', fontWeight: '700', margin: 0 }}>
+                                    {isDayRemoved ? (lang === 'AR' ? 'تفعيل اليوم' : 'Enable Day') : (lang === 'AR' ? 'إلغاء اليوم' : 'Disable Day')}
                                   </label>
                                 </div>
 
+                                {/* Day Title Heading */}
+                                <h3 style={{ 
+                                  position: 'absolute',
+                                  bottom: '15px',
+                                  left: '20px',
+                                  right: '20px',
+                                  color: '#ffffff',
+                                  margin: 0,
+                                  fontSize: '1.4rem',
+                                  fontWeight: '800',
+                                  textShadow: '0 2px 4px rgba(0,0,0,0.5)',
+                                  textDecoration: isDayRemoved ? 'line-through' : 'none'
+                                }}>
+                                  {day.title || (lang === 'AR' ? `مخطط اليوم ${day.day_number}` : `Day ${day.day_number} Itinerary Plan`)}
+                                </h3>
+                              </div>
+
+                              <div className="day-card-body" style={{ padding: '20px 25px', flex: '1', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                
+                                {/* 📝 Day Description */}
+                                {day.description && (
+                                  <div style={{
+                                    borderLeft: '3px solid var(--secondary-color, #d4af37)',
+                                    paddingLeft: '15px'
+                                  }}>
+                                    <h5 style={{ margin: '0 0 5px 0', textTransform: 'uppercase', color: 'var(--secondary-color, #d4af37)', fontSize: '0.78rem', fontWeight: '800', letterSpacing: '0.5px' }}>
+                                      {lang === 'AR' ? 'نظرة عامة على اليوم' : 'Day overview'}
+                                    </h5>
+                                    <p className="day-description-info" style={{ 
+                                      color: 'var(--text-muted, #64748b)', 
+                                      fontSize: '0.94rem', 
+                                      lineHeight: '1.6',
+                                      marginTop: '0', 
+                                      marginBottom: '0',
+                                      fontWeight: '500'
+                                    }}>
+                                      {day.description}
+                                    </p>
+                                  </div>
+                                )}
+
+                                {/* ⚡ Day Activities Header */}
+                                <h5 style={{ margin: '5px 0 0 0', textTransform: 'uppercase', color: 'var(--primary-color, #003D59)', fontSize: '0.78rem', fontWeight: '800', letterSpacing: '0.5px' }}>
+                                  {lang === 'AR' ? 'الأنشطة المدرجة:' : 'Included daily activities'}
+                                </h5>
+
                                 {day.activities && day.activities.length > 0 ? (
-                                  <ul className="activity-list" style={{ paddingLeft: 0, listStyle: 'none', margin: 0 }}>
+                                  <ul className="activity-list" style={{ paddingLeft: 0, listStyle: 'none', margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                     {day.activities.map((act, index) => {
                                       const actObj = act.activity;
                                       const customAct = customDay?.activities?.find(a => (a.activity?._id || a.activity) === (actObj?._id || actObj));
                                       const isActRemoved = customAct ? customAct.status === 'removed' : false;
                                       const isDisabled = isDayRemoved;
 
+                                      const provId = act.provider?._id || act.provider || actObj?.provider?._id || actObj?.provider;
+                                      const matchedProv = providersList.find(p => p._id === provId);
+                                      const providerName = matchedProv ? matchedProv.name : (act.provider?.name || actObj?.provider?.name || '');
+
                                       return (
-                                        <li key={index} className="activity-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', opacity: (isDisabled || isActRemoved) ? 0.5 : 1 }}>
-                                          <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: isDisabled ? 'not-allowed' : 'pointer', margin: 0, color: (isDisabled || isActRemoved) ? '#777' : '#e2e8f0', width: '80%' }}>
-                                            <input 
-                                              type="checkbox"
-                                              disabled={isDisabled}
-                                              checked={!isDisabled && !isActRemoved}
-                                              onChange={() => handleToggleActivityCheckbox(day.day_number, actObj?._id || actObj)}
-                                              style={{ width: '17px', height: '17px', cursor: isDisabled ? 'not-allowed' : 'pointer', accentColor: '#d4af37' }}
-                                            />
-                                            <span style={{ textDecoration: isActRemoved ? 'line-through' : 'none' }}>
-                                              {actObj?.name || 'Exciting Activity'}
-                                              {act.provider && <span style={{ fontSize: '0.8rem', color: '#888', marginLeft: '8px' }}>({act.provider.name || 'Provider'})</span>}
+                                        <li key={index} className="activity-item" style={{ 
+                                          display: 'flex', 
+                                          flexDirection: 'column', 
+                                          alignItems: 'stretch', 
+                                          padding: '12px 15px', 
+                                          background: 'rgba(0,0,0,0.02)',
+                                          border: '1px solid var(--border-light, #e2e8f0)',
+                                          borderRadius: '10px', 
+                                          opacity: (isDisabled || isActRemoved) ? 0.5 : 1,
+                                          transition: 'all 0.2s'
+                                        }}>
+                                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: '10px' }}>
+                                            <label style={{ 
+                                              display: 'flex', 
+                                              alignItems: 'center', 
+                                              gap: '10px', 
+                                              cursor: isDisabled ? 'not-allowed' : 'pointer', 
+                                              margin: 0, 
+                                              color: (isDisabled || isActRemoved) ? '#888' : 'inherit', 
+                                              fontWeight: '700'
+                                            }}>
+                                              <input 
+                                                type="checkbox"
+                                                disabled={isDisabled}
+                                                checked={!isDisabled && !isActRemoved}
+                                                onChange={() => handleToggleActivityCheckbox(day.day_number, actObj?._id || actObj)}
+                                                style={{ width: '17px', height: '17px', cursor: isDisabled ? 'not-allowed' : 'pointer', accentColor: 'var(--secondary-color, #d4af37)' }}
+                                              />
+                                              <span style={{ textDecoration: isActRemoved ? 'line-through' : 'none', color: 'var(--text-dark, #1e293b)', fontSize: '0.95rem' }}>
+                                                <strong>{actObj?.name || act.name || 'Exciting Activity'}</strong>
+                                                {providerName && (
+                                                  <span style={{ 
+                                                    fontSize: '0.74rem', 
+                                                    color: 'var(--secondary-color, #d4af37)', 
+                                                    marginLeft: '10px', 
+                                                    backgroundColor: 'rgba(212,175,55,0.08)', 
+                                                    padding: '3px 10px', 
+                                                    borderRadius: '4px',
+                                                    border: '1px solid rgba(212,175,55,0.2)',
+                                                    fontWeight: '700',
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '4px'
+                                                  }}>
+                                                    <i className="fa-solid fa-parachute-box"></i>
+                                                    {providerName}
+                                                  </span>
+                                                )}
+                                              </span>
+                                            </label>
+                                            <span className="act-price" style={{ color: (isDisabled || isActRemoved) ? '#777' : 'var(--accent-color, #CE1126)', fontWeight: '800', fontSize: '0.95rem', textDecoration: isActRemoved ? 'line-through' : 'none' }}>
+                                              +{act.price} EGP
                                             </span>
-                                          </label>
-                                          <span className="act-price" style={{ color: (isDisabled || isActRemoved) ? '#777' : '#d4af37', fontWeight: '600', textDecoration: isActRemoved ? 'line-through' : 'none' }}>
-                                            +{act.price} EGP
-                                          </span>
+                                          </div>
+
+                                          {/* 📝 Activity Description */}
+                                          {(act.description || actObj?.description) && (
+                                            <div style={{
+                                              paddingLeft: '27px',
+                                              marginTop: '6px',
+                                              fontSize: '0.84rem',
+                                              color: 'var(--text-muted, #64748b)',
+                                              lineHeight: '1.4',
+                                              textDecoration: isActRemoved ? 'line-through' : 'none'
+                                            }}>
+                                              {act.description || actObj.description}
+                                            </div>
+                                          )}
                                         </li>
                                       );
                                     })}
                                   </ul>
                                 ) : (
-                                  <p style={{ color: '#666', fontStyle: 'italic', margin: 0 }}>Free leisure time to explore the city.</p>
+                                  <p style={{ color: '#888', fontStyle: 'italic', margin: 0 }}>Free leisure time to explore the city.</p>
                                 )}
 
                                 {/* Inline Add Custom Activity Form */}
                                 {isCustomizing && customTrip && !isDayRemoved && (
                                   <div style={{ marginTop: '15px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '10px' }}>
                                     {showAddActivityDay === day.day_number ? (
-                                      <div className="add-activity-inline-form" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(212, 175, 55, 0.2)', padding: '15px', borderRadius: '8px', marginTop: '10px' }}>
-                                        <h4 style={{ color: '#d4af37', fontSize: '0.9rem', margin: '0 0 10px 0' }}>
-                                          {lang === 'AR' ? 'إضافة نشاط مخصص لهذا اليوم:' : 'Add Custom Activity to Day:'}
+                                      <div className="add-activity-inline-form" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(212, 175, 55, 0.2)', padding: '15px', borderRadius: '10px', marginTop: '10px' }}>
+                                        <h4 style={{ color: '#d4af37', fontSize: '0.92rem', margin: '0 0 10px 0', fontWeight: '800' }}>
+                                          {lang === 'AR' ? 'استعراض وإضافة نشاط إضافي بالمنطقة:' : 'Browse & Add Extra Activity in region:'}
                                         </h4>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                          {/* Select Dropdown filtering ONLY activities in current destination region NOT in experience already */}
                                           <select 
                                             value={newActivitySelection.activityId}
                                             onChange={(e) => {
@@ -744,35 +1015,90 @@ const PackageDetails = () => {
                                                 providerId: actObj && actObj.provider?._id ? actObj.provider._id : (actObj?.provider || '')
                                               }));
                                             }}
-                                            style={{ padding: '8px', background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '4px' }}
+                                            style={{ padding: '10px', background: '#14141f', border: '1.5px solid rgba(212,175,55,0.2)', color: '#fff', borderRadius: '6px', fontSize: '0.85rem', outline: 'none' }}
                                           >
-                                            <option value="">-- {lang === 'AR' ? 'اختر نشاطاً' : 'Select an Activity'} --</option>
-                                            {finalAddActivityOptions.map(act => (
-                                              <option key={act._id} value={act._id}>{act.name} ({act.type}) - {act.price} EGP</option>
-                                            ))}
+                                            <option value="">-- {lang === 'AR' ? 'اختر نشاطاً إضافياً بالمنطقة' : 'Select an Extra Activity in Region'} --</option>
+                                            {(() => {
+                                              const pkgDestId = packageData?.destination?._id || packageData?.destination;
+                                              // Filter: ONLY activities in this region
+                                              const regionalActs = activitiesList.filter(act => {
+                                                const actDestId = act.destination?._id || act.destination;
+                                                return actDestId && pkgDestId && actDestId.toString() === pkgDestId.toString();
+                                              });
+
+                                              // Filter out activities that are already in the current day's plan to prevent duplicate additions
+                                              const currentDayActIds = day.activities.map(a => (a.activity?._id || a.activity)?.toString());
+                                              const remainingActs = regionalActs.filter(a => !currentDayActIds.includes(a._id.toString()));
+
+                                              return remainingActs.map(act => {
+                                                const provId = act.provider?._id || act.provider;
+                                                const matchedProv = providersList.find(p => p._id === provId);
+                                                const provName = matchedProv ? matchedProv.name : (act.provider?.name || 'Provider');
+                                                return (
+                                                  <option key={act._id} value={act._id}>
+                                                    {act.name} | Mover: {provName} | {act.description ? act.description.substring(0, 30) + '...' : 'No desc'} | Price: {act.price} EGP
+                                                  </option>
+                                                );
+                                              });
+                                            })()}
                                           </select>
 
-                                          {newActivitySelection.activityId && (
-                                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                                              <span style={{ fontSize: '0.85rem', color: '#aaa' }}>
-                                                {lang === 'AR' ? `السعر: ${newActivitySelection.price} جنيه` : `Price: ${newActivitySelection.price} EGP`}
-                                              </span>
-                                            </div>
-                                          )}
+                                          {/* 🌟 Professional Live Preview of Selected Activity Specs */}
+                                          {(() => {
+                                            if (!newActivitySelection.activityId) return null;
+                                            const selectedActObj = activitiesList.find(a => a._id === newActivitySelection.activityId);
+                                            if (!selectedActObj) return null;
+
+                                            const provId = selectedActObj.provider?._id || selectedActObj.provider;
+                                            const matchedProv = providersList.find(p => p._id === provId);
+                                            const providerNameResolved = matchedProv ? matchedProv.name : (selectedActObj.provider?.name || 'Local Expert');
+
+                                            return (
+                                              <div className="activity-live-preview-box" style={{
+                                                background: 'rgba(255, 255, 255, 0.02)',
+                                                border: '1px dashed rgba(212,175,55,0.3)',
+                                                borderRadius: '8px',
+                                                padding: '12px',
+                                                fontSize: '0.85rem',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '6px'
+                                              }}>
+                                                <div style={{ color: '#fff', fontWeight: '700' }}>
+                                                  {selectedActObj.name}
+                                                </div>
+                                                <div style={{ color: '#d4af37', fontWeight: '600', display: 'flex', gap: '15px' }}>
+                                                  <span>
+                                                    <i className="fa-solid fa-parachute-box" style={{ marginRight: '5px' }}></i>
+                                                    {providerNameResolved}
+                                                  </span>
+                                                  <span>
+                                                    <i className="fa-solid fa-wallet" style={{ marginRight: '5px' }}></i>
+                                                    {newActivitySelection.price} EGP
+                                                  </span>
+                                                </div>
+                                                {selectedActObj.description && (
+                                                  <div style={{ color: '#a4a4b4', fontSize: '0.78rem', lineHeight: '1.4', fontStyle: 'italic', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '6px' }}>
+                                                    {selectedActObj.description}
+                                                  </div>
+                                                )}
+                                              </div>
+                                            );
+                                          })()}
 
                                           <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
                                             <button 
                                               onClick={() => handleAddActivitySubmit(day.day_number)}
-                                              style={{ background: 'var(--brand-accent)', color: '#000', border: 'none', padding: '6px 15px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem' }}
+                                              style={{ background: 'var(--secondary-color, #d4af37)', color: '#000', border: 'none', padding: '8px 18px', borderRadius: '6px', cursor: 'pointer', fontWeight: '800', fontSize: '0.82rem' }}
                                             >
-                                              {lang === 'AR' ? 'تأكيد الإضافة' : 'Confirm Add'}
+                                              {lang === 'AR' ? 'تأكيد إضافة النشاط' : 'Confirm Add Activity'}
                                             </button>
                                             <button 
                                               onClick={() => {
                                                 setShowAddActivityDay(null);
                                                 setNewActivitySelection({ activityId: '', providerId: '', price: '' });
                                               }}
-                                              style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '6px 15px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}
+                                              style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '8px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.82rem' }}
                                             >
                                               {lang === 'AR' ? 'إلغاء' : 'Cancel'}
                                             </button>
@@ -782,9 +1108,11 @@ const PackageDetails = () => {
                                     ) : (
                                       <button 
                                         onClick={() => setShowAddActivityDay(day.day_number)}
-                                        style={{ background: 'transparent', border: '1px dashed rgba(212, 175, 55, 0.4)', color: '#d4af37', padding: '6px 12px', borderRadius: '20px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '5px' }}
+                                        style={{ background: 'rgba(212, 175, 55, 0.05)', border: '1.5px dashed rgba(212, 175, 55, 0.4)', color: '#d4af37', padding: '8px 18px', borderRadius: '25px', cursor: 'pointer', fontSize: '0.82rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s' }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(212,175,55,0.15)'; }}
+                                        onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(212,175,55,0.05)'; }}
                                       >
-                                        <i className="fa-solid fa-plus"></i> {lang === 'AR' ? 'إضافة نشاط لهذا اليوم' : 'Add Activity to this Day'}
+                                        <i className="fa-solid fa-circle-plus"></i> {lang === 'AR' ? 'إضافة أنشطة إضافية للمخطط اليومي' : 'Add regional activities to this plan'}
                                       </button>
                                     )}
                                   </div>
@@ -799,6 +1127,7 @@ const PackageDetails = () => {
                           <div className="add-day-timeline-node" style={{ display: 'flex', alignItems: 'center', gap: '15px', borderLeft: '2px dashed rgba(212, 175, 55, 0.3)', paddingLeft: '20px', position: 'relative', marginTop: '20px', minHeight: '60px' }}>
                             <button 
                               className="btn-add-day-plus"
+                              type="button"
                               onClick={() => {
                                 const nextDayNum = displayItinerary.length + 1;
                                 setShowAddActivityDay(nextDayNum);
@@ -828,65 +1157,226 @@ const PackageDetails = () => {
                             
                             <div style={{ marginLeft: '15px' }}>
                               {showAddActivityDay === (displayItinerary.length + 1) ? (
-                                <div className="add-activity-inline-form" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(212, 175, 55, 0.2)', padding: '15px', borderRadius: '8px', width: '320px' }}>
-                                  <h4 style={{ color: '#d4af37', fontSize: '0.9rem', margin: '0 0 10px 0' }}>
-                                    {lang === 'AR' ? `إضافة نشاط لليوم الجديد (اليوم ${displayItinerary.length + 1}):` : `Add Activity to Start Day ${displayItinerary.length + 1}:`}
-                                  </h4>
-                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                    <select 
-                                      value={newActivitySelection.activityId}
-                                      onChange={(e) => {
-                                        const actId = e.target.value;
-                                        const actObj = activitiesList.find(a => a._id === actId);
-                                        setNewActivitySelection(prev => ({
-                                          ...prev,
-                                          activityId: actId,
-                                          price: actObj ? actObj.price : '',
-                                          providerId: actObj && actObj.provider?._id ? actObj.provider._id : (actObj?.provider || '')
-                                        }));
+                                <div className="add-activity-inline-form" style={{
+                                  background: 'rgba(255,255,255,0.03)',
+                                  border: '1.5px solid rgba(212, 175, 55, 0.3)',
+                                  padding: '20px',
+                                  borderRadius: '12px',
+                                  width: '450px',
+                                  maxWidth: '90vw',
+                                  boxShadow: '0 8px 30px rgba(0,0,0,0.5)'
+                                }}>
+                                  {/* Tab Selection Headers */}
+                                  <div style={{ display: 'flex', gap: '10px', marginBottom: '15px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>
+                                    <button
+                                      type="button"
+                                      onClick={() => setAddDayTab('custom')}
+                                      style={{
+                                        background: addDayTab === 'custom' ? 'var(--secondary-color, #d4af37)' : 'transparent',
+                                        color: addDayTab === 'custom' ? '#000' : '#fff',
+                                        border: addDayTab === 'custom' ? 'none' : '1px solid rgba(255,255,255,0.2)',
+                                        padding: '6px 12px',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        fontWeight: '700',
+                                        fontSize: '0.8rem',
+                                        flex: 1,
+                                        transition: 'all 0.2s'
                                       }}
-                                      style={{ padding: '8px', background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '4px' }}
                                     >
-                                      <option value="">-- {lang === 'AR' ? 'اختر نشاطاً' : 'Select an Activity'} --</option>
-                                      {(() => {
-                                        const pkgDestId = packageData?.destination?._id || packageData?.destination;
-                                        const optionalActs = activitiesList.filter(act => {
-                                          const actDestId = act.destination?._id || act.destination;
-                                          return actDestId && pkgDestId && actDestId.toString() === pkgDestId.toString();
-                                        }) || [];
-                                        const finalOptions = optionalActs.length > 0 ? optionalActs : activitiesList;
-                                        return finalOptions.map(act => (
-                                          <option key={act._id} value={act._id}>{act.name} ({act.type}) - {act.price} EGP</option>
-                                        ));
-                                      })()}
-                                    </select>
+                                      {lang === 'AR' ? 'نشاط مخصص' : 'Custom Activity'}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setAddDayTab('ready')}
+                                      style={{
+                                        background: addDayTab === 'ready' ? 'var(--secondary-color, #d4af37)' : 'transparent',
+                                        color: addDayTab === 'ready' ? '#000' : '#fff',
+                                        border: addDayTab === 'ready' ? 'none' : '1px solid rgba(255,255,255,0.2)',
+                                        padding: '6px 12px',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        fontWeight: '700',
+                                        fontSize: '0.8rem',
+                                        flex: 1,
+                                        transition: 'all 0.2s'
+                                      }}
+                                    >
+                                      {lang === 'AR' ? 'يوم جاهز (Day Use)' : 'Ready Day Use Day'}
+                                    </button>
+                                  </div>
 
-                                    {newActivitySelection.activityId && (
-                                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                                        <span style={{ fontSize: '0.85rem', color: '#aaa' }}>
-                                          {lang === 'AR' ? `السعر: ${newActivitySelection.price} جنيه` : `Price: ${newActivitySelection.price} EGP`}
-                                        </span>
+                                  {addDayTab === 'custom' ? (
+                                    <>
+                                      <h4 style={{ color: '#d4af37', fontSize: '0.9rem', margin: '0 0 10px 0', fontWeight: '800' }}>
+                                        {lang === 'AR' ? `إضافة نشاط لليوم الجديد (اليوم ${displayItinerary.length + 1}):` : `Add Activity to Start Day ${displayItinerary.length + 1}:`}
+                                      </h4>
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                        <select 
+                                          value={newActivitySelection.activityId}
+                                          onChange={(e) => {
+                                            const actId = e.target.value;
+                                            const actObj = activitiesList.find(a => a._id === actId);
+                                            setNewActivitySelection(prev => ({
+                                              ...prev,
+                                              activityId: actId,
+                                              price: actObj ? actObj.price : '',
+                                              providerId: actObj && actObj.provider?._id ? actObj.provider._id : (actObj?.provider || '')
+                                            }));
+                                          }}
+                                          style={{ padding: '10px', background: '#14141f', border: '1.5px solid rgba(212,175,55,0.2)', color: '#fff', borderRadius: '6px', fontSize: '0.85rem', outline: 'none' }}
+                                        >
+                                          <option value="">-- {lang === 'AR' ? 'اختر نشاطاً إضافياً بالمنطقة' : 'Select an Activity'} --</option>
+                                          {(() => {
+                                            const pkgDestId = packageData?.destination?._id || packageData?.destination;
+                                            const optionalActs = activitiesList.filter(act => {
+                                              const actDestId = act.destination?._id || act.destination;
+                                              return actDestId && pkgDestId && actDestId.toString() === pkgDestId.toString();
+                                            }) || [];
+                                            return optionalActs.map(act => {
+                                              const provId = act.provider?._id || act.provider;
+                                              const matchedProv = providersList.find(p => p._id === provId);
+                                              const provName = matchedProv ? matchedProv.name : (act.provider?.name || 'Local Expert');
+                                              return (
+                                                <option key={act._id} value={act._id}>
+                                                  {act.name} | Mover: {provName} | {act.description ? act.description.substring(0, 30) + '...' : 'No desc'} | Price: {act.price} EGP
+                                                </option>
+                                              );
+                                            });
+                                          })()}
+                                        </select>
+
+                                        {/* 🌟 Professional Live Preview of Selected Activity Specs */}
+                                        {(() => {
+                                          if (!newActivitySelection.activityId) return null;
+                                          const selectedActObj = activitiesList.find(a => a._id === newActivitySelection.activityId);
+                                          if (!selectedActObj) return null;
+
+                                          const provId = selectedActObj.provider?._id || selectedActObj.provider;
+                                          const matchedProv = providersList.find(p => p._id === provId);
+                                          const providerNameResolved = matchedProv ? matchedProv.name : (selectedActObj.provider?.name || 'Local Expert');
+
+                                          return (
+                                            <div className="activity-live-preview-box" style={{
+                                              background: 'rgba(255, 255, 255, 0.02)',
+                                              border: '1px dashed rgba(212,175,55,0.3)',
+                                              borderRadius: '8px',
+                                              padding: '12px',
+                                              fontSize: '0.85rem',
+                                              display: 'flex',
+                                              flexDirection: 'column',
+                                              gap: '6px'
+                                            }}>
+                                              <div style={{ color: '#fff', fontWeight: '700' }}>
+                                                {selectedActObj.name}
+                                              </div>
+                                              <div style={{ color: '#d4af37', fontWeight: '600', display: 'flex', gap: '15px' }}>
+                                                <span>
+                                                  <i className="fa-solid fa-parachute-box" style={{ marginRight: '5px' }}></i>
+                                                  {providerNameResolved}
+                                                </span>
+                                                <span>
+                                                  <i className="fa-solid fa-wallet" style={{ marginRight: '5px' }}></i>
+                                                  {newActivitySelection.price} EGP
+                                                </span>
+                                              </div>
+                                              {selectedActObj.description && (
+                                                <div style={{ color: '#a4a4b4', fontSize: '0.78rem', lineHeight: '1.4', fontStyle: 'italic', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '6px' }}>
+                                                  {selectedActObj.description}
+                                                </div>
+                                              )}
+                                            </div>
+                                          );
+                                        })()}
+
+                                        <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
+                                          <button 
+                                            onClick={() => handleAddActivitySubmit(displayItinerary.length + 1)}
+                                            style={{ background: 'var(--secondary-color, #d4af37)', color: '#000', border: 'none', padding: '8px 18px', borderRadius: '6px', cursor: 'pointer', fontWeight: '800', fontSize: '0.82rem' }}
+                                          >
+                                            {lang === 'AR' ? 'تأكيد إضافة اليوم والنشاط' : 'Confirm Add Day & Activity'}
+                                          </button>
+                                          <button 
+                                            onClick={() => {
+                                              setShowAddActivityDay(null);
+                                              setNewActivitySelection({ activityId: '', providerId: '', price: '' });
+                                            }}
+                                            style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '8px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.82rem' }}
+                                          >
+                                            {lang === 'AR' ? 'إلغاء' : 'Cancel'}
+                                          </button>
+                                        </div>
                                       </div>
-                                    )}
+                                    </>
+                                  ) : (
+                                    <>
+                                      <h4 style={{ color: '#d4af37', fontSize: '0.9rem', margin: '0 0 10px 0', fontWeight: '800' }}>
+                                        {lang === 'AR' ? 'اختر يوماً جاهزاً من الباقات المتاحة بنفس المنطقة:' : 'Choose a ready-made Day Use in same region:'}
+                                      </h4>
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '300px', overflowY: 'auto', paddingRight: '5px' }}>
+                                        {(() => {
+                                          const regionalDayuses = suggestedPackages.filter(p => p.type === 'Package' || p.duration_days === 1);
+                                          if (regionalDayuses.length === 0) {
+                                            return (
+                                              <p style={{ color: '#aaa', fontStyle: 'italic', fontSize: '0.8rem', textAlign: 'center', padding: '10px 0' }}>
+                                                {lang === 'AR' ? 'لا توجد باقات Day Use جاهزة متاحة حالياً في هذه المنطقة.' : 'No pre-designed Day Use experiences available in this region.'}
+                                              </p>
+                                            );
+                                          }
 
-                                    <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
-                                      <button 
-                                        onClick={() => handleAddActivitySubmit(displayItinerary.length + 1)}
-                                        style={{ background: 'var(--brand-accent)', color: '#000', border: 'none', padding: '6px 15px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem' }}
-                                      >
-                                        {lang === 'AR' ? 'إنشاء اليوم وإضافة النشاط' : 'Create Day & Add Activity'}
-                                      </button>
+                                          return regionalDayuses.map(pkg => (
+                                            <div 
+                                              key={pkg._id} 
+                                              onClick={() => handleInjectDayuseDay(pkg)}
+                                              style={{
+                                                background: 'rgba(255, 255, 255, 0.03)',
+                                                border: '1px solid rgba(255, 255, 255, 0.08)',
+                                                borderRadius: '8px',
+                                                padding: '10px',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s',
+                                                display: 'flex',
+                                                gap: '12px',
+                                                alignItems: 'center'
+                                              }}
+                                              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(212,175,55,0.4)'; e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
+                                              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)'; e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'; }}
+                                            >
+                                              <img 
+                                                src={pkg.image || 'https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=150&q=80'} 
+                                                alt={pkg.name} 
+                                                style={{ width: '60px', height: '60px', borderRadius: '6px', objectFit: 'cover' }}
+                                              />
+                                              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                                                <div style={{ color: '#fff', fontSize: '0.82rem', fontWeight: '700' }}>
+                                                  {pkg.name}
+                                                </div>
+                                                <div style={{ color: '#94a3b8', fontSize: '0.74rem', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: '1', WebkitBoxOrient: 'vertical' }}>
+                                                  {pkg.description || 'Pre-designed package.'}
+                                                </div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#d4af37', fontSize: '0.74rem', fontWeight: '700', marginTop: '2px' }}>
+                                                  <span>{pkg.base_price} EGP</span>
+                                                  <span style={{ color: '#aaa', fontSize: '0.7rem' }}>
+                                                    <i className="fa-solid fa-bolt" style={{ marginRight: '3px', color: '#d4af37' }}></i>
+                                                    {lang === 'AR' ? 'اضغط للإضافة' : 'Click to Inject'}
+                                                  </span>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          ));
+                                        })()}
+                                      </div>
+                                      
                                       <button 
                                         onClick={() => {
                                           setShowAddActivityDay(null);
-                                          setNewActivitySelection({ activityId: '', providerId: '', price: '' });
                                         }}
-                                        style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '6px 15px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}
+                                        style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '8px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.82rem', marginTop: '10px', width: '100%' }}
                                       >
                                         {lang === 'AR' ? 'إلغاء' : 'Cancel'}
                                       </button>
-                                    </div>
-                                  </div>
+                                    </>
+                                  )}
                                 </div>
                               ) : (
                                 <span 
@@ -902,6 +1392,139 @@ const PackageDetails = () => {
                             </div>
                           </div>
                         )}
+
+                    {/* 🌟 Suggested regional Packages & Dayuse card lists */}
+                    {isCustomizing && suggestedPackages && suggestedPackages.length > 0 && (
+                      <div className="regional-suggestions-section" style={{
+                        marginTop: '35px',
+                        padding: '25px',
+                        background: 'rgba(212, 175, 55, 0.04)',
+                        border: '1px solid rgba(212, 175, 55, 0.15)',
+                        borderRadius: '16px',
+                        boxSizing: 'border-box'
+                      }}>
+                        <h3 style={{ 
+                          color: '#d4af37', 
+                          fontSize: '1.25rem', 
+                          fontWeight: '800', 
+                          marginTop: '0', 
+                          marginBottom: '8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px'
+                        }}>
+                          <i className="fa-solid fa-map-location-dot"></i>
+                          {lang === 'AR' ? 'أيام أنشطة وباقات إضافية متاحة في نفس المنطقة:' : 'Suggested Extra Days & Packages in same region:'}
+                        </h3>
+                        <p style={{ color: '#c4c4d4', fontSize: '0.85rem', marginBottom: '20px', lineHeight: '1.4' }}>
+                          {lang === 'AR' 
+                            ? 'لقد عثرنا على هذه الباقات والرحلات اليومية المتاحة في نفس الوجهة الجغرافية. يمكنك استلهام أفكار منها أو إضافتها لرحلتك المخصصة.' 
+                            : 'We found these dayuse experiences and travel packages active in the same region. You can view their details to enrich your journey.'}
+                        </p>
+
+                        <div className="suggestions-flex-grid" style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                          gap: '20px'
+                        }}>
+                          {suggestedPackages.map(pkg => (
+                            <div key={pkg._id} className="suggested-region-card" style={{
+                              background: 'rgba(255, 255, 255, 0.02)',
+                              border: '1px solid rgba(255, 255, 255, 0.06)',
+                              borderRadius: '12px',
+                              overflow: 'hidden',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              transition: 'transform 0.2s, border-color 0.2s',
+                              cursor: 'pointer'
+                            }}
+                            onClick={() => window.location.href = `/package-details/${pkg._id}`}
+                            onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(212, 175, 55, 0.4)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.06)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                            >
+                              <div className="card-media-wrapper" style={{ height: '140px', position: 'relative' }}>
+                                <img 
+                                  src={pkg.image || 'https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=600&q=80'} 
+                                  alt={pkg.name} 
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                />
+                                <div style={{
+                                  position: 'absolute',
+                                  top: '10px',
+                                  right: '10px',
+                                  background: 'rgba(0,0,0,0.7)',
+                                  color: '#d4af37',
+                                  padding: '4px 10px',
+                                  borderRadius: '20px',
+                                  fontSize: '0.72rem',
+                                  fontWeight: '700',
+                                  border: '1px solid rgba(212,175,55,0.3)'
+                                }}>
+                                  {pkg.type === 'Package' ? (lang === 'AR' ? 'يوم واحد' : 'Day Use') : (lang === 'AR' ? 'رحلة متعددة' : 'Trip')}
+                                </div>
+                              </div>
+
+                              <div className="card-info-pane" style={{ padding: '15px', display: 'flex', flexDirection: 'column', flex: '1', gap: '8px' }}>
+                                <h4 style={{ color: '#ffffff', fontSize: '0.98rem', fontWeight: '700', margin: '0', lineHeight: '1.3' }}>
+                                  {pkg.name}
+                                </h4>
+                                <p style={{ color: '#94a3b8', fontSize: '0.8rem', margin: '0', flex: '1', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', lineHeight: '1.4' }}>
+                                  {pkg.description || 'Embark on a high-value excursion.'}
+                                </p>
+                                <div style={{ 
+                                  display: 'flex', 
+                                  justifyContent: 'space-between', 
+                                  alignItems: 'center', 
+                                  marginTop: '5px',
+                                  borderTop: '1px dashed rgba(255,255,255,0.06)',
+                                  paddingTop: '10px'
+                                }}>
+                                  <span style={{ color: '#aaa', fontSize: '0.78rem' }}>
+                                    <i className="fa-solid fa-clock" style={{ marginRight: '5px' }}></i>
+                                    {pkg.duration_days} {pkg.duration_days > 1 ? (lang === 'AR' ? 'أيام' : 'Days') : (lang === 'AR' ? 'يوم' : 'Day')}
+                                  </span>
+                                  <strong style={{ color: '#d4af37', fontSize: '0.95rem' }}>
+                                    {pkg.base_price} EGP
+                                  </strong>
+                                </div>
+
+                                {isCustomizing && (pkg.type === 'Package' || pkg.duration_days === 1) && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleInjectDayuseDay(pkg);
+                                    }}
+                                    style={{
+                                      marginTop: '10px',
+                                      width: '100%',
+                                      background: 'rgba(212, 175, 55, 0.1)',
+                                      border: '1px solid rgba(212, 175, 55, 0.4)',
+                                      color: '#d4af37',
+                                      padding: '8px',
+                                      borderRadius: '6px',
+                                      cursor: 'pointer',
+                                      fontWeight: '700',
+                                      fontSize: '0.78rem',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      gap: '5px',
+                                      transition: 'all 0.2s'
+                                    }}
+                                    onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--secondary-color, #d4af37)'; e.currentTarget.style.color = '#000'; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(212, 175, 55, 0.1)'; e.currentTarget.style.color = '#d4af37'; }}
+                                  >
+                                    <i className="fa-solid fa-circle-plus"></i>
+                                    {lang === 'AR' ? 'إضافة اليوم لخطتي' : 'Add Day to Itinerary'}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                       </>
                     ) : (
                       <p style={{ color: '#888', fontStyle: 'italic' }}>Leisure trip with open explore days.</p>

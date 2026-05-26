@@ -9,7 +9,10 @@ export const globalErrorHandler = async (err, req, res, next) => {
     if (err.message === "jwt expired") {
       const refreshToken = req.headers["refreshtoken"];
       if (!refreshToken) {
-        throw new AppError.forbiddenException("Refresh token is required");
+        return res.status(401).json({
+          message: "jwt expired",
+          success: false,
+        });
       }
 
       const payload = verifyRefreshToken({ token: refreshToken });

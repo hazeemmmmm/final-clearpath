@@ -69,6 +69,23 @@ class CustomTripController {
     }
   };
 
+  // Add full day (Day Use inject)
+  addDay = async (req, res, next) => {
+    try {
+      const data = await CustomTripService.addDay(
+        req.params.id,
+        req.body
+      );
+
+      res.status(200).json({
+        message: "Day added successfully",
+        data,
+      });
+    } catch (err) {
+      next(err);
+    }
+  };
+
   // Add activity
   addActivity = async (req, res, next) => {
     try {

@@ -9,6 +9,9 @@ const customActivitySchema = new mongoose.Schema({
 
 const customDaySchema = new mongoose.Schema({
   day_number: { type: Number, required: true },
+  title: { type: String, trim: true },
+  image: { type: String, trim: true },
+  description: { type: String, trim: true },
   activities: [customActivitySchema],
   status: { type: String, enum: ["active", "removed"], default: "active" }
 }, { _id: false });

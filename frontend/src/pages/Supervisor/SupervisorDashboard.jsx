@@ -104,7 +104,6 @@ const SupervisorDashboard = () => {
   // ── Computed Stats ───────────────────────────────
   const totalBookings = trips.reduce((sum, trip) => sum + (Number(trip.bookingCount) || 0), 0);
   const totalGuests = trips.reduce((sum, trip) => sum + (Number(trip.totalGuests) || 0), 0);
-  const totalRevenue = trips.reduce((sum, trip) => sum + (Number(trip.totalAmount) || 0), 0);
 
   const confirmedBookings = trips.reduce((sum, trip) => {
     return sum + (trip.bookingDetails || []).filter(b => b.status?.toLowerCase() === 'confirmed').length;
@@ -117,7 +116,6 @@ const SupervisorDashboard = () => {
   const animTrips = useCounter(trips.length);
   const animBookings = useCounter(totalBookings);
   const animGuests = useCounter(totalGuests);
-  const animRevenue = useCounter(totalRevenue);
 
   // ── Filtering ────────────────────────────────────
   const now = new Date();
@@ -144,8 +142,6 @@ const SupervisorDashboard = () => {
       return endDate && endDate < now;
     }
 
-    if (activeTab === 'revenue') return true; // revenue tab shows all in table format
-
     return true;
   });
 
@@ -154,7 +150,6 @@ const SupervisorDashboard = () => {
     { id: 'all', icon: 'fa-solid fa-compass', label: 'All Trips', badge: trips.length },
     { id: 'upcoming', icon: 'fa-solid fa-clock', label: 'Upcoming', badge: null },
     { id: 'completed', icon: 'fa-solid fa-circle-check', label: 'Completed', badge: null },
-    { id: 'revenue', icon: 'fa-solid fa-chart-line', label: 'Revenue', badge: null },
   ];
 
   // ── SVG Chart Data (bookings per trip, max 7) ────
@@ -167,13 +162,6 @@ const SupervisorDashboard = () => {
   const bookingsLine = chartTrips.map((t, i) => {
     const x = chartTrips.length === 1 ? chartWidth / 2 : i * step;
     const y = chartHeight - ((Number(t.bookingCount) || 0) / maxBooking) * (chartHeight - 30) - 15;
-    return `${x},${y}`;
-  }).join(' ');
-
-  const revenueMax = Math.max(...chartTrips.map(t => Number(t.totalAmount) || 1), 1);
-  const revenueLine = chartTrips.map((t, i) => {
-    const x = chartTrips.length === 1 ? chartWidth / 2 : i * step;
-    const y = chartHeight - ((Number(t.totalAmount) || 0) / revenueMax) * (chartHeight - 30) - 15;
     return `${x},${y}`;
   }).join(' ');
 
@@ -321,7 +309,7 @@ const SupervisorDashboard = () => {
               </div>
 
               {/* Metric Cards */}
-              <div className="sv-metrics-grid">
+              <div className="sv-metrics-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
                 <div className="sv-metric-card card-teal">
                   <div className="sv-metric-header">
                     <span>Assigned Trips</span>
@@ -360,19 +348,6 @@ const SupervisorDashboard = () => {
                     <i className="fa-solid fa-user-clock"></i> {pendingBookings} Pending
                   </span>
                 </div>
-
-                <div className="sv-metric-card card-amber">
-                  <div className="sv-metric-header">
-                    <span>Total Revenue</span>
-                    <div className="sv-metric-icon icon-amber">
-                      <i className="fa-solid fa-wallet"></i>
-                    </div>
-                  </div>
-                  <h3 className="sv-metric-value">{formatCurrency(animRevenue)}</h3>
-                  <span className="sv-metric-trend positive">
-                    <i className="fa-solid fa-coins"></i> Earnings
-                  </span>
-                </div>
               </div>
 
               {/* Insights Row — Chart + Quick Stats */}
@@ -381,7 +356,7 @@ const SupervisorDashboard = () => {
                   {/* Chart */}
                   <div className="sv-card">
                     <div className="sv-card-header">
-                      <h3>Bookings & Revenue Overview</h3>
+                      <h3>Bookings Overview</h3>
                       <span className="sv-pill">Per Trip</span>
                     </div>
                     <div className="sv-chart-area">
@@ -391,15 +366,11 @@ const SupervisorDashboard = () => {
                             <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.35" />
                             <stop offset="100%" stopColor="#14b8a6" stopOpacity="0.0" />
                           </linearGradient>
-                          <linearGradient id="svGradCyan" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#0891b2" stopOpacity="0.25" />
-                            <stop offset="100%" stopColor="#0891b2" stopOpacity="0.0" />
-                          </linearGradient>
                         </defs>
 
                         {/* Grid lines */}
                         {[30, 70, 110, 150].map((y) => (
-                          <line key={y} x1="0" y1={y} x2="500" y2={y} stroke="rgba(255,255,255,0.04)" strokeDasharray="3,3" />
+                           <line key={y} x1="0" y1={y} x2="500" y2={y} stroke="rgba(255,255,255,0.04)" strokeDasharray="3,3" />
                         ))}
 
                         {/* Bookings area + line */}
@@ -416,25 +387,6 @@ const SupervisorDashboard = () => {
                               strokeWidth="2.5"
                               strokeLinecap="round"
                               strokeLinejoin="round"
-                            />
-                          </>
-                        )}
-
-                        {/* Revenue area + line */}
-                        {chartTrips.length > 1 && (
-                          <>
-                            <polygon
-                              points={`${revenueLine} ${chartWidth},${chartHeight} 0,${chartHeight}`}
-                              fill="url(#svGradCyan)"
-                            />
-                            <polyline
-                              points={revenueLine}
-                              fill="none"
-                              stroke="#0891b2"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeDasharray="6,3"
                             />
                           </>
                         )}
@@ -460,7 +412,6 @@ const SupervisorDashboard = () => {
                     </div>
                     <div className="sv-chart-legend">
                       <div className="sv-legend-item"><span className="sv-dot teal"></span><span>Bookings</span></div>
-                      <div className="sv-legend-item"><span className="sv-dot cyan"></span><span>Revenue</span></div>
                     </div>
                   </div>
 
@@ -516,54 +467,10 @@ const SupervisorDashboard = () => {
                 </div>
               )}
 
-              {/* ═══ REVENUE TAB ═══ */}
-              {activeTab === 'revenue' && trips.length > 0 && (
-                <div className="sv-card sv-animate-in" style={{ marginBottom: 28 }}>
-                  <div className="sv-card-header">
-                    <h3>Revenue Breakdown by Trip</h3>
-                    <span className="sv-pill">{trips.length} Trips</span>
-                  </div>
-                  <div className="sv-table-container">
-                    <table className="sv-table">
-                      <thead>
-                        <tr>
-                          <th>Trip Name</th>
-                          <th>Destination</th>
-                          <th>Bookings</th>
-                          <th>Guests</th>
-                          <th>Price / Person</th>
-                          <th>Total Revenue</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {trips.map((trip) => (
-                          <tr key={trip._id}>
-                            <td className="trip-name-cell">{trip.name}</td>
-                            <td>{trip.destination?.name || '—'}</td>
-                            <td>{trip.bookingCount ?? 0}</td>
-                            <td>{trip.totalGuests ?? 0}</td>
-                            <td>{formatCurrency(calculatePricePerPerson(trip))}</td>
-                            <td className="revenue-value">{formatCurrency(trip.totalAmount)}</td>
-                          </tr>
-                        ))}
-                        <tr style={{ background: 'rgba(20, 184, 166, 0.05)' }}>
-                          <td className="trip-name-cell" style={{ color: '#2dd4bf' }}>Total</td>
-                          <td>—</td>
-                          <td style={{ fontWeight: 700 }}>{totalBookings}</td>
-                          <td style={{ fontWeight: 700 }}>{totalGuests}</td>
-                          <td>—</td>
-                          <td className="revenue-value" style={{ fontSize: '1rem' }}>{formatCurrency(totalRevenue)}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
+
 
               {/* ═══ TRIPS GRID (All / Upcoming / Completed) ═══ */}
-              {activeTab !== 'revenue' && (
-                <>
-                  {/* Empty State */}
+              {/* Empty State */}
                   {filteredTrips.length === 0 && !error && (
                     <div className="sv-empty-state sv-animate-in">
                       <i className="fa-solid fa-map-location-dot"></i>
@@ -606,7 +513,7 @@ const SupervisorDashboard = () => {
                         {/* Card Body */}
                         <div className="sv-trip-body">
                           {/* Stats Row */}
-                          <div className="sv-trip-stats-row">
+                          <div className="sv-trip-stats-row" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
                             <div className="sv-trip-stat">
                               <span>Bookings</span>
                               <strong>{trip.bookingCount ?? 0}</strong>
@@ -614,10 +521,6 @@ const SupervisorDashboard = () => {
                             <div className="sv-trip-stat">
                               <span>Guests</span>
                               <strong>{trip.totalGuests ?? 0}</strong>
-                            </div>
-                            <div className="sv-trip-stat highlight">
-                              <span>Revenue</span>
-                              <strong>{formatCurrency(trip.totalAmount)}</strong>
                             </div>
                           </div>
 
@@ -710,8 +613,6 @@ const SupervisorDashboard = () => {
                       </article>
                     ))}
                   </div>
-                </>
-              )}
             </div>
           )}
         </main>

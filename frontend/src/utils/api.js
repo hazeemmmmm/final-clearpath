@@ -100,6 +100,13 @@ export const createCustomTrip = async (experienceId) =>
     body: JSON.stringify({ experienceId })
   });
 
+export const addDayToCustomTrip = async (tripId, dayObj) =>
+  apiCall(`${BASE_URL}/customTrip/${tripId}/add-day`, {
+    method: 'PATCH',
+    headers: getHeaders(true),
+    body: JSON.stringify(dayObj)
+  });
+
 export const addActivityToCustomTrip = async (tripId, day_number, activityObj) =>
   apiCall(`${BASE_URL}/customTrip/${tripId}/add-activity`, {
     method: 'PATCH',

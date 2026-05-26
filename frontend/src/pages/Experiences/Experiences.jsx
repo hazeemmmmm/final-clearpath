@@ -117,6 +117,52 @@ const Experiences = () => {
     return true;
   });
 
+  const renderExperienceCard = (exp) => {
+    const isDayuse = exp.duration_days === 1;
+    const typeLabel = isDayuse 
+      ? (lang === 'AR' ? 'داي يوز' : 'Dayuse')
+      : (lang === 'AR' ? 'رحلة' : 'Trip');
+    
+    return (
+      <div key={exp._id} className="exp-card" onClick={() => handleCardClick(exp._id)}>
+        <div className={`exp-badge ${isDayuse ? 'dayuse' : 'trip'}`}>
+          {typeLabel}
+        </div>
+        
+        <button 
+          className={`wishlist-btn ${wishlistIds.has(exp._id) ? 'active' : ''}`}
+          onClick={(e) => handleWishlistToggle(e, exp._id)}
+          title={lang === 'AR' ? 'إضافة إلى المفضلة' : 'Add to Wishlist'}
+          type="button"
+        >
+          <i className={`${wishlistIds.has(exp._id) ? 'fa-solid' : 'fa-regular'} fa-heart`}></i>
+        </button>
+
+        <div className="exp-image">
+          <img src={exp.images?.[0] || exp.image || "/img/cairo_pyramids_1775971845389.png"} alt={exp.name} />
+        </div>
+        <div className="exp-content">
+          <h3 className="exp-title">{exp.name}</h3>
+          <div className="exp-location" style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+            <i className="fa-solid fa-location-dot"></i> 
+            {exp.destination?.name || destinations.find(d => d._id === (exp.destination?._id || exp.destination))?.name || (lang === 'AR' ? 'وجهات متعددة' : 'Multiple Locations')}
+          </div>
+          <p className="exp-desc">{exp.description || (lang === 'AR' ? 'استمتع بجمال وتاريخ مصر العريق من خلال جولاتنا السياحية المصممة باحتراف.' : 'Experience the beauty and history of Egypt with our expertly guided tours.')}</p>
+          
+          <div className="exp-footer">
+            <div className="exp-price">
+              {exp.calculatedPrice || exp.base_price || 0} EGP <span>{lang === 'AR' ? '/ للفرد' : '/ person'}</span>
+            </div>
+            <div className="exp-duration" style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+              <i className="fa-regular fa-clock"></i> 
+              {exp.duration_days} {exp.duration_days === 1 ? (lang === 'AR' ? 'يوم' : 'Day') : (lang === 'AR' ? 'أيام' : 'Days')}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className={`experiences-page ${lang === 'AR' ? 'lang-ar' : ''}`}>
       <Navbar lang={lang} isScrolled={true} />
@@ -264,52 +310,115 @@ const Experiences = () => {
             <h2>{lang === 'AR' ? 'جاري تحميل التجارب المتاحة...' : 'Loading experiences...'}</h2>
           </div>
         ) : displayedExperiences.length > 0 ? (
-          <div className="experiences-grid">
-            {displayedExperiences.map((exp) => {
-              const isDayuse = exp.duration_days === 1;
-              const typeLabel = isDayuse 
-                ? (lang === 'AR' ? 'داي يوز' : 'Dayuse')
-                : (lang === 'AR' ? 'رحلة' : 'Trip');
-              
-              return (
-                <div key={exp._id} className="exp-card" onClick={() => handleCardClick(exp._id)}>
-                  <div className={`exp-badge ${isDayuse ? 'dayuse' : 'trip'}`}>
-                    {typeLabel}
-                  </div>
-                  
-                  <button 
-                    className={`wishlist-btn ${wishlistIds.has(exp._id) ? 'active' : ''}`}
-                    onClick={(e) => handleWishlistToggle(e, exp._id)}
-                    title={lang === 'AR' ? 'إضافة إلى المفضلة' : 'Add to Wishlist'}
-                  >
-                    <i className={`${wishlistIds.has(exp._id) ? 'fa-solid' : 'fa-regular'} fa-heart`}></i>
-                  </button>
- 
-                  <div className="exp-image">
-                    <img src={exp.images?.[0] || "/img/cairo_pyramids_1775971845389.png"} alt={exp.name} />
-                  </div>
-                  <div className="exp-content">
-                    <h3 className="exp-title">{exp.name}</h3>
-                    <div className="exp-location" style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-                      <i className="fa-solid fa-location-dot"></i> 
-                      {exp.destination?.name || (lang === 'AR' ? 'وجهات متعددة' : 'Multiple Locations')}
-                    </div>
-                    <p className="exp-desc">{exp.description || (lang === 'AR' ? 'استمتع بجمال وتاريخ مصر العريق من خلال جولاتنا السياحية المصممة باحتراف.' : 'Experience the beauty and history of Egypt with our expertly guided tours.')}</p>
-                    
-                    <div className="exp-footer">
-                      <div className="exp-price">
-                        {exp.calculatedPrice || exp.base_price || 0} EGP <span>{lang === 'AR' ? '/ للفرد' : '/ person'}</span>
-                      </div>
-                      <div className="exp-duration" style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-                        <i className="fa-regular fa-clock"></i> 
-                        {exp.duration_days} {exp.duration_days === 1 ? (lang === 'AR' ? 'يوم' : 'Day') : (lang === 'AR' ? 'أيام' : 'Days')}
-                      </div>
+          !selectedDestination && activeTab === 'all' && minPrice === 0 && maxPrice === 25000 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '50px' }}>
+              {/* 🌴 Go to Dahab Section */}
+              {(() => {
+                const dahabExps = displayedExperiences.filter(exp => {
+                  const destName = exp.destination?.name?.toLowerCase() || 
+                    destinations.find(d => d._id === (exp.destination?._id || exp.destination))?.name?.toLowerCase() || '';
+                  return destName === 'dahab';
+                });
+                if (dahabExps.length === 0) return null;
+                return (
+                  <div className="airbnb-dest-section">
+                    <h2 className="dest-section-title" style={{
+                      fontSize: '1.75rem',
+                      fontWeight: '900',
+                      color: '#000000',
+                      textTransform: 'uppercase',
+                      letterSpacing: '1px',
+                      fontFamily: "'Inter', 'Georgia', serif",
+                      marginBottom: '20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      borderBottom: '3.5px solid #000000',
+                      paddingBottom: '8px'
+                    }}>
+                      <i className="fa-solid fa-umbrella-beach"></i>
+                      {lang === 'AR' ? 'سافر إلى دهب (Go to Dahab)' : 'Go to Dahab 🌴'}
+                    </h2>
+                    <div className="experiences-grid">
+                      {dahabExps.map(exp => renderExperienceCard(exp))}
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })()}
+
+              {/* 🏛️ Go to Cairo Section */}
+              {(() => {
+                const cairoExps = displayedExperiences.filter(exp => {
+                  const destName = exp.destination?.name?.toLowerCase() || 
+                    destinations.find(d => d._id === (exp.destination?._id || exp.destination))?.name?.toLowerCase() || '';
+                  return destName === 'cairo';
+                });
+                if (cairoExps.length === 0) return null;
+                return (
+                  <div className="airbnb-dest-section">
+                    <h2 className="dest-section-title" style={{
+                      fontSize: '1.75rem',
+                      fontWeight: '900',
+                      color: '#000000',
+                      textTransform: 'uppercase',
+                      letterSpacing: '1px',
+                      fontFamily: "'Inter', 'Georgia', serif",
+                      marginBottom: '20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      borderBottom: '3.5px solid #000000',
+                      paddingBottom: '8px'
+                    }}>
+                      <i className="fa-solid fa-landmark"></i>
+                      {lang === 'AR' ? 'سافر إلى القاهرة (Go to Cairo)' : 'Go to Cairo 🏛️'}
+                    </h2>
+                    <div className="experiences-grid">
+                      {cairoExps.map(exp => renderExperienceCard(exp))}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* 🗺️ Other Destinations Section */}
+              {(() => {
+                const otherExps = displayedExperiences.filter(exp => {
+                  const destName = exp.destination?.name?.toLowerCase() || 
+                    destinations.find(d => d._id === (exp.destination?._id || exp.destination))?.name?.toLowerCase() || '';
+                  return destName !== 'dahab' && destName !== 'cairo';
+                });
+                if (otherExps.length === 0) return null;
+                return (
+                  <div className="airbnb-dest-section">
+                    <h2 className="dest-section-title" style={{
+                      fontSize: '1.75rem',
+                      fontWeight: '900',
+                      color: '#000000',
+                      textTransform: 'uppercase',
+                      letterSpacing: '1px',
+                      fontFamily: "'Inter', 'Georgia', serif",
+                      marginBottom: '20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      borderBottom: '3.5px solid #000000',
+                      paddingBottom: '8px'
+                    }}>
+                      <i className="fa-solid fa-map-location-dot"></i>
+                      {lang === 'AR' ? 'وجهات مصرية ساحرة أخرى' : 'Explore More of Egypt 🇪🇬'}
+                    </h2>
+                    <div className="experiences-grid">
+                      {otherExps.map(exp => renderExperienceCard(exp))}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          ) : (
+            <div className="experiences-grid">
+              {displayedExperiences.map((exp) => renderExperienceCard(exp))}
+            </div>
+          )
         ) : (
           <div className="empty-state">
             <i className="fa-solid fa-box-open"></i>

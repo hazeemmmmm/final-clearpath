@@ -192,7 +192,7 @@ const AdminDashboard = () => {
       if (idx === dayIdx) {
         return {
           ...d,
-          activities: [...d.activities, { activity: '', provider: '', price: '' }]
+          activities: [...d.activities, { activity: '', provider: '', price: '', description: '' }]
         };
       }
       return d;
@@ -245,6 +245,24 @@ const AdminDashboard = () => {
     }));
   };
 
+  const handleItineraryTitleChange = (dayIdx, value) => {
+    setItinerary(prev => prev.map((d, idx) => {
+      if (idx === dayIdx) {
+        return { ...d, title: value };
+      }
+      return d;
+    }));
+  };
+
+  const handleItineraryImageChange = (dayIdx, value) => {
+    setItinerary(prev => prev.map((d, idx) => {
+      if (idx === dayIdx) {
+        return { ...d, image: value };
+      }
+      return d;
+    }));
+  };
+
   const calculateEstimatedPackagePrice = () => {
     const base = Number(formData.base_price) || 0;
     const activitiesSum = itinerary.reduce((acc, day) => {
@@ -262,19 +280,23 @@ const AdminDashboard = () => {
     try {
       const formattedItinerary = itinerary.map(day => ({
         day_number: Number(day.day_number),
+        title: day.title || `Day ${day.day_number}`,
+        image: day.image || '',
         description: day.description || '',
         activities: day.activities
           .filter(act => act.activity) // only include configured activities
           .map(act => ({
             activity: act.activity,
             provider: act.provider || undefined,
-            price: Number(act.price) || 0
+            price: Number(act.price) || 0,
+            description: act.description || ''
           }))
       }));
 
       const payload = {
         ...formData,
-        type: formData.type.charAt(0).toUpperCase() + formData.type.slice(1), // Match Schema Enums ["Trip", "Package"]
+        supervisor: formData.supervisor || undefined,
+        type: formData.type.toLowerCase() === 'dayuse' ? 'Package' : 'Trip',
         base_price: Number(formData.base_price),
         duration_days: Number(formData.duration_days),
         capacity: Number(formData.capacity),
@@ -379,7 +401,28 @@ const AdminDashboard = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => {
+      const updated = { ...prev, [name]: value };
+      
+      // If user switches type to 'dayuse', auto-set duration to '1' and make it consistent
+      if (name === 'type') {
+        if (value === 'dayuse') {
+          updated.duration_days = '1';
+        } else if (value === 'trip' && prev.type === 'dayuse') {
+          // If switching back to trip from dayuse, set a reasonable default if it was 1
+          if (prev.duration_days === '1') {
+            updated.duration_days = '3';
+          }
+        }
+      }
+      
+      // Prevent manual changes of duration to anything other than 1 for dayuse
+      if (name === 'duration_days' && updated.type === 'dayuse') {
+        updated.duration_days = '1';
+      }
+
+      return updated;
+    });
   };
 
   const handleSupervisorInputChange = (e) => {
@@ -947,7 +990,7 @@ const AdminDashboard = () => {
                           </div>
                         </div>
 
-                        <div className="form-row-two">
+                        <div className="form-row-two" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                           <div className="form-field">
                             <label>Experience Type</label>
                             <div className="input-with-icon">
@@ -960,18 +1003,33 @@ const AdminDashboard = () => {
                           </div>
 
                           <div className="form-field">
-                            <label>Destination City/Location</label>
+                            <label>Assigned Supervisor (Platform Pro)</label>
                             <div className="input-with-icon">
-                              <i className="fa-solid fa-location-arrow"></i>
-                              <input 
-                                type="text" 
-                                name="destination" 
-                                value={formData.destination} 
-                                onChange={handleInputChange} 
-                                placeholder="e.g. Cairo" 
-                                required 
-                              />
+                              <i className="fa-solid fa-user-shield"></i>
+                              <select name="supervisor" value={formData.supervisor || ''} onChange={handleInputChange}>
+                                <option value="">-- Select supervisor --</option>
+                                {getSupervisorsList().map(s => (
+                                  <option key={s._id} value={s._id}>
+                                    {s.firstName} {s.lastName} ({s.email})
+                                  </option>
+                                ))}
+                              </select>
                             </div>
+                          </div>
+                        </div>
+
+                        <div className="form-field full-width" style={{ marginTop: '15px' }}>
+                          <label>Destination City/Location</label>
+                          <div className="input-with-icon">
+                            <i className="fa-solid fa-location-arrow"></i>
+                            <input 
+                              type="text" 
+                              name="destination" 
+                              value={formData.destination} 
+                              onChange={handleInputChange} 
+                              placeholder="e.g. Cairo" 
+                              required 
+                            />
                           </div>
                         </div>
 
@@ -1000,7 +1058,8 @@ const AdminDashboard = () => {
                                 name="duration_days" 
                                 value={formData.duration_days} 
                                 onChange={handleInputChange} 
-                                placeholder="e.g. 5" 
+                                placeholder={formData.type === 'dayuse' ? "1" : "e.g. 5"} 
+                                disabled={formData.type === 'dayuse'}
                                 required 
                               />
                             </div>
@@ -1040,7 +1099,7 @@ const AdminDashboard = () => {
                           </h4>
                           
                           <div className="form-field">
-                            <label>Main Scenic Landmark Image URL</label>
+                            <label>Image URL 1</label>
                             <div className="input-with-icon">
                               <i className="fa-solid fa-image"></i>
                               <input 
@@ -1054,9 +1113,9 @@ const AdminDashboard = () => {
                           </div>
 
                           <div className="form-field">
-                            <label>Desert Safari / Activity Image URL</label>
+                            <label>Image URL 2</label>
                             <div className="input-with-icon">
-                              <i className="fa-solid fa-campground"></i>
+                              <i className="fa-solid fa-image"></i>
                               <input 
                                 type="text" 
                                 name="safari_image" 
@@ -1068,9 +1127,9 @@ const AdminDashboard = () => {
                           </div>
 
                           <div className="form-field">
-                            <label>Luxury Hotel / Lodging Image URL</label>
+                            <label>Image URL 3</label>
                             <div className="input-with-icon">
-                              <i className="fa-solid fa-hotel"></i>
+                              <i className="fa-solid fa-image"></i>
                               <input 
                                 type="text" 
                                 name="hotel_image" 
@@ -1082,9 +1141,9 @@ const AdminDashboard = () => {
                           </div>
 
                           <div className="form-field">
-                            <label>Traditional Dining / Restaurant Image URL</label>
+                            <label>Image URL 4</label>
                             <div className="input-with-icon">
-                              <i className="fa-solid fa-utensils"></i>
+                              <i className="fa-solid fa-image"></i>
                               <input 
                                 type="text" 
                                 name="dining_image" 
@@ -1130,6 +1189,49 @@ const AdminDashboard = () => {
                                     <span style={{ color: '#fbbf24', fontSize: '0.85rem', fontWeight: '600' }}>
                                       Day Total: ${dayTotal}
                                     </span>
+                                  </div>
+
+                                  <div className="form-field full-width" style={{ marginTop: '5px', marginBottom: '10px' }}>
+                                    <label style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', marginBottom: '5px', display: 'block' }}>Day Title / Theme</label>
+                                    <input
+                                      type="text"
+                                      value={day.title || ''}
+                                      onChange={(e) => handleItineraryTitleChange(dayIdx, e.target.value)}
+                                      placeholder={`e.g. Cairo Historic Tour`}
+                                      style={{
+                                        width: '100%',
+                                        background: 'rgba(255, 255, 255, 0.03)',
+                                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                                        color: '#fff',
+                                        padding: '8px 10px',
+                                        borderRadius: '6px',
+                                        fontSize: '0.82rem',
+                                        outline: 'none',
+                                        boxSizing: 'border-box'
+                                      }}
+                                      required
+                                    />
+                                  </div>
+
+                                  <div className="form-field full-width" style={{ marginTop: '5px', marginBottom: '10px' }}>
+                                    <label style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', marginBottom: '5px', display: 'block' }}>Day Custom Illustration Image (URL)</label>
+                                    <input
+                                      type="text"
+                                      value={day.image || ''}
+                                      onChange={(e) => handleItineraryImageChange(dayIdx, e.target.value)}
+                                      placeholder={`e.g. https://images.unsplash.com/photo-...`}
+                                      style={{
+                                        width: '100%',
+                                        background: 'rgba(255, 255, 255, 0.03)',
+                                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                                        color: '#fff',
+                                        padding: '8px 10px',
+                                        borderRadius: '6px',
+                                        fontSize: '0.82rem',
+                                        outline: 'none',
+                                        boxSizing: 'border-box'
+                                      }}
+                                    />
                                   </div>
 
                                   <div className="form-field full-width" style={{ marginTop: '5px', marginBottom: '15px' }}>
@@ -1245,6 +1347,27 @@ const AdminDashboard = () => {
                                         >
                                           <i className="fa-solid fa-trash-can"></i>
                                         </button>
+
+                                        {/* Activity Description Input Field */}
+                                        <div style={{ width: '100%', marginTop: '5px' }}>
+                                          <input 
+                                            type="text" 
+                                            value={act.description || ''} 
+                                            onChange={(e) => handleItineraryActivityChange(dayIdx, actIdx, 'description', e.target.value)} 
+                                            placeholder="Activity description (what are the highlights or inclusions?)" 
+                                            style={{
+                                              width: '100%',
+                                              background: 'rgba(255,255,255,0.03)',
+                                              border: '1px solid rgba(255,255,255,0.06)',
+                                              color: '#ccc',
+                                              padding: '6px 10px',
+                                              borderRadius: '4px',
+                                              fontSize: '0.78rem',
+                                              outline: 'none',
+                                              boxSizing: 'border-box'
+                                            }}
+                                          />
+                                        </div>
                                       </div>
                                     ))}
                                   </div>

@@ -41,6 +41,13 @@ router.get(
 //  MODIFY TRIP
 // =========================
 
+// Add full day
+router.patch(
+  "/:id/add-day",
+  authMiddleware,
+  controller.addDay
+);
+
 // Add activity to day
 router.patch(
   "/:id/add-activity",

@@ -28,6 +28,16 @@ const itineraryDaySchema = new mongoose.Schema(
       required: true,
     },
 
+    title: {
+      type: String,
+      trim: true,
+    },
+
+    image: {
+      type: String,
+      trim: true,
+    },
+
     description: {
       type: String,
       trim: true,

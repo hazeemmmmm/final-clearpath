@@ -113,6 +113,35 @@ class CustomTripService {
   }
 
   // =========================
+  // ➕ ADD FULL DAY (FOR DAYUSE INJECT)
+  // =========================
+  async addDay(tripId, dayObj) {
+    const trip = await CustomTrip.findById(tripId);
+
+    if (!trip) throw new Error("Trip not found");
+
+    const dayNumber = trip.itinerary.length + 1;
+
+    const newDay = {
+      day_number: dayNumber,
+      title: dayObj.title || "",
+      description: dayObj.description || "",
+      image: dayObj.image || "",
+      activities: (dayObj.activities || []).map(act => ({
+        activity: act.activity?._id || act.activity,
+        price: Number(act.price) || 0,
+        provider: act.provider?._id || act.provider || null,
+        status: "active"
+      })),
+      status: "active"
+    };
+
+    trip.itinerary.push(newDay);
+    await trip.save();
+    return trip;
+  }
+
+  // =========================
   // ➕ ADD ACTIVITY TO DAY
   // =========================
   async addActivity(tripId, dayNumber, activityObj) {

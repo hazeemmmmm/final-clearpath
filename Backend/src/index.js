@@ -40,4 +40,4 @@ function startServer(port) {
     freePortAndStart(PORT);
 })();
 
-// Nodemon reload trigger: updated complete Stripe keys, USD/EGP support, and client port 5173 successfully!
+// Nodemon reload trigger: updated complete Stripe keys, USD/EGP support, client port 5173, and JWT refresh handler successfully!
