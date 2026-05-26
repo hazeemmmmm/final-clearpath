@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
@@ -6,11 +6,104 @@ import { addToWishlist, getTrips, getDestinations } from '../../utils/api';
 import { LanguageContext } from '../../context/LanguageContext';
 import './Experiences.css';
 
+// ── ExperienceCard Component with Image Carousel ──
+const ExperienceCard = ({ exp, lang, wishlistIds, handleCardClick, handleWishlistToggle, destinations }) => {
+  const [currentImgIndex, setCurrentImgIndex] = useState(0);
+  const images = Array.isArray(exp.images) && exp.images.length > 0 ? exp.images : [exp.image || "/img/cairo_pyramids_1775971845389.png"];
+  const isDayuse = exp.duration_days === 1;
+  const typeLabel = isDayuse 
+    ? (lang === 'AR' ? 'داي يوز' : 'Dayuse')
+    : (lang === 'AR' ? 'رحلة' : 'Trip');
+
+  const handlePrevImage = (e) => {
+    e.stopPropagation();
+    setCurrentImgIndex(prev => (prev - 1 + images.length) % images.length);
+  };
+
+  const handleNextImage = (e) => {
+    e.stopPropagation();
+    setCurrentImgIndex(prev => (prev + 1) % images.length);
+  };
+
+  return (
+    <div className="exp-card" onClick={() => handleCardClick(exp._id)}>
+      <div className={`exp-badge ${isDayuse ? 'dayuse' : 'trip'}`}>
+        {typeLabel}
+      </div>
+      
+      <button 
+        className={`wishlist-btn ${wishlistIds.has(exp._id) ? 'active' : ''}`}
+        onClick={(e) => handleWishlistToggle(e, exp._id)}
+        title={lang === 'AR' ? 'إضافة إلى المفضلة' : 'Add to Wishlist'}
+        type="button"
+      >
+        <i className={`${wishlistIds.has(exp._id) ? 'fa-solid' : 'fa-regular'} fa-heart`}></i>
+      </button>
+
+      <div className="exp-image">
+        <img src={images[currentImgIndex]} alt={exp.name} className="carousel-img-slide" />
+        {images.length > 1 && (
+          <>
+            <button className="carousel-nav-btn prev" onClick={handlePrevImage}>
+              <i className="fa-solid fa-chevron-left"></i>
+            </button>
+            <button className="carousel-nav-btn next" onClick={handleNextImage}>
+              <i className="fa-solid fa-chevron-right"></i>
+            </button>
+            <div className="carousel-indicators">
+              {images.map((_, idx) => (
+                <span 
+                  key={idx} 
+                  className={`indicator-dot ${idx === currentImgIndex ? 'active' : ''}`}
+                ></span>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+      <div className="exp-content">
+        <h3 className="exp-title">{exp.name}</h3>
+        <div className="exp-location" style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+          <i className="fa-solid fa-location-dot"></i> 
+          {exp.destination?.name || destinations.find(d => d._id === (exp.destination?._id || exp.destination))?.name || (lang === 'AR' ? 'وجهات متعددة' : 'Multiple Locations')}
+        </div>
+        <p className="exp-desc">{exp.description || (lang === 'AR' ? 'استمتع بجمال وتاريخ مصر العريق من خلال جولاتنا السياحية المصممة باحتراف.' : 'Experience the beauty and history of Egypt with our expertly guided tours.')}</p>
+        
+        <div className="exp-footer">
+          <div className="exp-price">
+            {exp.calculatedPrice || exp.base_price || 0} EGP <span>{lang === 'AR' ? '/ للفرد' : '/ person'}</span>
+          </div>
+          <div className="exp-duration" style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+            <i className="fa-regular fa-clock"></i> 
+            {exp.duration_days} {exp.duration_days === 1 ? (lang === 'AR' ? 'يوم' : 'Day') : (lang === 'AR' ? 'أيام' : 'Days')}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Experiences = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [experiences, setExperiences] = useState([]);
   const [loading, setLoading] = useState(true);
   const [wishlistIds, setWishlistIds] = useState(new Set());
+  
+  // Refs for Airbnb-style horizontal carousels
+  const dahabRef = useRef(null);
+  const cairoRef = useRef(null);
+  const otherRef = useRef(null);
+
+  const handleScroll = (ref, direction) => {
+    if (ref.current) {
+      const cardWidth = ref.current.querySelector('.exp-card')?.offsetWidth || 344;
+      const scrollAmount = (cardWidth + 24) * 3; // Scroll exactly 3 cards
+      ref.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
   
   // Airbnb-style Search States
   const [destinations, setDestinations] = useState([]);
@@ -20,6 +113,7 @@ const Experiences = () => {
   const [maxPrice, setMaxPrice] = useState(25000);
   const [showDestDropdown, setShowDestDropdown] = useState(false);
   const [showPriceDropdown, setShowPriceDropdown] = useState(false);
+  const [isSticky, setIsSticky] = useState(false);
 
   const { lang, setLang } = useContext(LanguageContext);
   const navigate = useNavigate();
@@ -38,7 +132,21 @@ const Experiences = () => {
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+
+    // Scroll listener for sticky search
+    const handleScrollEvent = () => {
+      if (window.scrollY > 150) {
+        setIsSticky(true);
+      } else {
+        setIsSticky(false);
+      }
+    };
+    window.addEventListener('scroll', handleScrollEvent);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScrollEvent);
+    };
   }, []);
 
   useEffect(() => {
@@ -70,7 +178,10 @@ const Experiences = () => {
       console.error('Error fetching experiences:', error.message);
       setExperiences([]);
     } finally {
-      setLoading(false);
+      // Artificially wait 800ms for high-end shimmer effect to look smooth
+      setTimeout(() => {
+        setLoading(false);
+      }, 800);
     }
   };
 
@@ -117,52 +228,6 @@ const Experiences = () => {
     return true;
   });
 
-  const renderExperienceCard = (exp) => {
-    const isDayuse = exp.duration_days === 1;
-    const typeLabel = isDayuse 
-      ? (lang === 'AR' ? 'داي يوز' : 'Dayuse')
-      : (lang === 'AR' ? 'رحلة' : 'Trip');
-    
-    return (
-      <div key={exp._id} className="exp-card" onClick={() => handleCardClick(exp._id)}>
-        <div className={`exp-badge ${isDayuse ? 'dayuse' : 'trip'}`}>
-          {typeLabel}
-        </div>
-        
-        <button 
-          className={`wishlist-btn ${wishlistIds.has(exp._id) ? 'active' : ''}`}
-          onClick={(e) => handleWishlistToggle(e, exp._id)}
-          title={lang === 'AR' ? 'إضافة إلى المفضلة' : 'Add to Wishlist'}
-          type="button"
-        >
-          <i className={`${wishlistIds.has(exp._id) ? 'fa-solid' : 'fa-regular'} fa-heart`}></i>
-        </button>
-
-        <div className="exp-image">
-          <img src={exp.images?.[0] || exp.image || "/img/cairo_pyramids_1775971845389.png"} alt={exp.name} />
-        </div>
-        <div className="exp-content">
-          <h3 className="exp-title">{exp.name}</h3>
-          <div className="exp-location" style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-            <i className="fa-solid fa-location-dot"></i> 
-            {exp.destination?.name || destinations.find(d => d._id === (exp.destination?._id || exp.destination))?.name || (lang === 'AR' ? 'وجهات متعددة' : 'Multiple Locations')}
-          </div>
-          <p className="exp-desc">{exp.description || (lang === 'AR' ? 'استمتع بجمال وتاريخ مصر العريق من خلال جولاتنا السياحية المصممة باحتراف.' : 'Experience the beauty and history of Egypt with our expertly guided tours.')}</p>
-          
-          <div className="exp-footer">
-            <div className="exp-price">
-              {exp.calculatedPrice || exp.base_price || 0} EGP <span>{lang === 'AR' ? '/ للفرد' : '/ person'}</span>
-            </div>
-            <div className="exp-duration" style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-              <i className="fa-regular fa-clock"></i> 
-              {exp.duration_days} {exp.duration_days === 1 ? (lang === 'AR' ? 'يوم' : 'Day') : (lang === 'AR' ? 'أيام' : 'Days')}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className={`experiences-page ${lang === 'AR' ? 'lang-ar' : ''}`}>
       <Navbar lang={lang} isScrolled={true} />
@@ -178,7 +243,7 @@ const Experiences = () => {
         </p>
 
         {/* 🔍 Airbnb-Style Floating Search Bar */}
-        <div className="airbnb-search-bar-container">
+        <div className={`airbnb-search-bar-container ${isSticky ? 'sticky' : ''}`}>
           <div className="search-filter-bar">
             {/* Destination Selection Section */}
             <div className="search-item" onClick={() => { setShowDestDropdown(!showDestDropdown); setShowPriceDropdown(false); }}>
@@ -305,14 +370,24 @@ const Experiences = () => {
 
       <div className="experiences-container">
         {loading ? (
-          <div className="loading-state">
-            <i className="fa-solid fa-spinner fa-spin"></i>
-            <h2>{lang === 'AR' ? 'جاري تحميل التجارب المتاحة...' : 'Loading experiences...'}</h2>
+          <div className="experiences-grid">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="skeleton-card">
+                <div className="skeleton-img"></div>
+                <div className="skeleton-text"></div>
+                <div className="skeleton-text short"></div>
+                <div className="skeleton-desc"></div>
+                <div className="skeleton-footer">
+                  <div className="skeleton-btn"></div>
+                  <div className="skeleton-btn"></div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : displayedExperiences.length > 0 ? (
           !selectedDestination && activeTab === 'all' && minPrice === 0 && maxPrice === 25000 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '50px' }}>
-              {/* 🌴 Go to Dahab Section */}
+              {/* Go to Dahab Section */}
               {(() => {
                 const dahabExps = displayedExperiences.filter(exp => {
                   const destName = exp.destination?.name?.toLowerCase() || 
@@ -320,33 +395,46 @@ const Experiences = () => {
                   return destName === 'dahab';
                 });
                 if (dahabExps.length === 0) return null;
+
                 return (
                   <div className="airbnb-dest-section">
-                    <h2 className="dest-section-title" style={{
-                      fontSize: '1.75rem',
-                      fontWeight: '900',
-                      color: '#000000',
-                      textTransform: 'uppercase',
-                      letterSpacing: '1px',
-                      fontFamily: "'Inter', 'Georgia', serif",
-                      marginBottom: '20px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      borderBottom: '3.5px solid #000000',
-                      paddingBottom: '8px'
-                    }}>
-                      <i className="fa-solid fa-umbrella-beach"></i>
-                      {lang === 'AR' ? 'سافر إلى دهب (Go to Dahab)' : 'Go to Dahab 🌴'}
+                    <h2 className="dest-section-title">
+                      <span>{lang === 'AR' ? 'سافر إلى دهب (GO TO DAHAB)' : 'GO TO DAHAB'}</span>
+                      {dahabExps.length > 3 && (
+                        <div className="carousel-arrows-container">
+                          <button 
+                            onClick={() => handleScroll(dahabRef, 'left')}
+                            className="carousel-arrow-btn"
+                          >
+                            <i className="fa-solid fa-chevron-left" style={{ fontSize: '0.8rem' }}></i>
+                          </button>
+                          <button 
+                            onClick={() => handleScroll(dahabRef, 'right')}
+                            className="carousel-arrow-btn"
+                          >
+                            <i className="fa-solid fa-chevron-right" style={{ fontSize: '0.8rem' }}></i>
+                          </button>
+                        </div>
+                      )}
                     </h2>
-                    <div className="experiences-grid">
-                      {dahabExps.map(exp => renderExperienceCard(exp))}
+                    <div className="airbnb-carousel" ref={dahabRef}>
+                      {dahabExps.map(exp => (
+                        <ExperienceCard 
+                          key={exp._id} 
+                          exp={exp} 
+                          lang={lang} 
+                          wishlistIds={wishlistIds} 
+                          handleCardClick={handleCardClick} 
+                          handleWishlistToggle={handleWishlistToggle} 
+                          destinations={destinations} 
+                        />
+                      ))}
                     </div>
                   </div>
                 );
               })()}
 
-              {/* 🏛️ Go to Cairo Section */}
+              {/* Go to Cairo Section */}
               {(() => {
                 const cairoExps = displayedExperiences.filter(exp => {
                   const destName = exp.destination?.name?.toLowerCase() || 
@@ -354,33 +442,46 @@ const Experiences = () => {
                   return destName === 'cairo';
                 });
                 if (cairoExps.length === 0) return null;
+
                 return (
                   <div className="airbnb-dest-section">
-                    <h2 className="dest-section-title" style={{
-                      fontSize: '1.75rem',
-                      fontWeight: '900',
-                      color: '#000000',
-                      textTransform: 'uppercase',
-                      letterSpacing: '1px',
-                      fontFamily: "'Inter', 'Georgia', serif",
-                      marginBottom: '20px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      borderBottom: '3.5px solid #000000',
-                      paddingBottom: '8px'
-                    }}>
-                      <i className="fa-solid fa-landmark"></i>
-                      {lang === 'AR' ? 'سافر إلى القاهرة (Go to Cairo)' : 'Go to Cairo 🏛️'}
+                    <h2 className="dest-section-title">
+                      <span>{lang === 'AR' ? 'سافر إلى القاهرة (GO TO CAIRO)' : 'GO TO CAIRO'}</span>
+                      {cairoExps.length > 3 && (
+                        <div className="carousel-arrows-container">
+                          <button 
+                            onClick={() => handleScroll(cairoRef, 'left')}
+                            className="carousel-arrow-btn"
+                          >
+                            <i className="fa-solid fa-chevron-left" style={{ fontSize: '0.8rem' }}></i>
+                          </button>
+                          <button 
+                            onClick={() => handleScroll(cairoRef, 'right')}
+                            className="carousel-arrow-btn"
+                          >
+                            <i className="fa-solid fa-chevron-right" style={{ fontSize: '0.8rem' }}></i>
+                          </button>
+                        </div>
+                      )}
                     </h2>
-                    <div className="experiences-grid">
-                      {cairoExps.map(exp => renderExperienceCard(exp))}
+                    <div className="airbnb-carousel" ref={cairoRef}>
+                      {cairoExps.map(exp => (
+                        <ExperienceCard 
+                          key={exp._id} 
+                          exp={exp} 
+                          lang={lang} 
+                          wishlistIds={wishlistIds} 
+                          handleCardClick={handleCardClick} 
+                          handleWishlistToggle={handleWishlistToggle} 
+                          destinations={destinations} 
+                        />
+                      ))}
                     </div>
                   </div>
                 );
               })()}
 
-              {/* 🗺️ Other Destinations Section */}
+              {/* Other Destinations Section */}
               {(() => {
                 const otherExps = displayedExperiences.filter(exp => {
                   const destName = exp.destination?.name?.toLowerCase() || 
@@ -388,27 +489,40 @@ const Experiences = () => {
                   return destName !== 'dahab' && destName !== 'cairo';
                 });
                 if (otherExps.length === 0) return null;
+
                 return (
                   <div className="airbnb-dest-section">
-                    <h2 className="dest-section-title" style={{
-                      fontSize: '1.75rem',
-                      fontWeight: '900',
-                      color: '#000000',
-                      textTransform: 'uppercase',
-                      letterSpacing: '1px',
-                      fontFamily: "'Inter', 'Georgia', serif",
-                      marginBottom: '20px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      borderBottom: '3.5px solid #000000',
-                      paddingBottom: '8px'
-                    }}>
-                      <i className="fa-solid fa-map-location-dot"></i>
-                      {lang === 'AR' ? 'وجهات مصرية ساحرة أخرى' : 'Explore More of Egypt 🇪🇬'}
+                    <h2 className="dest-section-title">
+                      <span>{lang === 'AR' ? 'وجهات مصرية ساحرة أخرى' : 'EXPLORE MORE OF EGYPT'}</span>
+                      {otherExps.length > 3 && (
+                        <div className="carousel-arrows-container">
+                          <button 
+                            onClick={() => handleScroll(otherRef, 'left')}
+                            className="carousel-arrow-btn"
+                          >
+                            <i className="fa-solid fa-chevron-left" style={{ fontSize: '0.8rem' }}></i>
+                          </button>
+                          <button 
+                            onClick={() => handleScroll(otherRef, 'right')}
+                            className="carousel-arrow-btn"
+                          >
+                            <i className="fa-solid fa-chevron-right" style={{ fontSize: '0.8rem' }}></i>
+                          </button>
+                        </div>
+                      )}
                     </h2>
-                    <div className="experiences-grid">
-                      {otherExps.map(exp => renderExperienceCard(exp))}
+                    <div className="airbnb-carousel" ref={otherRef}>
+                      {otherExps.map(exp => (
+                        <ExperienceCard 
+                          key={exp._id} 
+                          exp={exp} 
+                          lang={lang} 
+                          wishlistIds={wishlistIds} 
+                          handleCardClick={handleCardClick} 
+                          handleWishlistToggle={handleWishlistToggle} 
+                          destinations={destinations} 
+                        />
+                      ))}
                     </div>
                   </div>
                 );
@@ -416,7 +530,17 @@ const Experiences = () => {
             </div>
           ) : (
             <div className="experiences-grid">
-              {displayedExperiences.map((exp) => renderExperienceCard(exp))}
+              {displayedExperiences.map((exp) => (
+                <ExperienceCard 
+                  key={exp._id} 
+                  exp={exp} 
+                  lang={lang} 
+                  wishlistIds={wishlistIds} 
+                  handleCardClick={handleCardClick} 
+                  handleWishlistToggle={handleWishlistToggle} 
+                  destinations={destinations} 
+                />
+              ))}
             </div>
           )
         ) : (

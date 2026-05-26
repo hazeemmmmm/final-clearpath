@@ -2,157 +2,327 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-import { getTrips, getAllUsersAdmin } from '../../utils/api';
+import { addToWishlist, getTrips, getDestinations } from '../../utils/api';
 import { LanguageContext } from '../../context/LanguageContext';
 import './Trips.css';
 
-const Trips = () => {
-  const { lang } = useContext(LanguageContext);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [trips, setTrips] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [usersMap, setUsersMap] = useState({});
+// ── TripCard Component with Image Carousel ──
+const TripCard = ({ trip, lang, wishlistIds, handleCardClick, handleWishlistToggle, destinations }) => {
+  const [currentImgIndex, setCurrentImgIndex] = useState(0);
+  const images = Array.isArray(trip.images) && trip.images.length > 0
+    ? trip.images
+    : [trip.image || '/img/default-trip.jpg'];
 
-  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
-  const [galleryImages, setGalleryImages] = useState([]);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
-  const handleImageClick = (e, trip) => {
-      e.stopPropagation(); // prevent card click (navigation)
-      const query = encodeURIComponent(trip.title || 'Egypt');
-      // Create an array of 10 images from pollinations API using the title as prompt
-      const baseSeed = trip.id ? String(trip.id).charCodeAt(0) : Math.floor(Math.random() * 100);
-      const images = Array.from({ length: 10 }).map((_, i) => 
-          `https://image.pollinations.ai/prompt/${query}%20tourism%20landmark%20beautiful%20photography?width=800&height=600&nologo=true&seed=${baseSeed + i * 15}`
-      );
-      setGalleryImages(images);
-      setCurrentImageIndex(0);
-      setIsGalleryOpen(true);
+  const handlePrevImage = (e) => {
+    e.stopPropagation();
+    setCurrentImgIndex(prev => (prev - 1 + images.length) % images.length);
   };
-  
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
+  const handleNextImage = (e) => {
+    e.stopPropagation();
+    setCurrentImgIndex(prev => (prev + 1) % images.length);
+  };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
-
-  useEffect(() => {
-    const fetchTrips = async () => {
-      try {
-        const response = await getTrips();
-        setTrips(response.data);
-        // try to fetch users map to resolve supervisor ids
-        try {
-          const usersRes = await getAllUsersAdmin();
-          const usersList = usersRes.data || usersRes.users || usersRes;
-          const map = {};
-          if (Array.isArray(usersList)) usersList.forEach(u => { if (u && u._id) map[u._id] = u; });
-          setUsersMap(map);
-        } catch (uerr) {
-          // ignore users fetch errors — supervisor may already be populated
-          console.debug('Could not fetch users list for supervisor lookup', uerr);
-        }
-      } catch (err) {
-        console.error('Error fetching trips:', err);
-        setError('Failed to load trips. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTrips();
-  }, []);
+  const id = trip._id || trip.id;
 
   return (
-    <div className={`trips-container ${lang === 'AR' ? 'lang-ar' : ''}`}>
-      <Navbar lang={lang} isScrolled={isScrolled} />
+    <div className="exp-card" onClick={() => handleCardClick(id)}>
+      <div className="exp-badge trip">
+        {lang === 'AR' ? 'رحلة' : 'Trip'}
+      </div>
 
-      <div className="page-header hero-banner">
-        <div className="header-content">
-            <h1>{lang === 'AR' ? <>الرحلات <span className="egypt-flag-text">المصرية</span></> : <>Egyptian <span className="egypt-flag-text">Trips</span></>}</h1>
-            <p>{lang === 'AR' ? 'من الأهرامات العظيمة إلى وادي الملوك الأثري' : 'From the Great Pyramids to the Valley of the Kings'}</p>
+      <button
+        className={`wishlist-btn ${wishlistIds.has(id) ? 'active' : ''}`}
+        onClick={(e) => handleWishlistToggle(e, id)}
+        title={lang === 'AR' ? 'إضافة إلى المفضلة' : 'Add to Wishlist'}
+        type="button"
+      >
+        <i className={`${wishlistIds.has(id) ? 'fa-solid' : 'fa-regular'} fa-heart`}></i>
+      </button>
+
+      <div className="exp-image">
+        <img src={images[currentImgIndex]} alt={trip.name || trip.title} className="carousel-img-slide" />
+        {images.length > 1 && (
+          <>
+            <button className="carousel-nav-btn prev" onClick={handlePrevImage}>
+              <i className="fa-solid fa-chevron-left"></i>
+            </button>
+            <button className="carousel-nav-btn next" onClick={handleNextImage}>
+              <i className="fa-solid fa-chevron-right"></i>
+            </button>
+            <div className="carousel-indicators">
+              {images.map((_, idx) => (
+                <span
+                  key={idx}
+                  className={`indicator-dot ${idx === currentImgIndex ? 'active' : ''}`}
+                ></span>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      <div className="exp-content">
+        <h3 className="exp-title">{trip.name || trip.title}</h3>
+        <div className="exp-location" style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+          <i className="fa-solid fa-location-dot"></i>
+          {trip.destination?.name ||
+            destinations.find(d => d._id === (trip.destination?._id || trip.destination))?.name ||
+            (lang === 'AR' ? 'وجهات متعددة' : 'Multiple Locations')}
+        </div>
+        <p className="exp-desc">
+          {trip.description ||
+            (lang === 'AR'
+              ? 'استمتع بجمال وتاريخ مصر العريق من خلال جولاتنا السياحية المصممة باحتراف.'
+              : 'Experience the beauty and history of Egypt with our expertly guided tours.')}
+        </p>
+
+        <div className="exp-footer">
+          <div className="exp-price">
+            {trip.calculatedPrice || trip.base_price || trip.price || 0} EGP{' '}
+            <span>{lang === 'AR' ? '/ للفرد' : '/ person'}</span>
+          </div>
+          <div className="exp-duration" style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+            <i className="fa-regular fa-clock"></i>
+            {trip.duration_days} {trip.duration_days === 1
+              ? (lang === 'AR' ? 'يوم' : 'Day')
+              : (lang === 'AR' ? 'أيام' : 'Days')}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Trips = () => {
+  const { lang } = useContext(LanguageContext);
+  const navigate = useNavigate();
+
+  const [trips, setTrips] = useState([]);
+  const [destinations, setDestinations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [wishlistIds, setWishlistIds] = useState(new Set());
+
+  const [selectedDestination, setSelectedDestination] = useState('');
+  const [selectedDestName, setSelectedDestName] = useState('');
+  const [minPrice, setMinPrice] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(25000);
+  const [showDestDropdown, setShowDestDropdown] = useState(false);
+  const [showPriceDropdown, setShowPriceDropdown] = useState(false);
+  const [isSticky, setIsSticky] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    document.body.style.overflow = 'auto';
+
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.search-item')) {
+        setShowDestDropdown(false);
+        setShowPriceDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+
+    const handleScrollEvent = () => {
+      setIsSticky(window.scrollY > 150);
+    };
+    window.addEventListener('scroll', handleScrollEvent);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScrollEvent);
+    };
+  }, []);
+
+  useEffect(() => {
+    const fetchAll = async () => {
+      setLoading(true);
+      try {
+        const [tripsRes, destRes] = await Promise.all([getTrips({}), getDestinations()]);
+        const tripsList = tripsRes?.data || tripsRes || [];
+        // Filter to only multi-day trips (not dayuse)
+        const filtered = Array.isArray(tripsList)
+          ? tripsList.filter(t => !t.duration_days || t.duration_days > 1)
+          : [];
+        setTrips(filtered);
+
+        const destList = destRes?.destinations || destRes?.data?.destinations || destRes?.data || destRes || [];
+        setDestinations(Array.isArray(destList) ? destList : []);
+      } catch (err) {
+        console.error('Error loading trips:', err);
+        setTrips([]);
+      } finally {
+        setTimeout(() => setLoading(false), 800);
+      }
+    };
+    fetchAll();
+  }, []);
+
+  const handleCardClick = (id) => navigate(`/package-details/${id}`);
+
+  const handleWishlistToggle = async (e, id) => {
+    e.stopPropagation();
+    setWishlistIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+    try { await addToWishlist(id); } catch (err) { console.error(err); }
+  };
+
+  const displayed = trips.filter(trip => {
+    if (selectedDestination) {
+      const destId = trip.destination?._id || trip.destination?.id || trip.destination;
+      if (destId !== selectedDestination) return false;
+    }
+    const price = trip.calculatedPrice || trip.base_price || trip.price || 0;
+    if (price < minPrice || price > maxPrice) return false;
+    return true;
+  });
+
+  return (
+    <div className={`experiences-page ${lang === 'AR' ? 'lang-ar' : ''}`}>
+      <Navbar lang={lang} isScrolled={true} />
+
+      <div className="experiences-header">
+        <h1>
+          {lang === 'AR'
+            ? <>الرحلات <span className="egypt-flag-text">المصرية</span></>
+            : <>Egyptian <span className="egypt-flag-text">Trips</span></>}
+        </h1>
+        <p style={{ marginBottom: '35px' }}>
+          {lang === 'AR'
+            ? 'من الأهرامات العظيمة إلى وادي الملوك الأثري، اكتشف كنوز مصر معنا.'
+            : 'From the Great Pyramids to the Valley of the Kings, discover Egypt\'s timeless treasures.'}
+        </p>
+
+        {/* Airbnb-Style Search Bar */}
+        <div className={`airbnb-search-bar-container ${isSticky ? 'sticky' : ''}`}>
+          <div className="search-filter-bar">
+            {/* Destination */}
+            <div className="search-item" onClick={() => { setShowDestDropdown(!showDestDropdown); setShowPriceDropdown(false); }}>
+              <div className="search-item-icon"><i className="fa-solid fa-location-dot"></i></div>
+              <div className="search-item-text">
+                <span className="search-label">{lang === 'AR' ? 'الوجهة' : 'Where'}</span>
+                <span className="search-val">{selectedDestName || (lang === 'AR' ? 'ابحث عن وجهة' : 'Search destinations')}</span>
+              </div>
+              {showDestDropdown && (
+                <div className="search-dropdown destination-dropdown" onClick={(e) => e.stopPropagation()}>
+                  <div className="dropdown-item-header">
+                    {lang === 'AR' ? 'الوجهات المتاحة لدينا' : 'Our Available Destinations'}
+                  </div>
+                  <div className="dropdown-item" onClick={() => { setSelectedDestination(''); setSelectedDestName(''); setShowDestDropdown(false); }}>
+                    <i className="fa-solid fa-globe"></i> {lang === 'AR' ? 'كل الوجهات في مصر' : 'All Destinations in Egypt'}
+                  </div>
+                  {destinations.map(d => (
+                    <div key={d._id || d.id} className="dropdown-item" onClick={() => { setSelectedDestination(d._id || d.id); setSelectedDestName(d.name); setShowDestDropdown(false); }}>
+                      <i className="fa-solid fa-map-pin"></i> {d.name}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="search-divider"></div>
+
+            {/* Price */}
+            <div className="search-item" onClick={() => { setShowPriceDropdown(!showPriceDropdown); setShowDestDropdown(false); }}>
+              <div className="search-item-icon"><i className="fa-solid fa-money-bill-wave"></i></div>
+              <div className="search-item-text">
+                <span className="search-label">{lang === 'AR' ? 'الميزانية' : 'Price'}</span>
+                <span className="search-val">
+                  {maxPrice === 25000 && minPrice === 0
+                    ? (lang === 'AR' ? 'أي سعر متاح' : 'Any price range')
+                    : `${minPrice} - ${maxPrice} EGP`}
+                </span>
+              </div>
+              {showPriceDropdown && (
+                <div className="search-dropdown price-dropdown" onClick={(e) => e.stopPropagation()}>
+                  <h4>{lang === 'AR' ? 'نطاق السعر المقدر' : 'Estimated Price Range'}</h4>
+                  <div className="price-inputs-container">
+                    <div className="price-input-box">
+                      <span className="price-input-label">{lang === 'AR' ? 'الحد الأدنى' : 'Min'}</span>
+                      <div className="price-input-wrapper">
+                        <input type="number" value={minPrice} onChange={(e) => setMinPrice(Math.max(0, parseInt(e.target.value) || 0))} />
+                        <span className="currency-unit">EGP</span>
+                      </div>
+                    </div>
+                    <div className="price-input-divider">-</div>
+                    <div className="price-input-box">
+                      <span className="price-input-label">{lang === 'AR' ? 'الحد الأقصى' : 'Max'}</span>
+                      <div className="price-input-wrapper">
+                        <input type="number" value={maxPrice} onChange={(e) => setMaxPrice(Math.max(0, parseInt(e.target.value) || 25000))} />
+                        <span className="currency-unit">EGP</span>
+                      </div>
+                    </div>
+                  </div>
+                  <input type="range" min="0" max="25000" step="500" value={maxPrice} className="price-range-slider" onChange={(e) => setMaxPrice(parseInt(e.target.value))} />
+                  <div className="price-range-labels">
+                    <span>0 EGP</span><span>12.5k EGP</span><span>25k+ EGP</span>
+                  </div>
+                  <div className="price-dropdown-footer">
+                    <button className="price-clear-btn" onClick={() => { setMinPrice(0); setMaxPrice(25000); setShowPriceDropdown(false); }}>
+                      {lang === 'AR' ? 'إعادة ضبط' : 'Reset'}
+                    </button>
+                    <button className="price-apply-btn" onClick={() => setShowPriceDropdown(false)}>
+                      {lang === 'AR' ? 'تطبيق الفلتر' : 'Apply Filter'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button className="search-action-btn" onClick={() => { setShowDestDropdown(false); setShowPriceDropdown(false); }}>
+              <i className="fa-solid fa-magnifying-glass"></i>
+            </button>
+          </div>
         </div>
       </div>
 
-      <main className="content">
-        <div className="toolbar">
-            <div className="filter-group">
-                <button type="button" className="btn-outline active">{lang === 'AR' ? 'كل الرحلات' : 'All Trips'}</button>
-                <button type="button" className="btn-outline">{lang === 'AR' ? 'تاريخية' : 'Historical'}</button>
-                <button type="button" className="btn-outline">{lang === 'AR' ? 'مغامرات' : 'Adventure'}</button>
-            </div>
-        </div>
-
-        <div className="packages-grid">
-            {loading ? (
-              <p>{lang === 'AR' ? 'جاري تحميل الباقات السياحية من الخادم...' : 'Loading packages from the API...'}</p>
-            ) : error ? (
-              <p className="error">{lang === 'AR' ? 'فشل تحميل الباقات. يرجى المحاولة لاحقاً.' : error}</p>
-            ) : trips.length > 0 ? (
-              trips.map((trip) => (
-                <div key={trip.id || trip._id} className="card card--link" onClick={() => navigate(`/package-details/${trip.id || trip._id}`)}>
-                    <div className="img-box" onClick={(e) => handleImageClick(e, trip)}>
-                        <img src={trip.image || trip.images?.[0] || '/img/default-trip.jpg'} alt={trip.title || trip.name} />
-                    </div>
-                    <div className="info">
-                        <h4>{trip.title || trip.name}</h4>
-                        {(() => {
-                          const sup = trip.supervisor || trip.supervisior || null;
-                          let name = '';
-                          if (sup) {
-                            if (typeof sup === 'object') name = `${sup.firstName || ''} ${sup.lastName || ''}`.trim();
-                            else name = (usersMap[sup] && `${usersMap[sup].firstName || ''} ${usersMap[sup].lastName || ''}`.trim()) || String(sup);
-                          }
-                          return name ? (
-                            <div className="supervisor-badge small">
-                              <span className="supervisor-avatar">{(name||'U').charAt(0).toUpperCase()}</span>
-                              <span className="supervisor-name">{name}</span>
-                            </div>
-                          ) : null;
-                        })()}
-                        <p>{trip.price || trip.base_price || 0} EGP {lang === 'AR' ? '/ للفرد' : '/ person'}</p>
-                    </div>
+      <div className="experiences-container">
+        {loading ? (
+          <div className="experiences-grid">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="skeleton-card">
+                <div className="skeleton-img"></div>
+                <div className="skeleton-text"></div>
+                <div className="skeleton-text short"></div>
+                <div className="skeleton-desc"></div>
+                <div className="skeleton-footer">
+                  <div className="skeleton-btn"></div>
+                  <div className="skeleton-btn"></div>
                 </div>
-              ))
-            ) : (
-              <p>{lang === 'AR' ? 'لا توجد رحلات متاحة في الوقت الحالي.' : 'No trips available at the moment.'}</p>
-            )}
-        </div>
-      </main>
-
-      {isGalleryOpen && (
-          <div className="gallery-modal" onClick={() => setIsGalleryOpen(false)}>
-              <div className="gallery-content" onClick={(e) => e.stopPropagation()}>
-                  <button className="gallery-close" onClick={() => setIsGalleryOpen(false)}>&times;</button>
-                  <div className="gallery-image-container">
-                      <img src={galleryImages[currentImageIndex]} alt="Gallery View" />
-                      <button className="gallery-prev" onClick={() => setCurrentImageIndex((prev) => (prev > 0 ? prev - 1 : galleryImages.length - 1))}>&#10094;</button>
-                      <button className="gallery-next" onClick={() => setCurrentImageIndex((prev) => (prev < galleryImages.length - 1 ? prev + 1 : 0))}>&#10095;</button>
-                  </div>
-                  <div className="gallery-thumbnails">
-                      {galleryImages.map((img, idx) => (
-                          <img 
-                              key={idx} 
-                              src={img} 
-                              alt={`Thumbnail ${idx}`} 
-                              className={idx === currentImageIndex ? 'active' : ''}
-                              onClick={() => setCurrentImageIndex(idx)}
-                          />
-                      ))}
-                  </div>
               </div>
+            ))}
           </div>
-      )}
+        ) : displayed.length > 0 ? (
+          <div className="experiences-grid">
+            {displayed.map(trip => (
+              <TripCard
+                key={trip._id || trip.id}
+                trip={trip}
+                lang={lang}
+                wishlistIds={wishlistIds}
+                handleCardClick={handleCardClick}
+                handleWishlistToggle={handleWishlistToggle}
+                destinations={destinations}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="empty-state">
+            <i className="fa-solid fa-box-open"></i>
+            <h3>{lang === 'AR' ? 'لا توجد رحلات متاحة حالياً' : 'No Trips Found'}</h3>
+            <p>
+              {lang === 'AR'
+                ? 'لم نتمكن من العثور على أي رحلات متاحة. يرجى مراجعة الموقع لاحقاً!'
+                : 'We couldn\'t find any trips right now. Please check back later!'}
+            </p>
+          </div>
+        )}
+      </div>
 
-      <Footer />
+      <Footer isHome={false} />
     </div>
   );
 };

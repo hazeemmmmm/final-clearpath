@@ -717,3 +717,334 @@ body.dark-mode .price-apply-btn:hover {
 .search-action-btn i {
   font-size: 1.05rem;
 }
+
+/* ============================================================== */
+/* 🏠 AIRBNB-STYLE HORIZONTAL SCROLL CAROUSEL STYLES              */
+/* ============================================================== */
+.airbnb-carousel {
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none; /* for Firefox */
+  padding: 10px 4px 20px 4px;
+  margin-bottom: 20px;
+}
+
+.airbnb-carousel::-webkit-scrollbar {
+  display: none; /* for Chrome, Safari, Opera */
+}
+
+.airbnb-carousel .exp-card {
+  flex: 0 0 calc(33.333% - 16px);
+  min-width: 320px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+  .airbnb-carousel .exp-card {
+    flex: 0 0 calc(50% - 12px);
+    min-width: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  .airbnb-carousel {
+    gap: 16px;
+  }
+  .airbnb-carousel .exp-card {
+    flex: 0 0 85%;
+    min-width: 260px;
+  }
+}
+
+/* ============================================================== */
+/* 🔗 DESTINATION SECTION HEADERS & NAV BUTTONS DARK MODE         */
+/* ============================================================== */
+.airbnb-dest-section {
+  margin-bottom: 20px;
+}
+
+.dest-section-title {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: var(--text-primary, #000000);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: 'Inter', sans-serif;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2.5px solid var(--text-primary, #000000);
+  padding-bottom: 8px;
+}
+
+body.dark-mode .dest-section-title {
+  color: #ffffff;
+  border-bottom-color: rgba(255, 255, 255, 0.2);
+}
+
+.carousel-arrows-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.carousel-arrow-btn {
+  background: none;
+  border: 1.5px solid var(--text-primary, #000000);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-primary, #000000);
+  transition: all 0.25s ease;
+}
+
+.carousel-arrow-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  transform: scale(1.05);
+}
+
+body.dark-mode .carousel-arrow-btn {
+  border-color: #ffffff;
+  color: #ffffff;
+}
+
+body.dark-mode .carousel-arrow-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ============================================================== */
+/* ✨ UPGRADE 1: SMOOTH FADE-IN PAGE TRANSITION                   */
+/* ============================================================== */
+.experiences-page {
+  animation: fadeInPage 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes fadeInPage {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================== */
+/* 📸 UPGRADE 2: CARD IMAGE CAROUSEL & DOT INDICATORS              */
+/* ============================================================== */
+.carousel-img-slide {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.exp-card:hover .carousel-img-slide {
+  transform: scale(1.04);
+}
+
+.carousel-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 3;
+  opacity: 0;
+  transition: opacity 0.25s, background 0.2s, transform 0.2s;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  color: #111111;
+}
+
+.exp-card:hover .carousel-nav-btn {
+  opacity: 1;
+}
+
+.carousel-nav-btn:hover {
+  background: #ffffff;
+  transform: translateY(-50%) scale(1.08);
+}
+
+.carousel-nav-btn.prev {
+  left: 10px;
+}
+
+.carousel-nav-btn.next {
+  right: 10px;
+}
+
+.carousel-indicators {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 3;
+}
+
+.indicator-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transition: all 0.2s ease;
+}
+
+.indicator-dot.active {
+  background: #ffffff;
+  transform: scale(1.2);
+}
+
+/* ============================================================== */
+/* 🔍 UPGRADE 3: STICKY FLOATING SEARCH BAR                       */
+/* ============================================================== */
+.airbnb-search-bar-container.sticky {
+  position: fixed;
+  top: 80px; /* Below navbar */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 620px;
+  animation: stickySlideDown 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  margin: 0;
+  z-index: 999;
+}
+
+@keyframes stickySlideDown {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -15px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.airbnb-search-bar-container.sticky .search-filter-bar {
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.97);
+  border-color: rgba(0, 0, 0, 0.06);
+  padding: 4px 4px 4px 16px;
+}
+
+.lang-ar .airbnb-search-bar-container.sticky .search-filter-bar {
+  padding: 4px 16px 4px 4px;
+}
+
+body.dark-mode .airbnb-search-bar-container.sticky .search-filter-bar {
+  background: rgba(26, 28, 35, 0.97);
+  border-color: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+}
+
+.airbnb-search-bar-container.sticky .search-item {
+  padding: 4px 10px;
+}
+
+.airbnb-search-bar-container.sticky .search-label {
+  font-size: 0.65rem;
+}
+
+.airbnb-search-bar-container.sticky .search-val {
+  font-size: 0.8rem;
+  max-width: 130px;
+}
+
+.airbnb-search-bar-container.sticky .search-action-btn {
+  width: 36px;
+  height: 36px;
+  box-shadow: 0 4px 10px rgba(230, 30, 77, 0.2);
+}
+
+/* ============================================================== */
+/* 💀 UPGRADE 4: GLOWING SHIMMER SKELETON LOADING                 */
+/* ============================================================== */
+.skeleton-card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  overflow: hidden;
+  height: 420px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+  position: relative;
+  border: 1px solid var(--border-color);
+}
+
+.skeleton-img {
+  height: 220px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-text {
+  height: 20px;
+  margin: 22px 22px 10px 22px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-text.short {
+  width: 60%;
+  margin-top: 4px;
+}
+
+.skeleton-desc {
+  height: 40px;
+  margin: 15px 22px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-footer {
+  height: 40px;
+  margin: 20px 22px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.skeleton-btn {
+  width: 80px;
+  height: 18px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+body.dark-mode .skeleton-img,
+body.dark-mode .skeleton-text,
+body.dark-mode .skeleton-desc,
+body.dark-mode .skeleton-btn {
+  background: linear-gradient(90deg, #2a2a35 25%, #383846 50%, #2a2a35 75%);
+  background-size: 200% 100%;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}

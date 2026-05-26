@@ -1,113 +1,322 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-import { getDayuse, getAllUsersAdmin } from '../../utils/api';
+import { addToWishlist, getDayuse, getDestinations } from '../../utils/api';
 import { LanguageContext } from '../../context/LanguageContext';
 import './Dayuse.css';
 
-const Dayuse = () => {
-  const { lang } = useContext(LanguageContext);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [dayuses, setDayuses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [usersMap, setUsersMap] = useState({});
-  
-  const navigate = useNavigate();
+// ── DayuseCard Component with Image Carousel ──
+const DayuseCard = ({ item, lang, wishlistIds, handleCardClick, handleWishlistToggle, destinations }) => {
+  const [currentImgIndex, setCurrentImgIndex] = useState(0);
+  const images = Array.isArray(item.images) && item.images.length > 0
+    ? item.images
+    : [item.image || '/img/dayuse-default.jpg'];
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
+  const handlePrevImage = (e) => {
+    e.stopPropagation();
+    setCurrentImgIndex(prev => (prev - 1 + images.length) % images.length);
+  };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
+  const handleNextImage = (e) => {
+    e.stopPropagation();
+    setCurrentImgIndex(prev => (prev + 1) % images.length);
+  };
 
-  useEffect(() => {
-    const fetchDayuse = async () => {
-      try {
-        const response = await getDayuse();
-        setDayuses(response.data);
-        try {
-          const usersRes = await getAllUsersAdmin();
-          const usersList = usersRes.data || usersRes.users || usersRes;
-          const map = {};
-          if (Array.isArray(usersList)) usersList.forEach(u => { if (u && u._id) map[u._id] = u; });
-          setUsersMap(map);
-        } catch (uerr) { console.debug('Could not fetch users for supervisor lookup', uerr); }
-      } catch (err) {
-        console.error('Error fetching dayuse:', err);
-        setError('Failed to load dayuse packages. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDayuse();
-  }, []);
+  const id = item._id || item.id;
 
   return (
-    <div className={`dayuse-container ${lang === 'AR' ? 'lang-ar' : ''}`}>
-      <Navbar lang={lang} isScrolled={isScrolled} />
+    <div className="exp-card" onClick={() => handleCardClick(id)}>
+      <div className="exp-badge dayuse">
+        {lang === 'AR' ? 'داي يوز' : 'Dayuse'}
+      </div>
 
-      <div className="page-header hero-banner dayuse-hero">
-        <div className="header-content">
-            <h1>{lang === 'AR' ? <>داي يوز <span className="egypt-flag-text">استجمام</span></> : <>Egyptian <span className="egypt-flag-text">Dayuse</span></>}</h1>
-            <p>{lang === 'AR' ? 'مسابح مريحة، شواطئ خلابة، وهروب من ضغوط العمل في أفخم المنتجعات' : 'Relaxing pools, beautiful beaches, and luxurious escapes'}</p>
+      <button
+        className={`wishlist-btn ${wishlistIds.has(id) ? 'active' : ''}`}
+        onClick={(e) => handleWishlistToggle(e, id)}
+        title={lang === 'AR' ? 'إضافة إلى المفضلة' : 'Add to Wishlist'}
+        type="button"
+      >
+        <i className={`${wishlistIds.has(id) ? 'fa-solid' : 'fa-regular'} fa-heart`}></i>
+      </button>
+
+      <div className="exp-image">
+        <img src={images[currentImgIndex]} alt={item.name || item.title} className="carousel-img-slide" />
+        {images.length > 1 && (
+          <>
+            <button className="carousel-nav-btn prev" onClick={handlePrevImage}>
+              <i className="fa-solid fa-chevron-left"></i>
+            </button>
+            <button className="carousel-nav-btn next" onClick={handleNextImage}>
+              <i className="fa-solid fa-chevron-right"></i>
+            </button>
+            <div className="carousel-indicators">
+              {images.map((_, idx) => (
+                <span
+                  key={idx}
+                  className={`indicator-dot ${idx === currentImgIndex ? 'active' : ''}`}
+                ></span>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      <div className="exp-content">
+        <h3 className="exp-title">{item.name || item.title}</h3>
+        <div className="exp-location" style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+          <i className="fa-solid fa-location-dot"></i>
+          {item.destination?.name ||
+            destinations.find(d => d._id === (item.destination?._id || item.destination))?.name ||
+            (lang === 'AR' ? 'وجهات متعددة' : 'Multiple Locations')}
+        </div>
+        <p className="exp-desc">
+          {item.description ||
+            (lang === 'AR'
+              ? 'استمتع بيوم استجمام مثالي في أفخم المنتجعات والمسابح المصرية.'
+              : 'Enjoy a perfect relaxation day at Egypt\'s finest resorts and pools.')}
+        </p>
+
+        <div className="exp-footer">
+          <div className="exp-price">
+            {item.calculatedPrice || item.base_price || item.price || 0} EGP{' '}
+            <span>{lang === 'AR' ? '/ للفرد' : '/ person'}</span>
+          </div>
+          <div className="exp-duration" style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+            <i className="fa-regular fa-clock"></i>
+            {lang === 'AR' ? 'يوم واحد' : '1 Day'}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Dayuse = () => {
+  const { lang } = useContext(LanguageContext);
+  const navigate = useNavigate();
+
+  const [dayuses, setDayuses] = useState([]);
+  const [destinations, setDestinations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [wishlistIds, setWishlistIds] = useState(new Set());
+
+  const [selectedDestination, setSelectedDestination] = useState('');
+  const [selectedDestName, setSelectedDestName] = useState('');
+  const [minPrice, setMinPrice] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(25000);
+  const [showDestDropdown, setShowDestDropdown] = useState(false);
+  const [showPriceDropdown, setShowPriceDropdown] = useState(false);
+  const [isSticky, setIsSticky] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    document.body.style.overflow = 'auto';
+
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.search-item')) {
+        setShowDestDropdown(false);
+        setShowPriceDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+
+    const handleScrollEvent = () => {
+      setIsSticky(window.scrollY > 150);
+    };
+    window.addEventListener('scroll', handleScrollEvent);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScrollEvent);
+    };
+  }, []);
+
+  useEffect(() => {
+    const fetchAll = async () => {
+      setLoading(true);
+      try {
+        const [dayRes, destRes] = await Promise.all([getDayuse(), getDestinations()]);
+        const list = dayRes?.data || dayRes || [];
+        setDayuses(Array.isArray(list) ? list : []);
+
+        const destList = destRes?.destinations || destRes?.data?.destinations || destRes?.data || destRes || [];
+        setDestinations(Array.isArray(destList) ? destList : []);
+      } catch (err) {
+        console.error('Error loading dayuse:', err);
+        setDayuses([]);
+      } finally {
+        setTimeout(() => setLoading(false), 800);
+      }
+    };
+    fetchAll();
+  }, []);
+
+  const handleCardClick = (id) => navigate(`/package-details/${id}`);
+
+  const handleWishlistToggle = async (e, id) => {
+    e.stopPropagation();
+    setWishlistIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+    try { await addToWishlist(id); } catch (err) { console.error(err); }
+  };
+
+  const displayed = dayuses.filter(item => {
+    if (selectedDestination) {
+      const destId = item.destination?._id || item.destination?.id || item.destination;
+      if (destId !== selectedDestination) return false;
+    }
+    const price = item.calculatedPrice || item.base_price || item.price || 0;
+    if (price < minPrice || price > maxPrice) return false;
+    return true;
+  });
+
+  return (
+    <div className={`experiences-page ${lang === 'AR' ? 'lang-ar' : ''}`}>
+      <Navbar lang={lang} isScrolled={true} />
+
+      <div className="experiences-header">
+        <h1>
+          {lang === 'AR'
+            ? <><span>داي يوز</span> <span className="egypt-flag-text">استجمام</span></>
+            : <>Egyptian <span className="egypt-flag-text">Dayuse</span></>}
+        </h1>
+        <p style={{ marginBottom: '35px' }}>
+          {lang === 'AR'
+            ? 'مسابح مريحة، شواطئ خلابة، وهروب مثالي من ضغوط الحياة في أفخم المنتجعات المصرية.'
+            : 'Relaxing pools, beautiful beaches, and luxurious escapes at Egypt\'s finest resorts.'}
+        </p>
+
+        {/* Airbnb-Style Search Bar */}
+        <div className={`airbnb-search-bar-container ${isSticky ? 'sticky' : ''}`}>
+          <div className="search-filter-bar">
+            {/* Destination */}
+            <div className="search-item" onClick={() => { setShowDestDropdown(!showDestDropdown); setShowPriceDropdown(false); }}>
+              <div className="search-item-icon"><i className="fa-solid fa-location-dot"></i></div>
+              <div className="search-item-text">
+                <span className="search-label">{lang === 'AR' ? 'الوجهة' : 'Where'}</span>
+                <span className="search-val">{selectedDestName || (lang === 'AR' ? 'ابحث عن وجهة' : 'Search destinations')}</span>
+              </div>
+              {showDestDropdown && (
+                <div className="search-dropdown destination-dropdown" onClick={(e) => e.stopPropagation()}>
+                  <div className="dropdown-item-header">
+                    {lang === 'AR' ? 'الوجهات المتاحة لدينا' : 'Our Available Destinations'}
+                  </div>
+                  <div className="dropdown-item" onClick={() => { setSelectedDestination(''); setSelectedDestName(''); setShowDestDropdown(false); }}>
+                    <i className="fa-solid fa-globe"></i> {lang === 'AR' ? 'كل الوجهات في مصر' : 'All Destinations in Egypt'}
+                  </div>
+                  {destinations.map(d => (
+                    <div key={d._id || d.id} className="dropdown-item" onClick={() => { setSelectedDestination(d._id || d.id); setSelectedDestName(d.name); setShowDestDropdown(false); }}>
+                      <i className="fa-solid fa-map-pin"></i> {d.name}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="search-divider"></div>
+
+            {/* Price */}
+            <div className="search-item" onClick={() => { setShowPriceDropdown(!showPriceDropdown); setShowDestDropdown(false); }}>
+              <div className="search-item-icon"><i className="fa-solid fa-money-bill-wave"></i></div>
+              <div className="search-item-text">
+                <span className="search-label">{lang === 'AR' ? 'الميزانية' : 'Price'}</span>
+                <span className="search-val">
+                  {maxPrice === 25000 && minPrice === 0
+                    ? (lang === 'AR' ? 'أي سعر متاح' : 'Any price range')
+                    : `${minPrice} - ${maxPrice} EGP`}
+                </span>
+              </div>
+              {showPriceDropdown && (
+                <div className="search-dropdown price-dropdown" onClick={(e) => e.stopPropagation()}>
+                  <h4>{lang === 'AR' ? 'نطاق السعر المقدر' : 'Estimated Price Range'}</h4>
+                  <div className="price-inputs-container">
+                    <div className="price-input-box">
+                      <span className="price-input-label">{lang === 'AR' ? 'الحد الأدنى' : 'Min'}</span>
+                      <div className="price-input-wrapper">
+                        <input type="number" value={minPrice} onChange={(e) => setMinPrice(Math.max(0, parseInt(e.target.value) || 0))} />
+                        <span className="currency-unit">EGP</span>
+                      </div>
+                    </div>
+                    <div className="price-input-divider">-</div>
+                    <div className="price-input-box">
+                      <span className="price-input-label">{lang === 'AR' ? 'الحد الأقصى' : 'Max'}</span>
+                      <div className="price-input-wrapper">
+                        <input type="number" value={maxPrice} onChange={(e) => setMaxPrice(Math.max(0, parseInt(e.target.value) || 25000))} />
+                        <span className="currency-unit">EGP</span>
+                      </div>
+                    </div>
+                  </div>
+                  <input type="range" min="0" max="25000" step="500" value={maxPrice} className="price-range-slider" onChange={(e) => setMaxPrice(parseInt(e.target.value))} />
+                  <div className="price-range-labels">
+                    <span>0 EGP</span><span>12.5k EGP</span><span>25k+ EGP</span>
+                  </div>
+                  <div className="price-dropdown-footer">
+                    <button className="price-clear-btn" onClick={() => { setMinPrice(0); setMaxPrice(25000); setShowPriceDropdown(false); }}>
+                      {lang === 'AR' ? 'إعادة ضبط' : 'Reset'}
+                    </button>
+                    <button className="price-apply-btn" onClick={() => setShowPriceDropdown(false)}>
+                      {lang === 'AR' ? 'تطبيق الفلتر' : 'Apply Filter'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button className="search-action-btn" onClick={() => { setShowDestDropdown(false); setShowPriceDropdown(false); }}>
+              <i className="fa-solid fa-magnifying-glass"></i>
+            </button>
+          </div>
         </div>
       </div>
 
-      <main className="content">
-        <div className="toolbar">
-            <div className="filter-group">
-                <button type="button" className="btn-outline active">{lang === 'AR' ? 'كل العروض' : 'All Dayuse'}</button>
-                <button type="button" className="btn-outline">{lang === 'AR' ? 'دخول مسبح' : 'Pool Access'}</button>
-                <button type="button" className="btn-outline">{lang === 'AR' ? 'شاطئ' : 'Beach'}</button>
-            </div>
-        </div>
-
-        <div className="packages-grid">
-            {loading ? (
-              <p>{lang === 'AR' ? 'جاري تحميل عروض اليوم الواحد...' : 'Loading Dayuse Packages from the API...'}</p>
-            ) : error ? (
-              <p className="error">{lang === 'AR' ? 'فشل تحميل العروض. يرجى المحاولة لاحقاً.' : error}</p>
-            ) : dayuses.length > 0 ? (
-              dayuses.map((dayuse) => (
-                <div key={dayuse.id || dayuse._id} className="card card--link" onClick={() => navigate(`/package-details/${dayuse.id || dayuse._id}`)}>
-                    <div className="img-box">
-                        <img src={dayuse.image || dayuse.images?.[0] || '/img/dayuse-default.jpg'} alt={dayuse.title || dayuse.name} />
-                    </div>
-                    <div className="info">
-                        <h4>{dayuse.title || dayuse.name}</h4>
-                        {(() => {
-                          const sup = dayuse.supervisor || dayuse.supervisior || null;
-                          let name = '';
-                          if (sup) {
-                            if (typeof sup === 'object') name = `${sup.firstName || ''} ${sup.lastName || ''}`.trim();
-                            else name = (usersMap[sup] && `${usersMap[sup].firstName || ''} ${usersMap[sup].lastName || ''}`.trim()) || String(sup);
-                          }
-                          return name ? (
-                            <div className="supervisor-badge small">
-                              <span className="supervisor-avatar">{(name||'U').charAt(0).toUpperCase()}</span>
-                              <span className="supervisor-name">{name}</span>
-                            </div>
-                          ) : null;
-                        })()}
-                        <p>{dayuse.price || dayuse.base_price || 0} EGP {lang === 'AR' ? '/ اليوم' : '/ day'}</p>
-                    </div>
+      <div className="experiences-container">
+        {loading ? (
+          <div className="experiences-grid">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="skeleton-card">
+                <div className="skeleton-img"></div>
+                <div className="skeleton-text"></div>
+                <div className="skeleton-text short"></div>
+                <div className="skeleton-desc"></div>
+                <div className="skeleton-footer">
+                  <div className="skeleton-btn"></div>
+                  <div className="skeleton-btn"></div>
                 </div>
-              ))
-            ) : (
-              <p>{lang === 'AR' ? 'لا توجد عروض داي يوز متاحة في الوقت الحالي.' : 'No dayuse packages available at the moment.'}</p>
-            )}
-        </div>
-      </main>
+              </div>
+            ))}
+          </div>
+        ) : displayed.length > 0 ? (
+          <div className="experiences-grid">
+            {displayed.map(item => (
+              <DayuseCard
+                key={item._id || item.id}
+                item={item}
+                lang={lang}
+                wishlistIds={wishlistIds}
+                handleCardClick={handleCardClick}
+                handleWishlistToggle={handleWishlistToggle}
+                destinations={destinations}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="empty-state">
+            <i className="fa-solid fa-box-open"></i>
+            <h3>{lang === 'AR' ? 'لا توجد عروض داي يوز متاحة حالياً' : 'No Dayuse Packages Found'}</h3>
+            <p>
+              {lang === 'AR'
+                ? 'لم نتمكن من العثور على أي عروض داي يوز متاحة. يرجى مراجعة الموقع لاحقاً!'
+                : 'We couldn\'t find any dayuse packages right now. Please check back later!'}
+            </p>
+          </div>
+        )}
+      </div>
 
-      <Footer />
+      <Footer isHome={false} />
     </div>
   );
 };

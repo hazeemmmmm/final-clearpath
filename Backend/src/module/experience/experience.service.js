@@ -183,6 +183,7 @@ class ExperienceService {
 
     const data = await Experience.find(filter)
       .populate("destination")
+      .populate("supervisor", "firstName lastName email role")
       .populate("itinerary.activities.activity")
       .sort(sort)
       .skip(skip)
@@ -203,6 +204,7 @@ class ExperienceService {
   async getOne(id) {
     return await Experience.findById(id)
       .populate("destination")
+      .populate("supervisor", "firstName lastName email role")
       .populate("itinerary.activities.activity");
   }
 
