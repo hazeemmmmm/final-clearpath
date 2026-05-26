@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
+import { LanguageContext } from '../../context/LanguageContext';
 import { 
   getTripDetails, 
   getUserProfile, 
@@ -9,6 +10,7 @@ import {
   getExperienceStats, 
   createReview,
   getFinalTrip,
+  getAllUsersAdmin,
   createCustomTrip,
   addActivityToCustomTrip,
   removeActivityFromCustomTrip,
@@ -17,7 +19,10 @@ import {
   removeExtraActivityFromCustomTrip,
   createBooking,
   getActivities,
-  getProviders
+  getProviders,
+  getWishlist,
+  addToWishlist,
+  removeFromWishlist
 } from '../../utils/api';
 import './PackageDetails.css';
 
@@ -51,20 +56,61 @@ const PackageDetails = () => {
   const [showAddExtra, setShowAddExtra] = useState(false);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [customizationError, setCustomizationError] = useState('');
-  const [lang, setLang] = useState('EN');
+  const { lang, setLang } = useContext(LanguageContext);
   const [guestCount, setGuestCount] = useState(1);
+
+  // Wishlist State
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [usersMap, setUsersMap] = useState({});
 
   const token = localStorage.getItem('token') || localStorage.getItem('clearpath_access_token');
 
-  // Fetch package details, user profile, reviews and stats
+  // Fetch package details, user profile, reviews, stats and wishlist status
   useEffect(() => {
     window.scrollTo(0, 0);
     fetchPackageDetails();
     fetchReviewsAndStats();
     if (token) {
       fetchUserProfile();
+      checkWishlistStatus();
     }
   }, [id, token]);
+
+  const checkWishlistStatus = async () => {
+    try {
+      const response = await getWishlist();
+      const items = response.wishlist?.experiences || response.data?.experiences || response.wishlist || response.data || [];
+      if (Array.isArray(items)) {
+        const isSaved = items.some(item => (item._id || item.id) === id);
+        setIsInWishlist(isSaved);
+      }
+    } catch (err) {
+      console.error('Failed to fetch wishlist status', err);
+    }
+  };
+
+  const handleWishlistToggle = async () => {
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
+    setWishlistLoading(true);
+    try {
+      if (isInWishlist) {
+        await removeFromWishlist(id);
+        setIsInWishlist(false);
+      } else {
+        await addToWishlist(id);
+        setIsInWishlist(true);
+      }
+    } catch (err) {
+      console.error('Failed to toggle wishlist item', err);
+      alert('Failed to update wishlist. Please try again.');
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
 
   const fetchPackageDetails = async () => {
     try {
@@ -85,6 +131,16 @@ const PackageDetails = () => {
       const response = await getTripDetails(id);
       const pkg = response.data || response.experience || response;
       setPackageData(pkg);
+      // try fetch users for supervisor lookup if needed
+      try {
+        const usersRes = await getAllUsersAdmin();
+        const usersList = usersRes.data || usersRes.users || usersRes;
+        const map = {};
+        if (Array.isArray(usersList)) usersList.forEach(u => { if (u && u._id) map[u._id] = u; });
+        setUsersMap(map);
+      } catch (uerr) {
+        console.debug('Could not fetch users for supervisor lookup', uerr);
+      }
       if (pkg) {
         setActiveImage(pkg.image || (pkg.images && pkg.images[0]) || 'https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=1200&q=80');
       }
@@ -421,6 +477,37 @@ const PackageDetails = () => {
   const displayItinerary = customTrip && customTrip.itinerary && customTrip.itinerary.length > 0
     ? customTrip.itinerary
     : (packageData ? packageData.itinerary : []);
+  const { start, end } = (() => {
+    if (!packageData) return { start: null, end: null };
+    let start = null;
+    if (packageData.availableDates && packageData.availableDates.length > 0) {
+      const validDates = packageData.availableDates
+        .map(d => new Date(d.date))
+        .filter(d => !isNaN(d.getTime()))
+        .sort((a, b) => a - b);
+      if (validDates.length > 0) {
+        start = validDates[0];
+      }
+    }
+    if (!start) {
+      const today = new Date();
+      const nextSat = new Date();
+      nextSat.setDate(today.getDate() + ((6 - today.getDay() + 7) % 7 || 7));
+      start = nextSat;
+    }
+    const duration = packageData.duration_days || 1;
+    const end = new Date(start);
+    end.setDate(start.getDate() + (duration > 1 ? duration - 1 : 0));
+    return { start, end };
+  })();
+
+  const startFormatted = start 
+    ? start.toLocaleDateString(lang === 'AR' ? 'ar-EG' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    : '—';
+
+  const endFormatted = end
+    ? end.toLocaleDateString(lang === 'AR' ? 'ar-EG' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    : '—';
 
   return (
     <div className="package-details-page">
@@ -461,7 +548,24 @@ const PackageDetails = () => {
                     <i className="fa-solid fa-clock"></i> {packageData.duration_days} {packageData.duration_days > 1 ? 'Days' : 'Day'}
                   </span>
                   <span>
-                    <i className="fa-solid fa-users"></i> Max {packageData.capacity || 20} People
+                    <i className="fa-solid fa-users"></i> {lang === 'AR' ? `الحد الأقصى: ${packageData.capacity || 20} فرد` : `Max ${packageData.capacity || 20} People`}
+                  </span>
+                  <span>
+                    <i className="fa-solid fa-calendar-day"></i> {lang === 'AR' ? `البداية: ${startFormatted}` : `Start: ${startFormatted}`}
+                  </span>
+                  <span>
+                    <i className="fa-solid fa-calendar-check"></i> {lang === 'AR' ? `النهاية: ${endFormatted}` : `End: ${endFormatted}`}
+                  </span>
+                  {/* Supervisor display */}
+                  <span>
+                    <i className="fa-solid fa-user-tie"></i> {(() => {
+                      const sup = packageData.supervisor || packageData.supervisior || null;
+                      if (!sup) return lang === 'AR' ? 'مشرف: —' : 'Supervisor: —';
+                      let name = '';
+                      if (typeof sup === 'object') name = `${sup.firstName || ''} ${sup.lastName || ''}`.trim();
+                      else name = (usersMap[sup] && `${usersMap[sup].firstName || ''} ${usersMap[sup].lastName || ''}`.trim()) || String(sup);
+                      return name ? `${lang === 'AR' ? 'مشرف: ' : 'Supervisor: '} ${name}` : (lang === 'AR' ? 'مشرف: —' : 'Supervisor: —');
+                    })()}
                   </span>
                   {stats.totalReviews > 0 && (
                     <span className="meta-rating">
@@ -910,22 +1014,22 @@ const PackageDetails = () => {
                     <div className="benefit-item">
                       <i className="fa-solid fa-shield-halved"></i>
                       <div>
-                        <strong>Free Cancellation</strong>
-                        <p>Cancel up to 24 hours in advance</p>
+                        <strong>{lang === 'AR' ? 'إلغاء مجاني' : 'Free Cancellation'}</strong>
+                        <p>{lang === 'AR' ? 'إلغاء مرن حتى 24 ساعة مقدماً' : 'Cancel up to 24 hours in advance'}</p>
                       </div>
                     </div>
                     <div className="benefit-item">
                       <i className="fa-solid fa-bolt"></i>
                       <div>
-                        <strong>Instant Confirmation</strong>
-                        <p>Secure your spot in seconds</p>
+                        <strong>{lang === 'AR' ? 'تأكيد فوري' : 'Instant Confirmation'}</strong>
+                        <p>{lang === 'AR' ? 'احجز مكانك مباشرة في ثوانٍ معدودة' : 'Secure your spot in seconds'}</p>
                       </div>
                     </div>
                     <div className="benefit-item">
                       <i className="fa-solid fa-headset"></i>
                       <div>
-                        <strong>24/7 Support</strong>
-                        <p>Dedicated customer support</p>
+                        <strong>{lang === 'AR' ? 'دعم متواصل 24/7' : '24/7 Support'}</strong>
+                        <p>{lang === 'AR' ? 'فريق عمل متفاني لخدمتك طوال اليوم' : 'Dedicated customer support'}</p>
                       </div>
                     </div>
                   </div>
@@ -938,9 +1042,43 @@ const PackageDetails = () => {
                       style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer' }}
                     >
                       {bookingLoading ? (
-                        <><i className="fa-solid fa-spinner fa-spin"></i> Creating Booking...</>
+                        <><i className="fa-solid fa-spinner fa-spin"></i> {lang === 'AR' ? 'جاري إتمام الحجز...' : 'Creating Booking...'}</>
                       ) : (
-                        <><i className="fa-solid fa-calendar-days"></i> {isCustomizing ? 'Book Customized Plan' : 'Book This Trip'}</>
+                        <><i className="fa-solid fa-calendar-days"></i> {isCustomizing ? (lang === 'AR' ? 'احجز الخطة المخصصة' : 'Book Customized Plan') : (lang === 'AR' ? 'احجز هذه الرحلة الآن' : 'Book This Trip')}</>
+                      )}
+                    </button>
+
+                    <button 
+                      onClick={handleWishlistToggle} 
+                      className={`btn-wishlist-toggle ${isInWishlist ? 'saved' : ''}`}
+                      disabled={wishlistLoading}
+                      style={{
+                        width: '100%',
+                        background: isInWishlist ? '#e61e4d' : '#f1f5f9',
+                        border: isInWishlist ? '2px solid #e61e4d' : '2px solid #cbd5e1',
+                        color: isInWishlist ? '#ffffff' : '#1e293b',
+                        padding: '12px',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontWeight: '700',
+                        fontSize: '0.95rem',
+                        transition: 'all 0.3s ease',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        boxShadow: isInWishlist ? '0 6px 20px rgba(230, 30, 77, 0.4)' : 'none'
+                      }}
+                    >
+                      {wishlistLoading ? (
+                        <><i className="fa-solid fa-spinner fa-spin"></i> {lang === 'AR' ? 'جاري المعالجة...' : 'Processing...'}</>
+                      ) : (
+                        <>
+                          <i className={`${isInWishlist ? 'fa-solid' : 'fa-regular'} fa-heart`} style={{ color: isInWishlist ? '#ffffff' : '#e61e4d' }}></i>
+                          {isInWishlist 
+                            ? (lang === 'AR' ? 'تم الحفظ في المفضلة' : 'Saved to Wishlist')
+                            : (lang === 'AR' ? 'أضف إلى المفضلة' : 'Add to Wishlist')}
+                        </>
                       )}
                     </button>
 
@@ -966,7 +1104,7 @@ const PackageDetails = () => {
                             gap: '8px'
                           }}
                         >
-                          <i className="fa-solid fa-sliders"></i> Customize This Plan
+                          <i className="fa-solid fa-sliders"></i> {lang === 'AR' ? 'خصص هذه الخطة' : 'Customize This Plan'}
                         </button>
                       ) : (
                         <button 
@@ -989,7 +1127,7 @@ const PackageDetails = () => {
                             gap: '8px'
                           }}
                         >
-                          <i className="fa-solid fa-rotate-left"></i> {isCustomizing ? 'Switch to Standard Plan' : 'Switch to Custom Plan'}
+                          <i className="fa-solid fa-rotate-left"></i> {isCustomizing ? (lang === 'AR' ? 'التحول للخطة الأساسية' : 'Switch to Standard Plan') : (lang === 'AR' ? 'التحول للخطة المخصصة' : 'Switch to Custom Plan')}
                         </button>
                       )
                     )}
@@ -1007,8 +1145,8 @@ const PackageDetails = () => {
               <hr className="divider" />
               
               <div className="reviews-header">
-                <h2>Guest Ratings & Reviews</h2>
-                <p>Real stories and ratings from verified adventurers</p>
+                <h2>{lang === 'AR' ? 'تقييمات وآراء الزوار' : 'Guest Ratings & Reviews'}</h2>
+                <p>{lang === 'AR' ? 'تجارب واقعية وتقييمات من مغامرين موثقين زاروا هذا المكان' : 'Real stories and ratings from verified adventurers'}</p>
               </div>
 
               {/* 1. Aggregate Statistics Panel */}
@@ -1018,7 +1156,7 @@ const PackageDetails = () => {
                 <div className="stats-summary-box">
                   <div className="average-number">{stats.averageRating || '0.0'}</div>
                   {renderStars(stats.averageRating)}
-                  <div className="total-label">Based on {stats.totalReviews || 0} reviews</div>
+                  <div className="total-label">{lang === 'AR' ? `بناءً على ${stats.totalReviews || 0} تقييم` : `Based on ${stats.totalReviews || 0} reviews`}</div>
                 </div>
 
                 {/* Star Rating Breakdown Bars */}
@@ -1045,12 +1183,12 @@ const PackageDetails = () => {
                 {token ? (
                   userHasReviewed ? (
                     <div className="info-message success">
-                      <i className="fa-solid fa-circle-check"></i> You have already reviewed this experience. Thank you for your feedback!
+                      <i className="fa-solid fa-circle-check"></i> {lang === 'AR' ? 'لقد قمت بتقييم هذه التجربة بالفعل. شكراً لك على مشاركتنا رأيك!' : 'You have already reviewed this experience. Thank you for your feedback!'}
                     </div>
                   ) : (
                     <div className="write-review-card">
-                      <h3>Share Your Experience</h3>
-                      <p>How was your adventure? Let others know what you thought.</p>
+                      <h3>{lang === 'AR' ? 'شاركنا تجربتك الشخصية' : 'Share Your Experience'}</h3>
+                      <p>{lang === 'AR' ? 'كيف كانت مغامرتك؟ دع الآخرين يتعرفون على تجربتك.' : 'How was your adventure? Let others know what you thought.'}</p>
 
                       {reviewSuccess && (
                         <div className="alert alert-success">
@@ -1068,32 +1206,32 @@ const PackageDetails = () => {
                         
                         {/* Rating Stars Selector */}
                         <div className="form-group-stars">
-                          <label>Your Rating:</label>
+                          <label>{lang === 'AR' ? 'تقييمك بالنجوم:' : 'Your Rating:'}</label>
                           <div className="stars-selector">
                             {renderStars(0, setUserRating, setHoverRating, true)}
-                            {userRating > 0 && <span className="selected-rating-text">{userRating} / 5 stars</span>}
+                            {userRating > 0 && <span className="selected-rating-text">{userRating} / {lang === 'AR' ? '5 نجوم' : '5 stars'}</span>}
                           </div>
                         </div>
 
                         {/* Comment Text */}
                         <div className="form-group">
-                          <label htmlFor="review-comment">Your Review Comments:</label>
+                          <label htmlFor="review-comment">{lang === 'AR' ? 'تعليقاتك ورأيك في الخدمة:' : 'Your Review Comments:'}</label>
                           <textarea
                             id="review-comment"
                             value={userComment}
                             onChange={(e) => setUserComment(e.target.value)}
-                            placeholder="Tell us about the guides, the transport, the hotels, and details of your experience..."
+                            placeholder={lang === 'AR' ? 'أخبرنا عن المرشدين، وسائل النقل، الفنادق وتفاصيل رحلتك...' : "Tell us about the guides, the transport, the hotels, and details of your experience..."}
                             required
                             maxLength={500}
                           ></textarea>
-                          <span className="char-counter">{userComment.length} / 500 characters</span>
+                          <span className="char-counter">{userComment.length} / 500 {lang === 'AR' ? 'حرف' : 'characters'}</span>
                         </div>
 
                         <button type="submit" className="btn-submit-review" disabled={submittingReview}>
                           {submittingReview ? (
-                            <><i className="fa-solid fa-spinner fa-spin"></i> Submitting...</>
+                            <><i className="fa-solid fa-spinner fa-spin"></i> {lang === 'AR' ? 'جاري الإرسال...' : 'Submitting...'}</>
                           ) : (
-                            <><i className="fa-solid fa-paper-plane"></i> Submit Review</>
+                            <><i className="fa-solid fa-paper-plane"></i> {lang === 'AR' ? 'إرسال التقييم' : 'Submit Review'}</>
                           )}
                         </button>
                       </form>
@@ -1102,33 +1240,33 @@ const PackageDetails = () => {
                 ) : (
                   <div className="login-prompt-card">
                     <i className="fa-solid fa-lock"></i>
-                    <h4>Want to write a review?</h4>
-                    <p>You must be signed in to rate and comment on experiences.</p>
-                    <Link to="/login" className="btn-login-redirect">Sign In Now</Link>
+                    <h4>{lang === 'AR' ? 'هل تود كتابة تقييم؟' : 'Want to write a review?'}</h4>
+                    <p>{lang === 'AR' ? 'يجب عليك تسجيل الدخول لتتمكن من تقييم وترك تعليق على التجارب.' : 'You must be signed in to rate and comment on experiences.'}</p>
+                    <Link to="/login" className="btn-login-redirect">{lang === 'AR' ? 'تسجيل الدخول الآن' : 'Sign In Now'}</Link>
                   </div>
                 )}
               </div>
 
               {/* 3. Review Lists */}
               <div className="reviews-list-container">
-                <h3>Customer Reviews ({reviews.length})</h3>
+                <h3>{lang === 'AR' ? `آراء وتجارب العملاء (${reviews.length})` : `Customer Reviews (${reviews.length})`}</h3>
 
                 {loadingReviews ? (
                   <div className="loading-reviews">
-                    <i className="fa-solid fa-spinner fa-spin"></i> Loading reviews...
+                    <i className="fa-solid fa-spinner fa-spin"></i> {lang === 'AR' ? 'جاري تحميل التقييمات...' : 'Loading reviews...'}
                   </div>
                 ) : reviews.length === 0 ? (
                   <div className="no-reviews-card">
                     <i className="fa-regular fa-comments"></i>
-                    <p>No reviews yet for this experience. Be the first to share your thoughts!</p>
+                    <p>{lang === 'AR' ? 'لا توجد تقييمات لهذه التجربة حتى الآن. كن أول من يشاركنا رأيه!' : 'No reviews yet for this experience. Be the first to share your thoughts!'}</p>
                   </div>
                 ) : (
                   <div className="reviews-list">
                     {reviews.map((rev) => {
-                      const reviewerName = rev.user ? `${rev.user.firstName} ${rev.user.lastName}`.trim() : 'Anonymous Adventurer';
+                      const reviewerName = rev.user ? `${rev.user.firstName} ${rev.user.lastName}`.trim() : (lang === 'AR' ? 'مغامر مجهول' : 'Anonymous Adventurer');
                       const reviewerInitials = getUserInitials(rev.user);
                       const avatarBg = getAvatarColor(reviewerName);
-                      const reviewDate = rev.createdAt ? new Date(rev.createdAt).toLocaleDateString('en-US', {
+                      const reviewDate = rev.createdAt ? new Date(rev.createdAt).toLocaleDateString(lang === 'AR' ? 'ar-EG' : 'en-US', {
                         year: 'numeric', month: 'long', day: 'numeric'
                       }) : 'Recent';
 
@@ -1154,7 +1292,7 @@ const PackageDetails = () => {
                               {renderStars(rev.rating)}
                               {rev.isVerifiedBooking && (
                                 <span className="verified-badge">
-                                  <i className="fa-solid fa-circle-check"></i> Verified Booking
+                                  <i className="fa-solid fa-circle-check"></i> {lang === 'AR' ? 'حجز مؤكد' : 'Verified Booking'}
                                 </span>
                               )}
                             </div>
@@ -1163,7 +1301,7 @@ const PackageDetails = () => {
 
                           {/* Body */}
                           <div className="review-card-body">
-                            <p>{rev.comment || 'This user left no comment, just a rating.'}</p>
+                            <p>{rev.comment || (lang === 'AR' ? 'ترك هذا المستخدم تقييماً بالنجوم فقط دون تعليق.' : 'This user left no comment, just a rating.')}</p>
                           </div>
 
                         </div>
@@ -1177,8 +1315,8 @@ const PackageDetails = () => {
           </>
         ) : (
           <div className="error-card">
-            <p>Package not found.</p>
-            <Link to="/" className="btn-back">Return to Home</Link>
+            <p>{lang === 'AR' ? 'لم يتم العثور على الباقة السياحية.' : 'Package not found.'}</p>
+            <Link to="/" className="btn-back">{lang === 'AR' ? 'العودة للرئيسية' : 'Return to Home'}</Link>
           </div>
         )}
       </main>

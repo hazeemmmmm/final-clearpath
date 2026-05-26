@@ -8,6 +8,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
+    <!-- Stripe JS -->
+    <script src="https://js.stripe.com/v3/"></script>
+    
     <script src="payment-tailwind.js"></script>
     
     <link rel="stylesheet" href="payment.css">
@@ -41,7 +44,7 @@
             <button onclick="window.history.back()" class="text-white hover:text-gray-300 transition-colors p-2 -ml-2 rounded-full">
                 <i class="fa-solid fa-chevron-left text-xl"></i>
             </button>
-            <h1 class="text-2xl font-semibold ml-2">Pay with PayPal</h1>
+            <h1 class="text-2xl font-semibold ml-2">Pay with Stripe</h1>
         </div>
 
         <!-- Clear Path Brand -->
@@ -60,28 +63,23 @@
         <!-- Scrollable Content Area -->
         <div class="flex-1 overflow-y-auto pb-24">
 
-            <div id="paypal-section" class="space-y-6">
-                <!-- PayPal Banner -->
+            <div id="stripe-section" class="space-y-6">
+                <!-- Stripe Banner -->
                 <div class="flex flex-col items-center justify-center p-6 bg-white/5 rounded-2xl border border-white/10 text-center mt-4">
                     <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-lg">
-                        <i class="fa-brands fa-paypal text-4xl text-[#00457C]"></i>
+                        <i class="fa-solid fa-credit-card text-4xl text-[#635bff]"></i>
                     </div>
-                    <h2 class="text-lg font-semibold">Secure Payment via PayPal</h2>
+                    <h2 class="text-lg font-semibold">Secure Payment via Stripe</h2>
                     <p class="text-sm text-gray-400 mt-2 leading-relaxed">
-                        By clicking Next, you will authorize the payment through your PayPal account securely.
+                        Enter your card details below to complete your booking securely.
                     </p>
                 </div>
 
-                <!-- PayPal Email Input -->
-                <form id="paypalForm" class="space-y-4 mt-6">
-                    <h3 class="text-sm font-semibold border-b border-white/10 pb-2 mb-4">PayPal Account Details</h3>
-                    <div>
-                        <label class="label-sm">Email Address</label>
-                        <div class="relative">
-                            <input type="email" placeholder="example@email.com" class="input-dark w-full rounded-xl p-3 pl-10 text-sm font-medium tracking-wide">
-                            <i class="fa-regular fa-envelope absolute left-3.5 top-3.5 text-gray-400"></i>
-                        </div>
-                    </div>
+                <!-- Stripe Card Element -->
+                <form id="stripeForm" class="space-y-4 mt-6">
+                    <h3 class="text-sm font-semibold border-b border-white/10 pb-2 mb-4">Card Details</h3>
+                    <div id="card-element" class="input-dark w-full rounded-xl p-3 text-sm"></div>
+                    <div id="card-errors" class="text-red-400 text-xs mt-2"></div>
                 </form>
 
             </div>
@@ -90,8 +88,8 @@
 
         <!-- Footer Button / Fixed at bottom of container -->
         <div class="absolute bottom-6 left-6 right-6">
-            <button class="btn-glow w-full py-3.5 rounded-xl text-white font-semibold flex items-center justify-center" onclick="processPayment()">
-                <span>Next</span> <i class="fa-solid fa-arrow-right ml-2 text-sm"></i>
+            <button id="pay-button" class="btn-glow w-full py-3.5 rounded-xl text-white font-semibold flex items-center justify-center" onclick="processPayment()">
+                <span>Pay Now</span> <i class="fa-solid fa-lock ml-2 text-sm"></i>
             </button>
             <p class="text-center text-xs text-gray-400 mt-3">
                 Clear Path &copy; 2026 - Secure payments for your journey

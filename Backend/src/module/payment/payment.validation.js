@@ -6,6 +6,7 @@ export const createOrderSchema = Joi.object({
         'string.length': 'bookingId must be 24 characters',
         'any.required': 'bookingId is required',
     }),
+    currency: Joi.string().valid('EGP', 'USD', 'egp', 'usd').optional(),
 });
 
 export const captureOrderSchema = Joi.object({

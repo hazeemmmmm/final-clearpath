@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { registerFailure, clearError } from '../../store/authSlice';
 import { register } from '../../utils/api';
+import { LanguageContext } from '../../context/LanguageContext';
 import './Register.css';
 
 const countries = [
@@ -10,6 +11,7 @@ const countries = [
 ];
 
 const Register = () => {
+  const { lang } = useContext(LanguageContext);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -27,11 +29,11 @@ const Register = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      alert('Passwords do not match.');
+      alert(lang === 'AR' ? 'كلمات المرور غير متطابقة.' : 'Passwords do not match.');
       return;
     }
     if (!nationality) {
-      alert('Please enter your Nationality.');
+      alert(lang === 'AR' ? 'يرجى إدخال الجنسية الخاصة بك.' : 'Please enter your Nationality.');
       return;
     }
     
@@ -51,15 +53,15 @@ const Register = () => {
   };
 
   return (
-    <div className="register-wrapper">
+    <div className={`register-wrapper ${lang === 'AR' ? 'lang-ar' : ''}`}>
       <div className="mainpage">
         <div className="registerform">
           <div className="registerr d-flex justify-content-center align-items-center">
             <div className="formholder">
               <form className="form" onSubmit={handleRegister}>
-                <p className="title">Register</p>
+                <p className="title">{lang === 'AR' ? 'إنشاء حساب جديد' : 'Register'}</p>
                 
-                {error && <div className="alert alert-error">{error}</div>}
+                {error && <div className="alert alert-error">{lang === 'AR' ? 'فشل إنشاء الحساب. يرجى التأكد من الحقول والمحاولة مجدداً.' : error}</div>}
 
                 <div className="flex">
                   <label htmlFor="FirstName">
@@ -72,7 +74,7 @@ const Register = () => {
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
                     />
-                    <span>Firstname</span>
+                    <span>{lang === 'AR' ? 'الاسم الأول' : 'Firstname'}</span>
                   </label>
 
                   <label htmlFor="LastName">
@@ -85,7 +87,7 @@ const Register = () => {
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                     />
-                    <span>Lastname</span>
+                    <span>{lang === 'AR' ? 'الاسم الأخير' : 'Lastname'}</span>
                   </label>
                 </div>
 
@@ -99,7 +101,7 @@ const Register = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
-                  <span>Email</span>
+                  <span>{lang === 'AR' ? 'البريد الإلكتروني' : 'Email'}</span>
                 </label>
 
                 <label htmlFor="phoneNumber">
@@ -112,7 +114,7 @@ const Register = () => {
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
                   />
-                  <span>Phone Number</span>
+                  <span>{lang === 'AR' ? 'رقم الهاتف' : 'Phone Number'}</span>
                 </label>
 
                 <label htmlFor="password">
@@ -125,7 +127,7 @@ const Register = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
-                  <span>Password</span>
+                  <span>{lang === 'AR' ? 'كلمة المرور' : 'Password'}</span>
                 </label>
                 
                 <label htmlFor="confirmPassword">
@@ -138,7 +140,7 @@ const Register = () => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                   />
-                  <span>Confirm password</span>
+                  <span>{lang === 'AR' ? 'تأكيد كلمة المرور' : 'Confirm password'}</span>
                 </label>
                 
                 <label htmlFor="age">
@@ -171,15 +173,16 @@ const Register = () => {
                       <option key={country} value={country} />
                     ))}
                   </datalist>
-                  <span>Nationality</span>
+                  <span>{lang === 'AR' ? 'الجنسية' : 'Nationality'}</span>
                 </label>
 
                 <button className="submit" type="submit" disabled={isLoading}>
-                  {isLoading ? 'Registering...' : 'Submit'}
+                  {isLoading ? (lang === 'AR' ? 'جاري التسجيل...' : 'Registering...') : (lang === 'AR' ? 'سجل معنا' : 'Submit')}
                 </button>
                 
                 <p className="signin">
-                  Already have an account? <Link className="loginBtn btn btn-primary" to="/login">Log In</Link> 
+                  {lang === 'AR' ? 'لديك حساب بالفعل؟ ' : 'Already have an account? '} 
+                  <Link className="loginBtn btn btn-primary" to="/login">{lang === 'AR' ? 'تسجيل الدخول' : 'Log In'}</Link> 
                 </p>
               </form>
             </div>

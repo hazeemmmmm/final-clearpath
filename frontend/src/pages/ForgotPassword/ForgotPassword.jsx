@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { forgotPassword, resetPassword } from '../../utils/api';
+import { LanguageContext } from '../../context/LanguageContext';
 import './ForgotPassword.css';
 
 const ForgotPassword = () => {
+  const { lang } = useContext(LanguageContext);
   const navigate = useNavigate();
   
   // State for phase management: 'request' or 'reset'
@@ -28,10 +30,10 @@ const ForgotPassword = () => {
 
     try {
       await forgotPassword({ email });
-      setSuccess('A 6-digit password reset OTP has been sent to your email.');
+      setSuccess(lang === 'AR' ? 'تم إرسال رمز التحقق المكون من 6 أرقام إلى بريدك الإلكتروني.' : 'A 6-digit password reset OTP has been sent to your email.');
       setPhase('reset');
     } catch (err) {
-      setError(err.message || 'Failed to request reset OTP. Please check your email.');
+      setError(lang === 'AR' ? 'فشل إرسال رمز التحقق. يرجى التأكد من البريد الإلكتروني.' : (err.message || 'Failed to request reset OTP. Please check your email.'));
     } finally {
       setIsLoading(false);
     }
@@ -43,7 +45,7 @@ const ForgotPassword = () => {
     setSuccess('');
 
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match.');
+      setError(lang === 'AR' ? 'كلمات المرور الجديدة غير متطابقة.' : 'Passwords do not match.');
       return;
     }
 
@@ -51,16 +53,16 @@ const ForgotPassword = () => {
 
     try {
       await resetPassword({ email, otp, newPassword });
-      navigate('/login', { state: { message: 'Password reset successfully! You can now log in with your new password.' } });
+      navigate('/login', { state: { message: lang === 'AR' ? 'تم إعادة تعيين كلمة المرور بنجاح! يمكنك الآن تسجيل الدخول باستخدام كلمة المرور الجديدة.' : 'Password reset successfully! You can now log in with your new password.' } });
     } catch (err) {
-      setError(err.message || 'Failed to reset password. Please check your OTP and try again.');
+      setError(lang === 'AR' ? 'فشل إعادة تعيين كلمة المرور. يرجى التحقق من رمز OTP المدخل والمحاولة مجدداً.' : (err.message || 'Failed to reset password. Please check your OTP and try again.'));
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="forgot-wrapper">
+    <div className={`forgot-wrapper ${lang === 'AR' ? 'lang-ar' : ''}`}>
       <div className="mainpage">
         <div className="forgotform">
           <div className="forgotr d-flex justify-content-center align-items-center">
@@ -68,9 +70,9 @@ const ForgotPassword = () => {
               
               {phase === 'request' ? (
                 <form className="form" onSubmit={handleRequestOTP}>
-                  <p className="title">Reset Password</p>
+                  <p className="title">{lang === 'AR' ? 'إعادة تعيين كلمة المرور' : 'Reset Password'}</p>
                   <p className="subtitle" style={{ textAlign: 'center', color: '#e2e8f0', margin: '0 0 15px 0', fontSize: '0.88rem', opacity: 0.8 }}>
-                    Enter your email address and we will send you a 6-digit OTP code to recover your account.
+                    {lang === 'AR' ? 'أدخل عنوان بريدك الإلكتروني وسنرسل لك رمز OTP مكون من 6 أرقام لاستعادة حسابك.' : 'Enter your email address and we will send you a 6-digit OTP code to recover your account.'}
                   </p>
                   
                   {error && <div className="alert alert-error-custom">{error}</div>}
@@ -86,22 +88,23 @@ const ForgotPassword = () => {
                       className="input"
                       id="email"
                     />
-                    <span>Email Address</span>
+                    <span>{lang === 'AR' ? 'عنوان البريد الإلكتروني' : 'Email Address'}</span>
                   </label>
 
                   <button className="submit" type="submit" disabled={isLoading}>
-                    {isLoading ? 'Sending OTP...' : 'Send Reset Code'}
+                    {isLoading ? (lang === 'AR' ? 'جاري الإرسال...' : 'Sending OTP...') : (lang === 'AR' ? 'إرسال رمز إعادة التعيين' : 'Send Reset Code')}
                   </button>
                   
                   <p className="signin">
-                    Remember your password? <Link className="loginBtn btn btn-primary" to="/login">Log In</Link>
+                    {lang === 'AR' ? 'هل تتذكر كلمة المرور؟ ' : 'Remember your password? '} 
+                    <Link className="loginBtn btn btn-primary" to="/login">{lang === 'AR' ? 'تسجيل الدخول' : 'Log In'}</Link>
                   </p>
                 </form>
               ) : (
                 <form className="form" onSubmit={handleResetPassword}>
-                  <p className="title">New Password</p>
+                  <p className="title">{lang === 'AR' ? 'كلمة مرور جديدة' : 'New Password'}</p>
                   <p className="subtitle" style={{ textAlign: 'center', color: '#e2e8f0', margin: '0 0 15px 0', fontSize: '0.88rem', opacity: 0.8 }}>
-                    Please enter the 6-digit OTP code sent to your inbox and define your new login credentials.
+                    {lang === 'AR' ? 'يرجى إدخال رمز التحقق المكون من 6 أرقام المرسل إلى بريدك الإلكتروني وتحديد كلمة المرور الجديدة.' : 'Please enter the 6-digit OTP code sent to your inbox and define your new login credentials.'}
                   </p>
                   
                   {error && <div className="alert alert-error-custom">{error}</div>}
@@ -118,7 +121,7 @@ const ForgotPassword = () => {
                       id="otp"
                       autoComplete="off"
                     />
-                    <span>6-Digit Verification Code</span>
+                    <span>{lang === 'AR' ? 'رمز التحقق المكون من 6 أرقام' : '6-Digit Verification Code'}</span>
                   </label>
 
                   <label htmlFor="newPassword">
@@ -131,7 +134,7 @@ const ForgotPassword = () => {
                       className="input"
                       id="newPassword"
                     />
-                    <span>New Password</span>
+                    <span>{lang === 'AR' ? 'كلمة المرور الجديدة' : 'New Password'}</span>
                   </label>
 
                   <label htmlFor="confirmPassword">
@@ -144,15 +147,16 @@ const ForgotPassword = () => {
                       className="input"
                       id="confirmPassword"
                     />
-                    <span>Confirm New Password</span>
+                    <span>{lang === 'AR' ? 'تأكيد كلمة المرور الجديدة' : 'Confirm New Password'}</span>
                   </label>
 
                   <button className="submit" type="submit" disabled={isLoading}>
-                    {isLoading ? 'Resetting Password...' : 'Save Credentials'}
+                    {isLoading ? (lang === 'AR' ? 'جاري تعيين كلمة المرور...' : 'Resetting Password...') : (lang === 'AR' ? 'حفظ البيانات' : 'Save Credentials')}
                   </button>
                   
                   <p className="signin">
-                    Go back to <Link className="loginBtn btn btn-primary" to="/login">Login</Link>
+                    {lang === 'AR' ? 'الرجوع إلى ' : 'Go back to '} 
+                    <Link className="loginBtn btn btn-primary" to="/login">{lang === 'AR' ? 'تسجيل الدخول' : 'Login'}</Link>
                   </p>
                 </form>
               )}

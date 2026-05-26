@@ -1,190 +1,122 @@
+import Stripe from 'stripe';
 import { Payment } from '../../db/models/payment.model.js';
 import { Booking } from '../../db/models/booking.model.js';
 import { devConfig } from '../../config/env/dev.config.js';
 import * as AppError from '../../utils/error/index.js';
 
-const PAYPAL_BASE_URL =
-    devConfig.PAYPAL_MODE === 'live'
-        ? 'https://api-m.paypal.com'
-        : 'https://api-m.sandbox.paypal.com';
+// ─── 1. Create Stripe Checkout Session (Mapped to createPayPalOrder for compatibility) ───
 
-// ─── Internal helper ────────────────────────────────────────────────────────
-
-const getAccessToken = async () => {
-    const credentials = Buffer.from(
-        `${devConfig.PAYPAL_CLIENT_ID}:${devConfig.PAYPAL_CLIENT_SECRET}`
-    ).toString('base64');
-
-    const res = await fetch(`${PAYPAL_BASE_URL}/v1/oauth2/token`, {
-        method: 'POST',
-        headers: {
-            Authorization: `Basic ${credentials}`,
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: 'grant_type=client_credentials',
-    });
-
-    if (!res.ok) throw new AppError.internalServerError('Failed to authenticate with PayPal');
-
-    const data = await res.json();
-    return data.access_token;
-};
-
-// ─── 1. Create PayPal Order ──────────────────────────────────────────────────
-
-export const createPayPalOrder = async (userId, bookingId) => {
+export const createPayPalOrder = async (userId, bookingId, currency = 'EGP') => {
     const booking = await Booking.findOne({ _id: bookingId, user: userId, status: 'Pending' });
     if (!booking) throw new AppError.BadRequestException('Booking not found or already processed');
 
     const existing = await Payment.findOne({ booking: bookingId, status: { $ne: 'Failed' } });
     if (existing) throw new AppError.conflictException('A payment has already been initiated for this booking');
 
-    const token = await getAccessToken();
+    // Initialize Stripe
+    const stripe = new Stripe(devConfig.STRIPE_SECRET_KEY);
 
-    const res = await fetch(`${PAYPAL_BASE_URL}/v2/checkout/orders`, {
-        method: 'POST',
-        headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            intent: 'CAPTURE',
-            purchase_units: [
+    try {
+        const EGP_TO_USD = 50;
+        const finalCurrency = (currency || 'EGP').toLowerCase();
+        let finalAmount = booking.total_amount; // Default EGP
+
+        if (finalCurrency === 'usd') {
+            finalAmount = parseFloat((booking.total_amount / EGP_TO_USD).toFixed(2));
+        }
+
+        // Create Stripe checkout session
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: [
                 {
-                    reference_id: bookingId.toString(),
-                    amount: {
-                        currency_code: 'USD',
-                        value: booking.total_amount.toFixed(2),
+                    price_data: {
+                        currency: finalCurrency,
+                        product_data: {
+                            name: `ClearPath Tour Booking #${bookingId}`,
+                            description: `Seamless travel booking for ${booking.numberOfGuests || 1} guest(s)`,
+                        },
+                        unit_amount: Math.round(finalAmount * 100), // Stripe expects cents
                     },
-                    description: `ClearPath Booking #${bookingId}`,
+                    quantity: 1,
                 },
             ],
-            application_context: {
-                brand_name: 'ClearPath',
-                landing_page: 'BILLING',
-                user_action: 'PAY_NOW',
-                return_url: `${devConfig.CLIENT_URL}/payment/success`,
-                cancel_url: `${devConfig.CLIENT_URL}/payment/cancel`,
+            mode: 'payment',
+            success_url: `${devConfig.CLIENT_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${devConfig.CLIENT_URL}/payment/cancel`,
+            metadata: {
+                userId: userId.toString(),
+                bookingId: bookingId.toString(),
+                currency: finalCurrency,
+                amount: finalAmount.toString(),
             },
-        }),
-    });
+        });
 
-    if (!res.ok) throw new AppError.internalServerError('Failed to create PayPal order');
+        // Create Payment record
+        const payment = await Payment.create({
+            user: userId,
+            booking: bookingId,
+            amount: booking.total_amount,
+            method: 'Stripe',
+            status: 'Pending',
+            stripeSessionId: session.id,
+        });
 
-    const order = await res.json();
-
-    const payment = await Payment.create({
-        user: userId,
-        booking: bookingId,
-        amount: booking.total_amount,
-        method: 'PayPal',
-        status: 'Pending',
-        paypalOrderId: order.id,
-    });
-
-    const approvalUrl = order.links.find((l) => l.rel === 'approve')?.href;
-
-    return { orderId: order.id, approvalUrl, payment };
+        return { orderId: session.id, approvalUrl: session.url, payment };
+    } catch (err) {
+        console.error('Stripe Session Creation Error:', err);
+        throw new AppError.internalServerError(err.message || 'Failed to initialize Stripe payment session');
+    }
 };
 
-// ─── 2. Capture Payment After User Approves ──────────────────────────────────
+// ─── 2. Verify / Capture Stripe Session (Mapped to capturePayPalOrder for compatibility) ───
 
 export const capturePayPalOrder = async (userId, orderId) => {
-    const payment = await Payment.findOne({ paypalOrderId: orderId, user: userId });
+    const payment = await Payment.findOne({ stripeSessionId: orderId, user: userId });
     if (!payment) throw new AppError.BadRequestException('Payment record not found');
     if (payment.status === 'Completed') throw new AppError.conflictException('Payment already completed');
 
-    const token = await getAccessToken();
+    // Initialize Stripe
+    const stripe = new Stripe(devConfig.STRIPE_SECRET_KEY);
 
-    const res = await fetch(`${PAYPAL_BASE_URL}/v2/checkout/orders/${orderId}/capture`, {
-        method: 'POST',
-        headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-        },
-    });
+    try {
+        // Retrieve session to verify status
+        const session = await stripe.checkout.sessions.retrieve(orderId);
 
-    const captureData = await res.json();
+        if (session.payment_status !== 'paid') {
+            await Payment.findByIdAndUpdate(payment._id, { status: 'Failed' });
+            throw new AppError.BadRequestException('Payment was not completed successfully on Stripe');
+        }
 
-    if (!res.ok || captureData.status !== 'COMPLETED') {
-        await Payment.findByIdAndUpdate(payment._id, { status: 'Failed' });
-        throw new AppError.BadRequestException(captureData.message || 'Payment capture failed');
+        // Update payment to Completed
+        const updatedPayment = await Payment.findByIdAndUpdate(
+            payment._id,
+            { 
+                status: 'Completed', 
+                stripePaymentIntentId: session.payment_intent, 
+                payment_date: new Date() 
+            },
+            { new: true }
+        );
+
+        // Confirm booking
+        await Booking.findByIdAndUpdate(payment.booking, { status: 'Confirmed' });
+
+        return { captureId: session.payment_intent, status: 'COMPLETED', payment: updatedPayment };
+    } catch (err) {
+        console.error('Stripe Verification Error:', err);
+        throw new AppError.BadRequestException(err.message || 'Payment verification failed');
     }
-
-    const captureId = captureData.purchase_units?.[0]?.payments?.captures?.[0]?.id;
-
-    const updatedPayment = await Payment.findByIdAndUpdate(
-        payment._id,
-        { status: 'Completed', paypalCaptureId: captureId, payment_date: new Date() },
-        { new: true }
-    );
-
-    await Booking.findByIdAndUpdate(payment.booking, { status: 'Confirmed' });
-
-    return { captureId, status: 'COMPLETED', payment: updatedPayment };
 };
 
-// ─── 3. Handle PayPal Webhooks ───────────────────────────────────────────────
+// ─── 3. Handle Webhooks (Placeholder) ───────────────────────────────────────────────────
 
 export const handleWebhook = async (headers, body) => {
-    const token = await getAccessToken();
-
-    // Verify the webhook signature with PayPal before trusting any data
-    const verifyRes = await fetch(`${PAYPAL_BASE_URL}/v1/notifications/verify-webhook-signature`, {
-        method: 'POST',
-        headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            auth_algo: headers['paypal-auth-algo'],
-            cert_url: headers['paypal-cert-url'],
-            transmission_id: headers['paypal-transmission-id'],
-            transmission_sig: headers['paypal-transmission-sig'],
-            transmission_time: headers['paypal-transmission-time'],
-            webhook_id: devConfig.PAYPAL_WEBHOOK_ID,
-            webhook_event: body,
-        }),
-    });
-
-    const verifyData = await verifyRes.json();
-    if (verifyData.verification_status !== 'SUCCESS') {
-        throw new AppError.forbiddenException('Invalid webhook signature');
-    }
-
-    const { event_type, resource } = body;
-
-    if (event_type === 'PAYMENT.CAPTURE.COMPLETED') {
-        const captureId = resource.id;
-        const orderId = resource.supplementary_data?.related_ids?.order_id;
-        if (orderId) {
-            const payment = await Payment.findOne({ paypalOrderId: orderId });
-            if (payment && payment.status !== 'Completed') {
-                await Payment.findByIdAndUpdate(payment._id, {
-                    status: 'Completed',
-                    paypalCaptureId: captureId,
-                    payment_date: new Date(),
-                });
-                await Booking.findByIdAndUpdate(payment.booking, { status: 'Confirmed' });
-            }
-        }
-    }
-
-    if (event_type === 'PAYMENT.CAPTURE.DENIED') {
-        const orderId = resource.supplementary_data?.related_ids?.order_id;
-        if (orderId) {
-            await Payment.findOneAndUpdate({ paypalOrderId: orderId }, { status: 'Failed' });
-        }
-    }
-
-    if (event_type === 'CHECKOUT.ORDER.CANCELLED') {
-        await Payment.findOneAndUpdate({ paypalOrderId: resource.id }, { status: 'Failed' });
-    }
-
+    // Simply acknowledge webhook trigger
     return { received: true };
 };
 
-// ─── 4. Payment History ──────────────────────────────────────────────────────
+// ─── 4. Payment History ──────────────────────────────────────────────────────────────────
 
 export const getUserPaymentHistory = async (userId) => {
     return await Payment.find({ user: userId })
@@ -192,3 +124,89 @@ export const getUserPaymentHistory = async (userId) => {
         .sort({ createdAt: -1 });
 };
 
+// Charge a cancellation fee using the customer's previous Stripe payment method when possible.
+export const chargeCancellationFee = async (userId, bookingId, amountEGP) => {
+    const payment = await Payment.findOne({ booking: bookingId, user: userId, status: 'Completed', method: 'Stripe' });
+    if (!payment || !payment.stripePaymentIntentId) {
+        return { success: false, reason: 'No existing stripe payment to reuse' };
+    }
+
+    const stripe = new Stripe(devConfig.STRIPE_SECRET_KEY);
+    try {
+        // Retrieve original payment intent to get customer/payment method
+        const originalIntent = await stripe.paymentIntents.retrieve(payment.stripePaymentIntentId);
+
+        const customer = originalIntent.customer || null;
+        const payment_method = originalIntent.payment_method || null;
+
+        if (!payment_method && !customer) {
+            return { success: false, reason: 'No saved payment method available' };
+        }
+
+        // Amount in smallest currency unit (EGP -> cents) - Stripe uses cents for most currencies
+        const amountCents = Math.round((amountEGP || 0) * 100);
+
+        // Create a new PaymentIntent to charge the fee off-session
+        const newIntent = await stripe.paymentIntents.create({
+            amount: amountCents,
+            currency: 'egp',
+            payment_method: payment_method || undefined,
+            customer: customer || undefined,
+            off_session: true,
+            confirm: true,
+            description: `Cancellation fee for booking ${bookingId}`
+        });
+
+        // Record payment
+        const feePayment = await Payment.create({
+            user: userId,
+            booking: bookingId,
+            amount: amountEGP,
+            method: 'Stripe',
+            status: 'Completed',
+            stripePaymentIntentId: newIntent.id
+        });
+
+        return { success: true, payment: feePayment };
+    } catch (err) {
+        console.error('Cancellation charge failed:', err.message || err);
+        // If Stripe requires action (e.g., 3DS) or fails, return failure so frontend can prompt user
+        return { success: false, reason: err.message || 'Stripe charge failed' };
+    }
+};
+
+// ─── 5. Bank Transfer Payment ────────────────────────────────────────────────
+
+export const bankPayment = async (userId, bookingId, currency = 'EGP') => {
+    const booking = await Booking.findOne({ _id: bookingId, user: userId, status: 'Pending' });
+    if (!booking) throw new AppError.BadRequestException('Booking not found or already processed');
+
+    const EGP_TO_USD = 50;
+    const amount_egp = booking.total_amount;
+    const amount_usd = parseFloat((amount_egp / EGP_TO_USD).toFixed(2));
+    const paidAmount = currency === 'USD' ? amount_usd : amount_egp;
+
+    const payment = await Payment.create({
+        user: userId,
+        booking: bookingId,
+        amount: paidAmount,
+        amount_usd,
+        currency,
+        method: 'Stripe',
+        status: 'Completed',
+        payment_date: new Date(),
+    });
+
+    await Booking.findByIdAndUpdate(bookingId, { status: 'Confirmed' });
+
+    return { payment, amount_egp, amount_usd };
+};
+
+// ─── 6. All Payments (Admin) ─────────────────────────────────────────────────
+
+export const getAllPayments = async () => {
+    return await Payment.find()
+        .populate('user', 'firstName lastName email')
+        .populate('booking')
+        .sort({ createdAt: -1 });
+};

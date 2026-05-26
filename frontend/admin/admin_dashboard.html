@@ -28,7 +28,37 @@
         </div>
     </nav>
 
-    <main class="page-wrap">
+    <div class="admin-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3>Menu</h3>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#reports" class="sidebar-link active" data-tab="reports">
+                    <i class="fa-solid fa-chart-line"></i> Reports
+                </a>
+                <a href="#bookings" class="sidebar-link" data-tab="bookings">
+                    <i class="fa-solid fa-calendar-check"></i> Bookings
+                </a>
+                <a href="#stays" class="sidebar-link" data-tab="stays">
+                    <i class="fa-solid fa-bed"></i> Stays Bookings
+                </a>
+                <a href="#users" class="sidebar-link" data-tab="users">
+                    <i class="fa-solid fa-users"></i> Users
+                </a>
+                <a href="#experiences" class="sidebar-link" data-tab="experiences">
+                    <i class="fa-solid fa-star"></i> Experiences
+                </a>
+                <a href="#destinations" class="sidebar-link" data-tab="destinations">
+                    <i class="fa-solid fa-location-dot"></i> Destinations
+                </a>
+                <a href="#coupons" class="sidebar-link" data-tab="coupons">
+                    <i class="fa-solid fa-ticket"></i> Coupons
+                </a>
+            </nav>
+        </aside>
+
+        <main class="page-wrap">
         <section class="card" id="panelCard">
             <div class="panel-top">
                 <h2>Admin Management</h2>
@@ -223,7 +253,8 @@
                 </div>
             </div>
         </section>
-    </main>
+        </main>
+    </div>
 
     <script src="../assets/js/theme.js"></script>
     <script src="admin.js"></script>

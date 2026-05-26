@@ -316,6 +316,29 @@ tabButtons.forEach((btn) => {
     btn.addEventListener("click", () => activateTab(btn.dataset.tab));
 });
 
+// Sidebar navigation - Navigate to different pages
+const sidebarLinks = document.querySelectorAll(".sidebar-link");
+const pageMap = {
+    reports: "admin_dashboard.html",
+    bookings: "manage_bookings.html",
+    stays: "manage_stays.html",
+    users: "manage_users.html",
+    experiences: "manage_experiences.html",
+    destinations: "manage_destinations.html",
+    coupons: "manage_coupons.html"
+};
+
+sidebarLinks.forEach((link) => {
+    link.addEventListener("click", (e) => {
+        e.preventDefault();
+        const tabName = link.dataset.tab;
+        const page = pageMap[tabName];
+        if (page) {
+            window.location.href = page;
+        }
+    });
+});
+
 if (usersTableBody) {
     usersTableBody.addEventListener("click", async (event) => {
         const btn = event.target.closest("button");

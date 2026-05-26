@@ -368,19 +368,24 @@ document.addEventListener("DOMContentLoaded", function() {
     // Splash Screen Logic
     const splash = document.getElementById("splashScreen");
     if (splash) {
-        // Prevent background scrolling while splash is visible
-        document.body.style.overflow = "hidden";
-        
-        // Wait 20 seconds as requested by the user
-        setTimeout(() => {
-            splash.classList.add("hidden");
+        if (sessionStorage.getItem('clearpath_splash_shown')) {
+            splash.remove();
             document.body.style.overflow = "auto";
+        } else {
+            // Prevent background scrolling while splash is visible
+            document.body.style.overflow = "hidden";
             
-            // Remove from DOM after CSS transition finishes
             setTimeout(() => {
-                splash.remove();
-            }, 1000);
-        }, 5000);
+                splash.classList.add("hidden");
+                document.body.style.overflow = "auto";
+                sessionStorage.setItem('clearpath_splash_shown', 'true');
+                
+                // Remove from DOM after CSS transition finishes
+                setTimeout(() => {
+                    splash.remove();
+                }, 1000);
+            }, 5000);
+        }
     }
 
     const whenInput = document.getElementById("whenInput");

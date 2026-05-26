@@ -1,7 +1,7 @@
 /* Premium Wishlist Styling */
 
 .wishlist-container {
-    padding-top: 80px; /* space for navbar */
+    padding-top: 0 !important; /* sit perfectly flush beneath the fixed navbar */
     min-height: 100vh;
     background-color: var(--bg-secondary, #f8f9fa);
     padding-bottom: 50px;
@@ -11,14 +11,18 @@ body.dark-mode .wishlist-container {
     background-color: var(--bg-secondary, #121212);
 }
 
-.wishlist-hero {
+.wishlist-container .wishlist-hero {
     text-align: center;
-    padding: 60px 20px;
-    background: linear-gradient(135deg, #e61e4d 0%, #8b0021 100%);
+    padding: 70px 20px !important;
+    margin-top: 55px !important; /* sit perfectly flush beneath the fixed navbar */
+    background: linear-gradient(135deg, #022539 0%, #005073 50%, #9e1b32 100%) !important;
     color: white;
     margin-bottom: 40px;
-    border-radius: 0 0 30px 30px;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    border-radius: 0 0 30px 30px !important;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
+    border-bottom: 4px solid #d4af37 !important;
+    background-size: cover !important;
+    background-attachment: scroll !important;
 }
 
 .wishlist-hero h1 {

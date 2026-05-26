@@ -3,7 +3,7 @@ import * as paymentService from './payment.service.js';
 // POST /payment/create-order
 export const createOrder = async (req, res, next) => {
     try {
-        const result = await paymentService.createPayPalOrder(req.user._id, req.body.bookingId);
+        const result = await paymentService.createPayPalOrder(req.user._id, req.body.bookingId, req.body.currency);
         return res.status(201).json({
             message: 'PayPal order created successfully',
             orderId: result.orderId,
@@ -44,6 +44,31 @@ export const webhook = async (req, res, next) => {
 export const getPaymentHistory = async (req, res, next) => {
     try {
         const payments = await paymentService.getUserPaymentHistory(req.user._id);
+        return res.status(200).json({ message: 'Done', payments });
+    } catch (error) {
+        return next(error);
+    }
+};
+
+// POST /payment/bank-pay
+export const bankPay = async (req, res, next) => {
+    try {
+        const result = await paymentService.bankPayment(req.user._id, req.body.bookingId, req.body.currency);
+        return res.status(201).json({
+            message: 'Payment completed successfully',
+            payment: result.payment,
+            amount_egp: result.amount_egp,
+            amount_usd: result.amount_usd,
+        });
+    } catch (error) {
+        return next(error);
+    }
+};
+
+// GET /payment/admin/all
+export const getAllPaymentsAdmin = async (req, res, next) => {
+    try {
+        const payments = await paymentService.getAllPayments();
         return res.status(200).json({ message: 'Done', payments });
     } catch (error) {
         return next(error);

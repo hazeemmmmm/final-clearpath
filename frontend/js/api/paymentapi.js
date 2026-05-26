@@ -1,10 +1,10 @@
 import { BASE_URL, getHeaders, apiCall } from './config.js';
 
-export const createOrder = async (bookingId) => {
+export const createOrder = async (bookingId, currency = 'EGP') => {
   return apiCall(`${BASE_URL}/payment/create-order`, {
     method: 'POST',
     headers: getHeaders(true),
-    body: JSON.stringify({ bookingId }),
+    body: JSON.stringify({ bookingId, currency }),
   });
 };
 

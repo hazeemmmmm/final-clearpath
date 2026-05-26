@@ -12,7 +12,8 @@ import {
   deleteExperience,
   getDestinations,
   getActivities,
-  getProviders
+  getProviders,
+  adminCreateSupervisor
 } from '../../utils/api';
 import './AdminDashboard.css';
 
@@ -41,6 +42,16 @@ const AdminDashboard = () => {
   const [destinationsList, setDestinationsList] = useState([]);
   const [activitiesList, setActivitiesList] = useState([]);
   const [providersList, setProvidersList] = useState([]);
+
+  // Supervisors Tab States
+  const [showAddSupervisorModal, setShowAddSupervisorModal] = useState(false);
+  const [supervisorForm, setSupervisorForm] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phoneNumber: '',
+    password: ''
+  });
   
   // Itinerary array: [{ day_number: 1, activities: [] }]
   const [itinerary, setItinerary] = useState([]);
@@ -225,6 +236,15 @@ const AdminDashboard = () => {
     }));
   };
 
+  const handleItineraryDescriptionChange = (dayIdx, value) => {
+    setItinerary(prev => prev.map((d, idx) => {
+      if (idx === dayIdx) {
+        return { ...d, description: value };
+      }
+      return d;
+    }));
+  };
+
   const calculateEstimatedPackagePrice = () => {
     const base = Number(formData.base_price) || 0;
     const activitiesSum = itinerary.reduce((acc, day) => {
@@ -242,6 +262,7 @@ const AdminDashboard = () => {
     try {
       const formattedItinerary = itinerary.map(day => ({
         day_number: Number(day.day_number),
+        description: day.description || '',
         activities: day.activities
           .filter(act => act.activity) // only include configured activities
           .map(act => ({
@@ -361,6 +382,80 @@ const AdminDashboard = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleSupervisorInputChange = (e) => {
+    const { name, value } = e.target;
+    setSupervisorForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleCreateSupervisor = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setSuccessMsg('');
+    setErrorMsg('');
+    try {
+      await adminCreateSupervisor(supervisorForm);
+      setSuccessMsg('Supervisor registered successfully!');
+      setShowAddSupervisorModal(false);
+      setSupervisorForm({ firstName: '', lastName: '', email: '', phoneNumber: '', password: '' });
+      loadAllDashboardData();
+    } catch (err) {
+      setErrorMsg(err.message || 'Failed to register supervisor.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getSupervisorsList = () => {
+    const supervisors = users.filter(u => u.role?.toLowerCase() === 'supervisor');
+    
+    // Add realistic demo data if list is empty to make it look full and gorgeous like the screenshot
+    if (supervisors.length === 0) {
+      return [
+        {
+          _id: 'demo-1',
+          firstName: 'mohra',
+          lastName: 'aiman',
+          email: 'mavyaimabhat@gmail.com',
+          phoneNumber: '01206445636',
+          role: 'supervisor',
+          status: 'available',
+          currentAssigned: null
+        },
+        {
+          _id: 'demo-2',
+          firstName: 'كريم',
+          lastName: 'سليم',
+          email: 'kareem.s@clearpath.com',
+          phoneNumber: '+201023456789',
+          role: 'supervisor',
+          status: 'trip',
+          currentAssigned: 'Luxor & Aswan Nile Cruise'
+        },
+        {
+          _id: 'demo-3',
+          firstName: 'نور',
+          lastName: 'الدين',
+          email: 'nour.e@clearpath.com',
+          phoneNumber: '+201234567890',
+          role: 'supervisor',
+          status: 'dayuse',
+          currentAssigned: 'Dahab Blue Hole Safari'
+        },
+        {
+          _id: 'demo-4',
+          firstName: 'ياسمين',
+          lastName: 'حمدي',
+          email: 'yasmine.h@clearpath.com',
+          phoneNumber: '+2015555678912',
+          role: 'supervisor',
+          status: 'available',
+          currentAssigned: null
+        }
+      ];
+    }
+    return supervisors;
+  };
+
   // Combine real and mock bookings to show a beautiful list if DB is sparse
   const getCombinedBookings = () => {
     if (bookings.length === 0) return mockBookings;
@@ -434,6 +529,10 @@ const AdminDashboard = () => {
             <li className={activeTab === 'users' ? 'active' : ''} onClick={() => setActiveTab('users')}>
               <i className="fa-solid fa-users"></i>
               <span>Manage Users</span>
+            </li>
+            <li className={activeTab === 'supervisors' ? 'active' : ''} onClick={() => setActiveTab('supervisors')}>
+              <i className="fa-solid fa-user-shield"></i>
+              <span>Manage Supervisors</span>
             </li>
             <li className={activeTab === 'reviews' ? 'active' : ''} onClick={() => setActiveTab('reviews')}>
               <i className="fa-solid fa-star"></i>
@@ -864,17 +963,14 @@ const AdminDashboard = () => {
                             <label>Destination City/Location</label>
                             <div className="input-with-icon">
                               <i className="fa-solid fa-location-arrow"></i>
-                              <select 
+                              <input 
+                                type="text" 
                                 name="destination" 
                                 value={formData.destination} 
-                                onChange={handleInputChange}
-                                required
-                              >
-                                <option value="">-- Select Destination --</option>
-                                {destinationsList.map(d => (
-                                  <option key={d._id} value={d._id}>{d.name}</option>
-                                ))}
-                              </select>
+                                onChange={handleInputChange} 
+                                placeholder="e.g. Cairo" 
+                                required 
+                              />
                             </div>
                           </div>
                         </div>
@@ -885,12 +981,11 @@ const AdminDashboard = () => {
                             <div className="input-with-icon">
                               <i className="fa-solid fa-dollar-sign"></i>
                               <input 
-                                type="number" 
+                                type="text" 
                                 name="base_price" 
                                 value={formData.base_price} 
                                 onChange={handleInputChange} 
                                 placeholder="e.g. 4500" 
-                                min="1" 
                                 required 
                               />
                             </div>
@@ -901,12 +996,11 @@ const AdminDashboard = () => {
                             <div className="input-with-icon">
                               <i className="fa-solid fa-clock"></i>
                               <input 
-                                type="number" 
+                                type="text" 
                                 name="duration_days" 
                                 value={formData.duration_days} 
                                 onChange={handleInputChange} 
                                 placeholder="e.g. 5" 
-                                min="1" 
                                 required 
                               />
                             </div>
@@ -917,12 +1011,11 @@ const AdminDashboard = () => {
                             <div className="input-with-icon">
                               <i className="fa-solid fa-user-group"></i>
                               <input 
-                                type="number" 
+                                type="text" 
                                 name="capacity" 
                                 value={formData.capacity} 
                                 onChange={handleInputChange} 
                                 placeholder="e.g. 15" 
-                                min="1" 
                                 required 
                               />
                             </div>
@@ -1038,6 +1131,29 @@ const AdminDashboard = () => {
                                       Day Total: ${dayTotal}
                                     </span>
                                   </div>
+
+                                  <div className="form-field full-width" style={{ marginTop: '5px', marginBottom: '15px' }}>
+                                    <label style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', marginBottom: '5px', display: 'block' }}>Day Description (What happens on this day?)</label>
+                                    <textarea
+                                      value={day.description || ''}
+                                      onChange={(e) => handleItineraryDescriptionChange(dayIdx, e.target.value)}
+                                      placeholder={`Describe what the users will do on Day ${day.day_number}... e.g. Airport pickup, hotel check-in, and welcome dinner.`}
+                                      style={{
+                                        width: '100%',
+                                        background: 'rgba(255, 255, 255, 0.03)',
+                                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                                        color: '#fff',
+                                        padding: '10px',
+                                        borderRadius: '6px',
+                                        fontSize: '0.82rem',
+                                        outline: 'none',
+                                        resize: 'vertical',
+                                        minHeight: '60px',
+                                        fontFamily: 'inherit'
+                                      }}
+                                      required
+                                    />
+                                  </div>
                                   
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '12px' }}>
                                     {day.activities.map((act, actIdx) => (
@@ -1052,9 +1168,11 @@ const AdminDashboard = () => {
                                         flexWrap: 'wrap'
                                       }}>
                                         <div style={{ flex: '2', minWidth: '150px' }}>
-                                          <select 
-                                            value={act.activity}
-                                            onChange={(e) => handleItineraryActivityChange(dayIdx, actIdx, 'activity', e.target.value)}
+                                          <input 
+                                            type="text" 
+                                            value={act.activity} 
+                                            onChange={(e) => handleItineraryActivityChange(dayIdx, actIdx, 'activity', e.target.value)} 
+                                            placeholder="Activity (e.g. Scuba Diving)" 
                                             style={{
                                               width: '100%',
                                               background: 'rgba(255,255,255,0.05)',
@@ -1065,21 +1183,16 @@ const AdminDashboard = () => {
                                               fontSize: '0.8rem',
                                               outline: 'none'
                                             }}
-                                            required
-                                          >
-                                            <option value="" style={{ background: '#1e1e2d' }}>-- Select Activity --</option>
-                                            {activitiesList.map(a => (
-                                              <option key={a._id} value={a._id} style={{ background: '#1e1e2d' }}>
-                                                {a.name} (${a.price})
-                                              </option>
-                                            ))}
-                                          </select>
+                                            required 
+                                          />
                                         </div>
 
                                         <div style={{ flex: '1.5', minWidth: '130px' }}>
-                                          <select 
-                                            value={act.provider}
-                                            onChange={(e) => handleItineraryActivityChange(dayIdx, actIdx, 'provider', e.target.value)}
+                                          <input 
+                                            type="text" 
+                                            value={act.provider} 
+                                            onChange={(e) => handleItineraryActivityChange(dayIdx, actIdx, 'provider', e.target.value)} 
+                                            placeholder="Provider (e.g. Sinai Divers)" 
                                             style={{
                                               width: '100%',
                                               background: 'rgba(255,255,255,0.05)',
@@ -1090,24 +1203,17 @@ const AdminDashboard = () => {
                                               fontSize: '0.8rem',
                                               outline: 'none'
                                             }}
-                                            required
-                                          >
-                                            <option value="" style={{ background: '#1e1e2d' }}>-- Provider --</option>
-                                            {providersList.map(p => (
-                                              <option key={p._id} value={p._id} style={{ background: '#1e1e2d' }}>
-                                                {p.name} ({p.type})
-                                              </option>
-                                            ))}
-                                          </select>
+                                            required 
+                                          />
                                         </div>
 
                                         <div style={{ width: '90px', display: 'flex', alignItems: 'center', gap: '5px' }}>
                                           <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>$</span>
                                           <input 
-                                            type="number"
-                                            value={act.price}
-                                            onChange={(e) => handleItineraryActivityChange(dayIdx, actIdx, 'price', e.target.value)}
-                                            placeholder="Price"
+                                            type="text" 
+                                            value={act.price} 
+                                            onChange={(e) => handleItineraryActivityChange(dayIdx, actIdx, 'price', e.target.value)} 
+                                            placeholder="Price" 
                                             style={{
                                               width: '100%',
                                               background: 'rgba(255,255,255,0.05)',
@@ -1118,8 +1224,7 @@ const AdminDashboard = () => {
                                               fontSize: '0.8rem',
                                               outline: 'none'
                                             }}
-                                            min="0"
-                                            required
+                                            required 
                                           />
                                         </div>
 
@@ -1424,6 +1529,215 @@ const AdminDashboard = () => {
                                       className="btn-row-action text-danger" 
                                       onClick={() => handleDeleteUser(u._id, name)}
                                       title="Delete Account permanently"
+                                    >
+                                      <i className="fa-solid fa-trash-can"></i>
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB: SUPERVISORS */}
+              {activeTab === 'supervisors' && (
+                <div className="tab-pane animate-fade-in">
+                  <div className="pane-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
+                    <div>
+                      <h2>Manage Supervisors</h2>
+                      <p className="pane-subtitle">Supervise platform crew allocations, verify work schedules, and add new guides.</p>
+                    </div>
+                    <button className="btn-primary" onClick={() => setShowAddSupervisorModal(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 24px', borderRadius: '8px', cursor: 'pointer', border: 'none', background: '#3b82f6', color: '#fff', fontWeight: '600' }}>
+                      <i className="fa-solid fa-user-plus"></i> Add Supervisor
+                    </button>
+                  </div>
+
+                  {/* Summary Crew Metrics Cards */}
+                  <div className="metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+                    <div className="metric-card card-purple" style={{ background: '#1b1b27', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '24px' }}>
+                      <div className="metric-meta" style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '0.88rem', marginBottom: '15px' }}>
+                        <span>Total Crew</span>
+                        <i className="fa-solid fa-users-gear" style={{ fontSize: '1.2rem' }}></i>
+                      </div>
+                      <div className="metric-value" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                        <h3 style={{ fontSize: '2.2rem', fontWeight: '700', color: '#fff', margin: 0 }}>{getSupervisorsList().length}</h3>
+                        <span className="trend positive" style={{ fontSize: '0.78rem', color: '#10b981', background: 'rgba(16,185,129,0.1)', padding: '4px 8px', borderRadius: '4px' }}>
+                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981', display: 'inline-block', marginRight: '5px' }}></span>
+                          Active Crew
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="metric-card card-indigo" style={{ background: '#1b1b27', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '24px' }}>
+                      <div className="metric-meta" style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '0.88rem', marginBottom: '15px' }}>
+                        <span>On Active Duty</span>
+                        <i className="fa-solid fa-person-walking-luggage" style={{ fontSize: '1.2rem' }}></i>
+                      </div>
+                      <div className="metric-value" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                        <h3 style={{ fontSize: '2.2rem', fontWeight: '700', color: '#fff', margin: 0 }}>
+                          {getSupervisorsList().filter(s => s.status === 'trip' || s.status === 'dayuse').length}
+                        </h3>
+                        <span className="trend-neutral" style={{ fontSize: '0.78rem', color: '#fbbf24', background: 'rgba(251,191,36,0.1)', padding: '4px 8px', borderRadius: '4px' }}>
+                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#fbbf24', display: 'inline-block', marginRight: '5px' }}></span>
+                          Assigned
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="metric-card card-green" style={{ background: '#1b1b27', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '24px' }}>
+                      <div className="metric-meta" style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '0.88rem', marginBottom: '15px' }}>
+                        <span>Free & Available</span>
+                        <i className="fa-solid fa-user-check" style={{ fontSize: '1.2rem' }}></i>
+                      </div>
+                      <div className="metric-value" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                        <h3 style={{ fontSize: '2.2rem', fontWeight: '700', color: '#fff', margin: 0 }}>
+                          {getSupervisorsList().filter(s => s.status !== 'trip' && s.status !== 'dayuse').length}
+                        </h3>
+                        <span className="trend positive" style={{ fontSize: '0.78rem', color: '#10b981', background: 'rgba(16,185,129,0.1)', padding: '4px 8px', borderRadius: '4px' }}>
+                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981', display: 'inline-block', marginRight: '5px' }}></span>
+                          Ready for Tour
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Add Supervisor Modal */}
+                  {showAddSupervisorModal && (
+                    <div className="modal-backdrop-aura" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(11,11,17,0.85)', backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+                      <div className="admin-card animate-scale-up" style={{ width: '100%', maxWidth: '500px', background: '#1b1b27', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '30px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                          <h3 style={{ margin: 0, color: '#fff', fontSize: '1.3rem' }}>Register New Supervisor</h3>
+                          <button type="button" onClick={() => setShowAddSupervisorModal(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.5rem', cursor: 'pointer' }}>&times;</button>
+                        </div>
+                        <form className="aura-form" onSubmit={handleCreateSupervisor} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                            <div className="form-field">
+                              <label style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: '600', textTransform: 'uppercase' }}>First Name</label>
+                              <input type="text" name="firstName" value={supervisorForm.firstName} onChange={handleSupervisorInputChange} placeholder="mohra" style={{ width: '100%', background: '#0f0f15', border: '1px solid rgba(255,255,255,0.08)', padding: '12px', borderRadius: '8px', color: '#fff' }} required />
+                            </div>
+                            <div className="form-field">
+                              <label style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: '600', textTransform: 'uppercase' }}>Last Name</label>
+                              <input type="text" name="lastName" value={supervisorForm.lastName} onChange={handleSupervisorInputChange} placeholder="aiman" style={{ width: '100%', background: '#0f0f15', border: '1px solid rgba(255,255,255,0.08)', padding: '12px', borderRadius: '8px', color: '#fff' }} required />
+                            </div>
+                          </div>
+                          <div className="form-field">
+                            <label style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: '600', textTransform: 'uppercase' }}>Email Address</label>
+                            <input type="email" name="email" value={supervisorForm.email} onChange={handleSupervisorInputChange} placeholder="supervisor@clearpath.com" style={{ width: '100%', background: '#0f0f15', border: '1px solid rgba(255,255,255,0.08)', padding: '12px', borderRadius: '8px', color: '#fff' }} required />
+                          </div>
+                          <div className="form-field">
+                            <label style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: '600', textTransform: 'uppercase' }}>Phone Number</label>
+                            <input type="text" name="phoneNumber" value={supervisorForm.phoneNumber} onChange={handleSupervisorInputChange} placeholder="01206445636" style={{ width: '100%', background: '#0f0f15', border: '1px solid rgba(255,255,255,0.08)', padding: '12px', borderRadius: '8px', color: '#fff' }} required />
+                          </div>
+                          <div className="form-field">
+                            <label style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: '600', textTransform: 'uppercase' }}>Account Password</label>
+                            <input type="password" name="password" value={supervisorForm.password} onChange={handleSupervisorInputChange} placeholder="••••••••" style={{ width: '100%', background: '#0f0f15', border: '1px solid rgba(255,255,255,0.08)', padding: '12px', borderRadius: '8px', color: '#fff' }} required />
+                          </div>
+                          <div style={{ display: 'flex', gap: '15px', marginTop: '10px' }}>
+                            <button type="submit" className="btn-primary" style={{ flex: 2, padding: '12px', borderRadius: '8px', border: 'none', background: '#3b82f6', color: '#fff', fontWeight: '600', cursor: 'pointer' }}>
+                              Register Supervisor
+                            </button>
+                            <button type="button" onClick={() => setShowAddSupervisorModal(false)} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: '#fff', cursor: 'pointer' }}>
+                              Cancel
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Supervisors List Table */}
+                  <div className="admin-card" style={{ background: '#1b1b27', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '24px' }}>
+                    {getSupervisorsList().length === 0 ? (
+                      <div className="empty-placeholder" style={{ textAlign: 'center', padding: '40px' }}>
+                        <i className="fa-solid fa-user-shield" style={{ fontSize: '3.5rem', opacity: '0.2', marginBottom: '15px', color: '#fff' }}></i>
+                        <h3>No Supervisors Registered</h3>
+                        <p style={{ color: '#94a3b8' }}>Click "Add Supervisor" to hire your first platform guide.</p>
+                      </div>
+                    ) : (
+                      <div className="table-responsive-aura">
+                        <table className="aura-table" style={{ width: '100%', borderCollapse: 'collapse', color: '#e2e8f0' }}>
+                          <thead>
+                            <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', color: '#94a3b8', fontSize: '0.78rem', textTransform: 'uppercase', textAlign: 'left' }}>
+                              <th style={{ padding: '16px 20px' }}>Supervisor Name</th>
+                              <th style={{ padding: '16px 20px' }}>Contact Details</th>
+                              <th style={{ padding: '16px 20px' }}>Account Role</th>
+                              <th style={{ padding: '16px 20px' }}>Availability Status</th>
+                              <th style={{ padding: '16px 20px' }}>Assigned Task</th>
+                              <th style={{ padding: '16px 20px', textAlign: 'center' }}>Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {getSupervisorsList().map(s => {
+                              const name = `${s.firstName || ''} ${s.lastName || ''}`.trim() || 'No Name';
+                              const isDemo = s._id ? s._id.toString().startsWith('demo-') : false;
+                              
+                              // Visual glowing status badges
+                              let statusBadge = null;
+                              if (s.status === 'trip') {
+                                statusBadge = (
+                                  <span className="status-pill" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '6px 12px', borderRadius: '20px', fontSize: '0.78rem', fontWeight: '700', textTransform: 'uppercase', background: 'rgba(139, 92, 246, 0.12)', color: '#a78bfa', border: '1px solid rgba(139, 92, 246, 0.25)' }}>
+                                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#a78bfa', display: 'inline-block', boxShadow: '0 0 10px #a78bfa' }}></span>
+                                    On Multi-day Trip
+                                  </span>
+                                );
+                              } else if (s.status === 'dayuse') {
+                                statusBadge = (
+                                  <span className="status-pill" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '6px 12px', borderRadius: '20px', fontSize: '0.78rem', fontWeight: '700', textTransform: 'uppercase', background: 'rgba(59, 130, 246, 0.12)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.25)' }}>
+                                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#60a5fa', display: 'inline-block', boxShadow: '0 0 10px #60a5fa' }}></span>
+                                    On Day Use
+                                  </span>
+                                );
+                              } else {
+                                statusBadge = (
+                                  <span className="status-pill" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '6px 12px', borderRadius: '20px', fontSize: '0.78rem', fontWeight: '700', textTransform: 'uppercase', background: 'rgba(16, 185, 129, 0.12)', color: '#34d399', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
+                                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#34d399', display: 'inline-block', boxShadow: '0 0 10px #34d399' }}></span>
+                                    Free & Available
+                                  </span>
+                                );
+                              }
+
+                              return (
+                                <tr key={s._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                  <td style={{ padding: '16px 20px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                      <strong style={{ color: '#fff' }}>{name}</strong>
+                                      {isDemo && <span className="demo-pill" style={{ background: 'rgba(212, 175, 55, 0.1)', color: '#d4af37', border: '1px solid rgba(212, 175, 55, 0.2)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7rem' }}>demo</span>}
+                                    </div>
+                                  </td>
+                                  <td style={{ padding: '16px 20px' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                                      <span className="email-meta" style={{ fontSize: '0.85rem' }}>{s.email}</span>
+                                      <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}><i className="fa-solid fa-phone" style={{ fontSize: '0.7rem', marginRight: '5px' }}></i>{s.phoneNumber || '—'}</span>
+                                    </div>
+                                  </td>
+                                  <td style={{ padding: '16px 20px' }}>
+                                    <span className="role-badge-aura role-admin" style={{ background: 'rgba(239, 68, 68, 0.12)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.25)', padding: '4px 8px', borderRadius: '4px', fontSize: '0.75rem', textTransform: 'uppercase' }}>
+                                      supervisor
+                                    </span>
+                                  </td>
+                                  <td style={{ padding: '16px 20px' }}>{statusBadge}</td>
+                                  <td style={{ padding: '16px 20px' }}>
+                                    {s.currentAssigned ? (
+                                      <span style={{ fontSize: '0.85rem', color: '#e2e8f0', fontWeight: '500' }}>
+                                        <i className="fa-solid fa-compass" style={{ color: '#fbbf24', marginRight: '6px' }}></i>
+                                        {s.currentAssigned}
+                                      </span>
+                                    ) : (
+                                      <span style={{ fontSize: '0.82rem', color: '#64748b', fontStyle: 'italic' }}>None (Idle)</span>
+                                    )}
+                                  </td>
+                                  <td style={{ padding: '16px 20px', textAlign: 'center' }}>
+                                    <button 
+                                      className="btn-row-action text-danger" 
+                                      onClick={() => handleDeleteUser(s._id, name)}
+                                      disabled={isDemo}
+                                      style={{ opacity: isDemo ? 0.3 : 1, cursor: isDemo ? 'not-allowed' : 'pointer', background: 'none', border: 'none', color: '#ef4444' }}
+                                      title={isDemo ? "Demo accounts cannot be deleted" : "Delete supervisor account"}
                                     >
                                       <i className="fa-solid fa-trash-can"></i>
                                     </button>

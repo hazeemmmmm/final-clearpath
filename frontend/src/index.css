@@ -127,22 +127,29 @@ input:focus, select:focus, textarea:focus {
 .nav-profile-btn {
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: transparent;
-  border: none;
-  padding: 6px 12px;
+  gap: 16px; /* Increased gap to keep name further from the letter avatar */
+  background: rgba(0, 0, 0, 0.04); /* Premium pill styling */
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 6px 16px; /* Symmetrical direction-safe padding */
   border-radius: 30px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .nav-profile-btn:hover {
-  background: rgba(0, 0, 0, 0.05);
-  border-color: transparent;
+  background: rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+body.dark-mode .nav-profile-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 body.dark-mode .nav-profile-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
 .nav-profile-avatar {
@@ -232,6 +239,159 @@ body.dark-mode .nav-profile-dropdown-content {
   text-overflow: ellipsis;
 }
 
+/* Sticky navigation bar */
+#navbar {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 9999;
+  background-color: var(--bg-primary);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+#navbar.shrink {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+#navbar .nav-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 26px;
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+.nav-container .logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--brand-color);
+  cursor: pointer;
+  user-select: none;
+}
+
+.nav-container .logo span {
+  color: var(--brand-highlight);
+}
+
+.nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.nav-links a,
+.nav-links button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all 0.25s ease;
+}
+
+.nav-links a:hover,
+.nav-links button:hover,
+.nav-links a.active {
+  color: var(--brand-color);
+  background: rgba(59, 130, 246, 0.12);
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.theme-toggle,
+.btn-login,
+.btn-register,
+.nav-chat-toggle-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-size: 0.94rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.theme-toggle {
+  min-width: 42px;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.05);
+  color: var(--text-primary);
+}
+
+.theme-toggle.dark {
+  background: rgba(15, 23, 42, 0.1);
+}
+
+.nav-chat-toggle-btn {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--brand-color);
+}
+
+.nav-chat-toggle-btn:hover {
+  background: rgba(59, 130, 246, 0.18);
+}
+
+.btn-login {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+}
+
+.btn-login:hover {
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.btn-register {
+  background: var(--brand-color);
+  color: #ffffff;
+}
+
+.btn-register:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(59, 130, 246, 0.18);
+}
+
+@media (max-width: 740px) {
+  #navbar .nav-container {
+    flex-wrap: wrap;
+    padding: 14px 18px;
+  }
+
+  .nav-links {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .nav-actions {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+
 .dropdown-header p {
   margin: 4px 0 0 0;
   font-size: 12px;
@@ -315,4 +475,34 @@ body.dark-mode .nav-profile-dropdown-content a:hover i {
   background: rgba(230, 30, 77, 0.08);
   border-color: transparent;
 }
+
+/* Global supervisor badge used on multiple pages */
+.supervisor-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.03);
+  border: 1px solid rgba(0,0,0,0.04);
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+.supervisor-badge .supervisor-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand-color);
+  color: #fff;
+  font-size: 0.85rem;
+}
+
+.supervisor-badge.small { padding: 4px 8px; font-size: 0.85rem; }
+.supervisor-badge.small .supervisor-avatar { width: 22px; height: 22px; font-size: 0.78rem; }
+
 

@@ -51,7 +51,7 @@ export const userSchema = new Schema(
 
     role: {
       type: String,
-      enum: ["user", "provider", "admin"],
+      enum: ["user", "provider", "admin", "supervisor"],
       default: "user",
     },
 

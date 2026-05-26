@@ -5,7 +5,7 @@ import { getAllActivities as fetchAllActivities } from '../../js/api/activityapi
 import { getAllProviders as fetchAllProviders } from '../../js/api/providerapi.js';
 import { getWishlist as fetchWishlist, addToWishlist as addWishlist, removeFromWishlist as removeWishlist } from '../../js/api/wishlistapi.js';
 import { BASE_URL, getHeaders, apiCall } from '../../js/api/config.js';
-import { createOrder } from '../../js/api/paymentapi.js';
+import { createOrder, captureOrder } from '../../js/api/paymentapi.js';
 import { getAllUsers as fetchAllUsers, adminDeleteUser as removeUser, updateProfile as fetchUpdateProfile, changePassword as fetchChangePassword } from '../../js/api/userApi.js';
 import { getUserBookings as fetchUserBookings, cancelBooking as fetchCancelBooking } from '../../js/api/bookingapi.js';
 import { 
@@ -44,7 +44,8 @@ export const getWishlist = async () => fetchWishlist();
 export const addToWishlist = async (experienceId) => addWishlist(experienceId);
 export const removeFromWishlist = async (experienceId) => removeWishlist(experienceId);
 
-export const processPayment = async (bookingId) => createOrder(bookingId);
+export const processPayment = async (bookingId, currency = 'EGP') => createOrder(bookingId, currency);
+export const confirmPayment = async (orderId) => captureOrder(orderId);
 
 // Reviews API
 export const createReview = async (data) => addReview(data);
@@ -77,6 +78,9 @@ export const adminDeleteUser = async (userId) => removeUser(userId);
 
 export const getAllBookingsAdmin = async () =>
   apiCall(`${BASE_URL}/booking/admin/all`, { method: 'GET', headers: getHeaders(true) });
+
+export const getSupervisorTrips = async () =>
+  apiCall(`${BASE_URL}/experience/supervisor/me`, { method: 'GET', headers: getHeaders(true) });
 
 export const updateBookingStatusAdmin = async (bookingId, status) =>
   apiCall(`${BASE_URL}/booking/admin/status/${bookingId}`, {
@@ -139,10 +143,23 @@ export const createBooking = async (bookingData) =>
     body: JSON.stringify(bookingData)
   });
 
+export const getBookingDetails = async (bookingId) =>
+  apiCall(`${BASE_URL}/booking/${bookingId}`, {
+    method: 'GET',
+    headers: getHeaders(true)
+  });
+
 export const updateProfile = async (updateData) => fetchUpdateProfile(updateData);
 export const changePassword = async (passwordData) => fetchChangePassword(passwordData);
 export const getUserBookings = async () => fetchUserBookings();
 export const cancelBooking = async (bookingId) => fetchCancelBooking(bookingId);
+
+export const adminCreateSupervisor = async (supervisorData) =>
+  apiCall(`${BASE_URL}/user/admin/create-supervisor`, {
+    method: 'POST',
+    headers: getHeaders(true),
+    body: JSON.stringify(supervisorData)
+  });
 
 
 

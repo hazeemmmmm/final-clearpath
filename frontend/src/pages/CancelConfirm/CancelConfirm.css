@@ -1,0 +1,35 @@
+/* CancelConfirm.css */
+.cancel-confirm-page {
+  background: #081018;
+  color: #fff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.cancel-confirm-page.lang-ar {
+  direction: rtl;
+}
+
+.cancel-confirm-page button {
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.cancel-confirm-page button:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.cancel-confirm-page button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.cancel-confirm-page ul {
+  padding-left: 20px;
+}
+
+.cancel-confirm-page.lang-ar ul {
+  padding-left: 0;
+  padding-right: 20px;
+}

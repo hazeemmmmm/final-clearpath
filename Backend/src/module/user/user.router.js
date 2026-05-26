@@ -64,5 +64,13 @@ router.delete(
   userController.adminDeleteUser
 );
 
+// Create supervisor by admin
+router.post(
+  '/admin/create-supervisor',
+  authMiddleware,
+  allowTo('admin'),
+  userController.adminCreateSupervisor
+);
+
 
 export default router;

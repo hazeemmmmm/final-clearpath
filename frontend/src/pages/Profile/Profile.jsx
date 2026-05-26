@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useSelector } from 'react-redux';
 import { Link, useLocation } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import { getUserProfile, getMyReviews, deleteReview, updateProfile, changePassword } from '../../utils/api';
+import { LanguageContext } from '../../context/LanguageContext';
 import './Profile.css';
 
 const Profile = () => {
+  const { lang } = useContext(LanguageContext);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -103,12 +105,16 @@ const Profile = () => {
   };
 
   const handleDeleteReview = async (reviewId) => {
-    if (window.confirm('Are you sure you want to delete this review? This action cannot be undone.')) {
+    const confirmMsg = lang === 'AR'
+      ? 'هل أنت متأكد من حذف هذا التقييم؟ لا يمكن التراجع عن هذا الإجراء.'
+      : 'Are you sure you want to delete this review? This action cannot be undone.';
+    if (window.confirm(confirmMsg)) {
       try {
         await deleteReview(reviewId);
         setMyReviews(prev => prev.filter(r => r._id !== reviewId));
       } catch (err) {
-        alert(err.message || 'Failed to delete review');
+        const errorMsg = lang === 'AR' ? 'فشل حذف التقييم.' : (err.message || 'Failed to delete review');
+        alert(errorMsg);
       }
     }
   };
@@ -123,10 +129,10 @@ const Profile = () => {
       const updatedUser = response.user || response.data?.user || response.data || response;
       setProfile(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
-      setEditSuccess('Profile updated successfully!');
+      setEditSuccess(lang === 'AR' ? 'تم تحديث الملف الشخصي بنجاح!' : 'Profile updated successfully!');
       setIsEditing(false);
     } catch (err) {
-      setEditError(err.message || 'Failed to update profile.');
+      setEditError(lang === 'AR' ? 'فشل تحديث الملف الشخصي.' : (err.message || 'Failed to update profile.'));
     } finally {
       setEditLoading(false);
     }
@@ -135,7 +141,7 @@ const Profile = () => {
   const handleChangePassword = async (e) => {
     e.preventDefault();
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setPasswordError('New passwords do not match.');
+      setPasswordError(lang === 'AR' ? 'كلمات المرور الجديدة غير متطابقة.' : 'New passwords do not match.');
       return;
     }
     setPasswordLoading(true);
@@ -146,10 +152,10 @@ const Profile = () => {
         oldPassword: passwordForm.oldPassword,
         newPassword: passwordForm.newPassword
       });
-      setPasswordSuccess('Password changed successfully!');
+      setPasswordSuccess(lang === 'AR' ? 'تم تغيير كلمة المرور بنجاح!' : 'Password changed successfully!');
       setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
     } catch (err) {
-      setPasswordError(err.message || 'Failed to change password.');
+      setPasswordError(lang === 'AR' ? 'فشل تغيير كلمة المرور. يرجى التأكد من كلمة المرور الحالية.' : (err.message || 'Failed to change password.'));
     } finally {
       setPasswordLoading(false);
     }
@@ -170,19 +176,19 @@ const Profile = () => {
   };
 
   return (
-    <div className="profile-page">
-      <Navbar />
+    <div className={`profile-page ${lang === 'AR' ? 'lang-ar' : ''}`}>
+      <Navbar lang={lang} />
       
       <main className="profile-main-container">
         {loading ? (
           <div className="loading-spinner">
-            <i className="fa-solid fa-spinner fa-spin"></i> Loading profile...
+            <i className="fa-solid fa-spinner fa-spin"></i> {lang === 'AR' ? 'جاري تحميل ملفك الشخصي...' : 'Loading profile...'}
           </div>
         ) : error ? (
           <div className="error-card">
             <i className="fa-solid fa-circle-exclamation"></i>
-            <p>{error}</p>
-            <Link to="/login" className="btn-back">Log In Now</Link>
+            <p>{lang === 'AR' ? 'يرجى تسجيل الدخول لعرض ملفك الشخصي.' : error}</p>
+            <Link to="/login" className="btn-back">{lang === 'AR' ? 'تسجيل الدخول الآن' : 'Log In Now'}</Link>
           </div>
         ) : (
           <div className="profile-layout-grid">
@@ -197,7 +203,11 @@ const Profile = () => {
               
               {profile?.role && (
                 <span className={`role-badge ${profile.role.toLowerCase()}`}>
-                  {profile.role.toUpperCase()}
+                  {profile.role === 'admin'
+                    ? (lang === 'AR' ? 'مشرف' : 'ADMIN')
+                    : profile.role === 'supervisor'
+                    ? (lang === 'AR' ? 'مشرف جولات' : 'SUPERVISOR')
+                    : (lang === 'AR' ? 'مسافر' : 'USER')}
                 </span>
               )}
 
@@ -208,17 +218,17 @@ const Profile = () => {
                   className={`menu-nav-btn ${activeTab === 'info' ? 'active' : ''}`}
                   onClick={() => setActiveTab('info')}
                 >
-                  <i className="fa-solid fa-address-card"></i> Personal Info
+                  <i className="fa-solid fa-address-card"></i> {lang === 'AR' ? 'بياناتي الشخصية' : 'Personal Info'}
                 </button>
                 <button 
                   className={`menu-nav-btn ${activeTab === 'reviews' ? 'active' : ''}`}
                   onClick={() => { setActiveTab('reviews'); fetchReviews(); }}
                 >
-                  <i className="fa-solid fa-comment-dots"></i> My Reviews <span className="count-bubble">{myReviews.length}</span>
+                  <i className="fa-solid fa-comment-dots"></i> {lang === 'AR' ? 'تقييماتي' : 'My Reviews'} <span className="count-bubble">{myReviews.length}</span>
                 </button>
                 {profile?.role === 'admin' && (
                   <Link to="/admin" className="menu-nav-btn admin-link">
-                    <i className="fa-solid fa-user-shield"></i> Admin Dashboard
+                    <i className="fa-solid fa-user-shield"></i> {lang === 'AR' ? 'لوحة التحكم' : 'Admin Dashboard'}
                   </Link>
                 )}
               </div>
@@ -233,12 +243,12 @@ const Profile = () => {
                   <div className="tab-card info-tab">
                     <div className="tab-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                       <div>
-                        <h2>Personal Information</h2>
-                        <p className="tab-subtitle">Manage your personal details and account configurations.</p>
+                        <h2>{lang === 'AR' ? 'معلومات الحساب الشخصية' : 'Personal Information'}</h2>
+                        <p className="tab-subtitle">{lang === 'AR' ? 'إدارة تفاصيل بياناتك الشخصية وإعدادات حسابك.' : 'Manage your personal details and account configurations.'}</p>
                       </div>
                       {!isEditing && (
                         <button type="button" className="btn-edit-profile" onClick={() => setIsEditing(true)}>
-                          <i className="fa-solid fa-pen"></i> Edit Profile
+                          <i className="fa-solid fa-pen"></i> {lang === 'AR' ? 'تعديل الملف الشخصي' : 'Edit Profile'}
                         </button>
                       )}
                     </div>
@@ -250,7 +260,7 @@ const Profile = () => {
                       <form onSubmit={handleUpdateProfile} className="profile-edit-form">
                         <div className="info-grid">
                           <div className="info-item">
-                            <label>First Name</label>
+                            <label>{lang === 'AR' ? 'الاسم الأول' : 'First Name'}</label>
                             <input
                               type="text"
                               value={editForm.firstName}
@@ -259,7 +269,7 @@ const Profile = () => {
                             />
                           </div>
                           <div className="info-item">
-                            <label>Last Name</label>
+                            <label>{lang === 'AR' ? 'الاسم الأخير' : 'Last Name'}</label>
                             <input
                               type="text"
                               value={editForm.lastName}
@@ -268,11 +278,11 @@ const Profile = () => {
                             />
                           </div>
                           <div className="info-item">
-                            <label>Email Address (Cannot change)</label>
+                            <label>{lang === 'AR' ? 'البريد الإلكتروني (لا يمكن تغييره)' : 'Email Address (Cannot change)'}</label>
                             <div className="value-box disabled" style={{ opacity: 0.6 }}>{profile?.email || '—'}</div>
                           </div>
                           <div className="info-item">
-                            <label>Phone Number</label>
+                            <label>{lang === 'AR' ? 'رقم الهاتف' : 'Phone Number'}</label>
                             <input
                               type="text"
                               value={editForm.phoneNumber}
@@ -280,19 +290,19 @@ const Profile = () => {
                             />
                           </div>
                           <div className="info-item">
-                            <label>Gender</label>
+                            <label>{lang === 'AR' ? 'الجنس' : 'Gender'}</label>
                             <select
                               value={editForm.gender}
                               onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
                               style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
                             >
-                              <option value="">Select Gender</option>
-                              <option value="male">Male</option>
-                              <option value="female">Female</option>
+                              <option value="">{lang === 'AR' ? 'اختر الجنس' : 'Select Gender'}</option>
+                              <option value="male">{lang === 'AR' ? 'ذكر' : 'Male'}</option>
+                              <option value="female">{lang === 'AR' ? 'أنثى' : 'Female'}</option>
                             </select>
                           </div>
                           <div className="info-item">
-                            <label>Nationality</label>
+                            <label>{lang === 'AR' ? 'الجنسية' : 'Nationality'}</label>
                             <input
                               type="text"
                               value={editForm.nationality}
@@ -302,37 +312,37 @@ const Profile = () => {
                         </div>
                         <div className="form-actions-row" style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
                           <button type="submit" className="btn-save-profile" disabled={editLoading} style={{ background: 'var(--brand-color)', color: '#fff', border: 'none', cursor: 'pointer' }}>
-                            {editLoading ? <><i className="fa-solid fa-spinner fa-spin"></i> Saving...</> : 'Save Changes'}
+                            {editLoading ? <><i className="fa-solid fa-spinner fa-spin"></i> {lang === 'AR' ? 'جاري الحفظ...' : 'Saving...'}</> : (lang === 'AR' ? 'حفظ التعديلات' : 'Save Changes')}
                           </button>
                           <button type="button" className="btn-cancel-profile" onClick={() => { setIsEditing(false); setEditError(''); setEditSuccess(''); }} style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}>
-                            Cancel
+                            {lang === 'AR' ? 'إلغاء' : 'Cancel'}
                           </button>
                         </div>
                       </form>
                     ) : (
                       <div className="info-grid">
                         <div className="info-item">
-                          <label>First Name</label>
+                          <label>{lang === 'AR' ? 'الاسم الأول' : 'First Name'}</label>
                           <div className="value-box">{profile?.firstName || '—'}</div>
                         </div>
                         <div className="info-item">
-                          <label>Last Name</label>
+                          <label>{lang === 'AR' ? 'الاسم الأخير' : 'Last Name'}</label>
                           <div className="value-box">{profile?.lastName || '—'}</div>
                         </div>
                         <div className="info-item">
-                          <label>Email Address</label>
+                          <label>{lang === 'AR' ? 'البريد الإلكتروني' : 'Email Address'}</label>
                           <div className="value-box">{profile?.email || '—'}</div>
                         </div>
                         <div className="info-item">
-                          <label>Phone Number</label>
+                          <label>{lang === 'AR' ? 'رقم الهاتف' : 'Phone Number'}</label>
                           <div className="value-box">{profile?.phoneNumber || '—'}</div>
                         </div>
                         <div className="info-item">
-                          <label>Gender</label>
-                          <div className="value-box">{profile?.gender || '—'}</div>
+                          <label>{lang === 'AR' ? 'الجنس' : 'Gender'}</label>
+                          <div className="value-box">{profile?.gender === 'male' ? (lang === 'AR' ? 'ذكر' : 'Male') : profile?.gender === 'female' ? (lang === 'AR' ? 'أنثى' : 'Female') : (profile?.gender || '—')}</div>
                         </div>
                         <div className="info-item">
-                          <label>Nationality</label>
+                          <label>{lang === 'AR' ? 'الجنسية' : 'Nationality'}</label>
                           <div className="value-box">{profile?.nationality || '—'}</div>
                         </div>
                       </div>
@@ -341,8 +351,8 @@ const Profile = () => {
 
                   {/* Change Password Card */}
                   <div className="tab-card password-tab" style={{ marginTop: '30px' }}>
-                    <h2>Security & Password</h2>
-                    <p className="tab-subtitle">Keep your account secure by changing your password periodically.</p>
+                    <h2>{lang === 'AR' ? 'الأمان وكلمة المرور' : 'Security & Password'}</h2>
+                    <p className="tab-subtitle">{lang === 'AR' ? 'حافظ على أمان حسابك عن طريق تغيير كلمة المرور بشكل دوري.' : 'Keep your account secure by changing your password periodically.'}</p>
 
                     {passwordSuccess && <div className="profile-alert success-alert" style={{ background: 'rgba(46, 204, 113, 0.1)', color: '#2ecc71', padding: '12px', borderRadius: '8px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}><i className="fa-solid fa-circle-check"></i> {passwordSuccess}</div>}
                     {passwordError && <div className="profile-alert error-alert" style={{ background: 'rgba(231, 76, 60, 0.1)', color: '#e74c3c', padding: '12px', borderRadius: '8px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}><i className="fa-solid fa-triangle-exclamation"></i> {passwordError}</div>}
@@ -350,10 +360,10 @@ const Profile = () => {
                     <form onSubmit={handleChangePassword} className="password-change-form">
                       <div className="password-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
                         <div className="info-item">
-                          <label>Current Password</label>
+                          <label>{lang === 'AR' ? 'كلمة المرور الحالية' : 'Current Password'}</label>
                           <input
                             type="password"
-                            placeholder="Enter current password"
+                            placeholder={lang === 'AR' ? 'أدخل كلمة المرور الحالية' : "Enter current password"}
                             value={passwordForm.oldPassword}
                             onChange={(e) => setPasswordForm({ ...passwordForm, oldPassword: e.target.value })}
                             required
@@ -361,10 +371,10 @@ const Profile = () => {
                           />
                         </div>
                         <div className="info-item">
-                          <label>New Password</label>
+                          <label>{lang === 'AR' ? 'كلمة المرور الجديدة' : 'New Password'}</label>
                           <input
                             type="password"
-                            placeholder="Enter new password"
+                            placeholder={lang === 'AR' ? 'أدخل كلمة المرور الجديدة' : "Enter new password"}
                             value={passwordForm.newPassword}
                             onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
                             required
@@ -372,10 +382,10 @@ const Profile = () => {
                           />
                         </div>
                         <div className="info-item">
-                          <label>Confirm New Password</label>
+                          <label>{lang === 'AR' ? 'تأكيد كلمة المرور الجديدة' : 'Confirm New Password'}</label>
                           <input
                             type="password"
-                            placeholder="Confirm new password"
+                            placeholder={lang === 'AR' ? 'تأكيد كلمة المرور الجديدة' : "Confirm new password"}
                             value={passwordForm.confirmPassword}
                             onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
                             required
@@ -385,7 +395,7 @@ const Profile = () => {
                       </div>
                       <div className="form-actions-row" style={{ marginTop: '20px' }}>
                         <button type="submit" className="btn-save-profile" disabled={passwordLoading} style={{ background: 'var(--brand-color)', color: '#fff', border: 'none', cursor: 'pointer' }}>
-                          {passwordLoading ? <><i className="fa-solid fa-spinner fa-spin"></i> Updating...</> : 'Update Password'}
+                          {passwordLoading ? <><i className="fa-solid fa-spinner fa-spin"></i> {lang === 'AR' ? 'جاري التحديث...' : 'Updating...'}</> : (lang === 'AR' ? 'تحديث كلمة المرور' : 'Update Password')}
                         </button>
                       </div>
                     </form>
@@ -396,26 +406,26 @@ const Profile = () => {
               {/* Tab 2: Reviews Management */}
               {activeTab === 'reviews' && (
                 <div className="tab-card reviews-tab">
-                  <h2>My Submitted Reviews</h2>
-                  <p className="tab-subtitle">All opinions, feedback, and reviews you have posted on packages.</p>
+                  <h2>{lang === 'AR' ? 'تقييماتي المنشورة' : 'My Submitted Reviews'}</h2>
+                  <p className="tab-subtitle">{lang === 'AR' ? 'جميع الآراء، التعليقات والتقييمات التي قمت بمشاركتها مع بقية المسافرين.' : 'All opinions, feedback, and reviews you have posted on packages.'}</p>
 
                   {loadingReviews ? (
                     <div className="loading-reviews">
-                      <i className="fa-solid fa-spinner fa-spin"></i> Fetching your reviews...
+                      <i className="fa-solid fa-spinner fa-spin"></i> {lang === 'AR' ? 'جاري جلب تقييماتك...' : 'Fetching your reviews...'}
                     </div>
                   ) : myReviews.length === 0 ? (
-                    <div className="empty-reviews-state">
-                      <i className="fa-regular fa-message"></i>
-                      <h4>No reviews submitted yet</h4>
-                      <p>You haven't reviewed any trips or packages. Book a journey and tell us what you think!</p>
-                      <Link to="/trips" className="btn-explore">Explore Packages</Link>
+                    <div className="empty-reviews-state" style={{ textAlign: 'center', padding: '40px 20px' }}>
+                      <i className="fa-regular fa-message" style={{ fontSize: '3rem', color: 'var(--brand-color)', marginBottom: '15px' }}></i>
+                      <h4>{lang === 'AR' ? 'لم تقم بكتابة أي تقييم بعد' : 'No reviews submitted yet'}</h4>
+                      <p>{lang === 'AR' ? 'أنت لم تقم بتقييم أي رحلات أو باقات سياحية حتى الآن. احجز رحلة وأخبرنا برأيك!' : 'You haven\'t reviewed any trips or packages. Book a journey and tell us what you think!'}</p>
+                      <Link to="/experiences" className="btn-explore" style={{ display: 'inline-block', marginTop: '15px', padding: '10px 24px', background: 'var(--brand-color)', color: '#fff', borderRadius: '30px', textDecoration: 'none' }}>{lang === 'AR' ? 'استكشف الباقات' : 'Explore Packages'}</Link>
                     </div>
                   ) : (
                     <div className="my-reviews-list">
                       {myReviews.map((rev) => {
-                        const packageTitle = rev.experience?.name || 'Exciting Egypt Trip';
+                        const packageTitle = rev.experience?.name || (lang === 'AR' ? 'رحلة سياحية مثيرة في مصر' : 'Exciting Egypt Trip');
                         const pkgId = rev.experience?._id || rev.experience;
-                        const reviewDate = rev.createdAt ? new Date(rev.createdAt).toLocaleDateString('en-US', {
+                        const reviewDate = rev.createdAt ? new Date(rev.createdAt).toLocaleDateString(lang === 'AR' ? 'ar-EG' : 'en-US', {
                           year: 'numeric', month: 'long', day: 'numeric'
                         }) : 'Recent';
 
@@ -437,9 +447,9 @@ const Profile = () => {
                               <button 
                                 className="btn-delete-review"
                                 onClick={() => handleDeleteReview(rev._id)}
-                                title="Delete this review"
+                                title={lang === 'AR' ? 'حذف هذا التقييم' : "Delete this review"}
                               >
-                                <i className="fa-solid fa-trash-can"></i> Delete
+                                <i className="fa-solid fa-trash-can"></i> {lang === 'AR' ? 'حذف' : 'Delete'}
                               </button>
                             </div>
 
@@ -448,14 +458,14 @@ const Profile = () => {
                               {renderStars(rev.rating)}
                               {rev.isVerifiedBooking && (
                                 <span className="verified-booking-tag">
-                                  <i className="fa-solid fa-circle-check"></i> Verified Booking
+                                  <i className="fa-solid fa-circle-check"></i> {lang === 'AR' ? 'حجز مؤكد' : 'Verified Booking'}
                                 </span>
                               )}
                             </div>
 
                             {/* Review Content */}
                             <p className="review-item-text">
-                              {rev.comment || 'You rated this experience without typing any comments.'}
+                              {rev.comment || (lang === 'AR' ? 'قمت بتقييم هذه التجربة بدون كتابة أي تعليقات.' : 'You rated this experience without typing any comments.')}
                             </p>
 
                           </div>

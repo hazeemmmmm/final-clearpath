@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { loginStart, loginSuccess, loginFailure, clearError } from '../../store/authSlice';
 import { login } from '../../utils/api';
+import { LanguageContext } from '../../context/LanguageContext';
 import './Login.css';
 
 const Login = () => {
+  const { lang } = useContext(LanguageContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -36,13 +38,13 @@ const Login = () => {
   };
 
   return (
-    <div className="login-wrapper">
+    <div className={`login-wrapper ${lang === 'AR' ? 'lang-ar' : ''}`}>
       <div className="container">
         <div className="login-box">
-          <h2>LOGIN</h2>
+          <h2>{lang === 'AR' ? 'تسجيل الدخول' : 'LOGIN'}</h2>
           
           {successMessage && <div className="alert alert-success">{successMessage}</div>}
-          {error && <div className="alert alert-error">{error}</div>}
+          {error && <div className="alert alert-error">{lang === 'AR' ? 'فشل تسجيل الدخول. يرجى التأكد من البريد الإلكتروني وكلمة المرور.' : error}</div>}
           
           <form onSubmit={handleLogin}>
             <div className="input-group">
@@ -53,7 +55,7 @@ const Login = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-              <label htmlFor="email">Email</label>
+              <label htmlFor="email">{lang === 'AR' ? 'البريد الإلكتروني' : 'Email'}</label>
               <i className="ri-mail-line"></i>
             </div>
             
@@ -65,27 +67,27 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-              <label htmlFor="password">Password</label>
+              <label htmlFor="password">{lang === 'AR' ? 'كلمة المرور' : 'Password'}</label>
               <i 
                 className={showPassword ? "ri-eye-line" : "ri-eye-off-line"} 
                 onClick={() => setShowPassword(!showPassword)}
                 style={{ cursor: 'pointer' }}
               ></i>
-              <Link to="/forgot-password" className="forgot">Forgot Password?</Link>
+              <Link to="/forgot-password" className="forgot">{lang === 'AR' ? 'هل نسيت كلمة المرور؟' : 'Forgot Password?'}</Link>
             </div>
             
             <div className="remember-me">
               <input type="checkbox" id="remember" />
-              <label htmlFor="remember">Remember Me</label>
+              <label htmlFor="remember">{lang === 'AR' ? 'تذكرني' : 'Remember Me'}</label>
             </div>
             
             <button type="submit" className="login-btn" disabled={isLoading}>
-              {isLoading ? 'Logging in...' : 'Login'}
+              {isLoading ? (lang === 'AR' ? 'جاري الدخول...' : 'Logging in...') : (lang === 'AR' ? 'دخول' : 'Login')}
             </button>
             
             <div className="register-link">
-              <span>Don't have an Account? </span>
-              <Link to="/register">Register</Link>
+              <span>{lang === 'AR' ? 'ليس لديك حساب؟ ' : "Don't have an Account? "}</span>
+              <Link to="/register">{lang === 'AR' ? 'سجل الآن' : 'Register'}</Link>
             </div>
           </form>
         </div>

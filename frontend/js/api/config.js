@@ -7,10 +7,8 @@ export const getHeaders = (includeAuth = false) => {
     'Content-Type': 'application/json',
   };
   if (includeAuth) {
-    const token = localStorage.getItem('token');
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
+    const token = localStorage.getItem('clearpath_access_token') || localStorage.getItem('token');
+    if (token) headers.Authorization = `Bearer ${token}`;
   }
   return headers;
 };

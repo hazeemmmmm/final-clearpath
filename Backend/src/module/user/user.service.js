@@ -28,3 +28,23 @@ export const removeAccount = async (id) => {
 export const fetchAllUsers = async () => {
     return await User.find().select('-password');
 };
+
+export const createSupervisor = async (data) => {
+    const existingUser = await User.findOne({ email: data.email.toLowerCase() });
+    if (existingUser) throw new Error("A user with this email already exists");
+
+    const supervisor = new User({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email.toLowerCase(),
+        password: data.password, // Hashed automatically by userSchema pre-save hook!
+        phoneNumber: data.phoneNumber,
+        role: "supervisor",
+        isVerified: true
+    });
+    
+    await supervisor.save();
+    const result = supervisor.toObject();
+    delete result.password;
+    return result;
+};

@@ -28,6 +28,11 @@ const itineraryDaySchema = new mongoose.Schema(
       required: true,
     },
 
+    description: {
+      type: String,
+      trim: true,
+    },
+
     activities: [activityItemSchema],
   },
   { _id: false }
@@ -66,6 +71,12 @@ const experienceSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Destination",
       required: true,
+    },
+
+    supervisor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: false,
     },
 
     // 💣 جديد (للسيرش والحجز)

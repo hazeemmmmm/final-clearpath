@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { getUserBookings, cancelBooking } from '../utils/api';
+import { LanguageContext } from '../context/LanguageContext';
 import './MyBookings.css';
 
 const MyBookings = () => {
-  const [lang, setLang] = useState('EN');
+  const { lang, setLang } = useContext(LanguageContext);
   const [isScrolled, setIsScrolled] = useState(false);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,7 +25,7 @@ const MyBookings = () => {
   };
 
   const navigate = useNavigate();
-  const token = useSelector((state) => state.auth?.token) || localStorage.getItem('token');
+  const token = useSelector((state) => state.auth?.token) || localStorage.getItem('clearpath_access_token') || localStorage.getItem('token');
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -53,15 +54,35 @@ const MyBookings = () => {
     fetchBookings();
   }, [token]);
 
-  const handleCancelBooking = async (bookingId) => {
-    if (window.confirm('Are you sure you want to cancel this booking? This action will set your status to Cancelled.')) {
-      setActionLoadingId(bookingId);
+  const handleCancelBooking = async (booking) => {
+    const now = new Date();
+    const createdAt = booking.createdAt || booking.booking_date || null;
+    const hoursSinceBooking = createdAt ? (now - new Date(createdAt)) / (1000 * 60 * 60) : Infinity;
+    const daysUntilTravel = booking.travel_date ? (new Date(booking.travel_date) - now) / (1000 * 60 * 60 * 24) : Infinity;
+
+    let feePercent = 0;
+    if (hoursSinceBooking <= 24) feePercent = 0;
+    else if (daysUntilTravel <= 2) feePercent = 50;
+    else if (daysUntilTravel <= 7) feePercent = 10;
+    else feePercent = 5;
+
+    const feeAmount = Number(((booking.total_amount || 0) * (feePercent / 100)).toFixed(2));
+
+    const confirmMsg = lang === 'AR'
+      ? `هل أنت متأكد من إلغاء هذا الحجز؟ رسوم الإلغاء: ${feePercent}% (${feeAmount} EGP).`
+      : `Are you sure you want to cancel this booking? Cancellation fee: ${feePercent}% (${feeAmount} EGP).`;
+
+    if (window.confirm(confirmMsg)) {
+      setActionLoadingId(booking._id);
       try {
-        await cancelBooking(bookingId);
+        await cancelBooking(booking._id);
         // Refresh bookings
         await fetchBookings();
       } catch (err) {
-        alert(err.message || 'Failed to cancel the booking. Bookings can only be cancelled while Pending.');
+        const errorMsg = lang === 'AR'
+          ? 'فشل إلغاء الحجز. حاول مرة أخرى أو تواصل مع الدعم.'
+          : (err.message || 'Failed to cancel the booking. Try again or contact support.');
+        alert(errorMsg);
       } finally {
         setActionLoadingId(null);
       }
@@ -101,7 +122,7 @@ const MyBookings = () => {
           <div className="bookings-error-card">
             <i className="fa-solid fa-triangle-exclamation"></i>
             <p>{error}</p>
-            <button className="btn-explore-cta" onClick={fetchBookings}>Retry</button>
+            <button className="btn-explore-cta" onClick={fetchBookings}>{lang === 'AR' ? 'إعادة المحاولة' : 'Retry'}</button>
           </div>
         ) : bookings.length === 0 ? (
           <div className="bookings-empty-state">
@@ -213,11 +234,11 @@ const MyBookings = () => {
                         </button>
                       )}
 
-                      {booking.status === 'Pending' && (
+                      {booking.status !== 'Cancelled' && (
                         <button 
                           className="btn-cancel-booking"
                           disabled={actionLoadingId === booking._id}
-                          onClick={() => handleCancelBooking(booking._id)}
+                          onClick={() => navigate(`/booking/${booking._id}/cancel`)}
                         >
                           {actionLoadingId === booking._id ? (
                             <><i className="fa-solid fa-spinner fa-spin"></i> {lang === 'AR' ? 'جاري الإلغاء...' : 'Cancelling...'}</>

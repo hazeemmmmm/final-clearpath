@@ -6,13 +6,20 @@ const bookingSchema = new mongoose.Schema({
   experience: { type: mongoose.Schema.Types.ObjectId, ref: "Experience", required: false },
   booking_type: { type: String, enum: ["Trip", "Package"], required: false },
   booking_date: { type: Date, default: Date.now },
+  travel_date: { type: Date },
   numberOfGuests: { type: Number, default: 1, min: 1 },
   total_amount: { type: Number, required: true }, // هنا هيتحسب
-  status: { type: String, enum: ["Confirmed","Pending","Cancelled"], default: "Pending" }
+  status: { type: String, enum: ["Confirmed","Pending","Cancelled"], default: "Pending" },
+  cancellationInfo: {
+    canceledAt: { type: Date },
+    feePercent: { type: Number },
+    feeAmount: { type: Number },
+    refundedAmount: { type: Number }
+  }
 }, { timestamps: true, strictPopulate: false });
 
-// Middleware: قبل الحفظ، نحسب السعر
-bookingSchema.pre("save", async function(next) {
+// Middleware: قبل التحقق والحفظ، نحسب السعر
+bookingSchema.pre("validate", async function(next) {
   if (!this.total_amount) {
     let singlePrice = 0;
     if (this.customTrip) {

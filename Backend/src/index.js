@@ -4,9 +4,6 @@ import { devConfig } from "./config/env/dev.config.js";
 import { exec } from "child_process";
 
 const app = express();
-bootstrap(app, express);
-
-const PORT = devConfig.PORT || 3000;
 
 function freePortAndStart(port) {
     exec(`netstat -ano | findstr :${port}`, (err, stdout) => {
@@ -36,5 +33,11 @@ function startServer(port) {
     app.listen(port, () => console.log(`Server is running on port ${port}`));
 }
 
+(async () => {
+    await bootstrap(app, express);
+    
+    const PORT = devConfig.PORT || 3000;
+    freePortAndStart(PORT);
+})();
 
-freePortAndStart(PORT);
+// Nodemon reload trigger: updated complete Stripe keys, USD/EGP support, and client port 5173 successfully!

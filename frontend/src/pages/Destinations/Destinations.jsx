@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import { getDestinations } from '../../utils/api';
+import { LanguageContext } from '../../context/LanguageContext';
 import './Destinations.css';
 
 const Destinations = () => {
-  const [lang, setLang] = useState('EN');
+  const { lang } = useContext(LanguageContext);
   const [isScrolled, setIsScrolled] = useState(false);
   const [destinations, setDestinations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,19 +42,19 @@ const Destinations = () => {
     : destinations;
 
   return (
-    <div className="destinations-container">
-      <Navbar lang={lang} setLang={setLang} isScrolled={isScrolled} />
+    <div className={`destinations-container ${lang === 'AR' ? 'lang-ar' : ''}`}>
+      <Navbar lang={lang} isScrolled={isScrolled} />
       <div className="page-header hero-banner" style={{ marginTop: '60px' }}>
         <div className="header-content">
-          <h1>Destination: <span className="egypt-flag-text" style={{ textTransform: 'capitalize' }}>{hash || 'Egypt'}</span></h1>
-          <p>Explore the best places in {hash || 'Egypt'}.</p>
+          <h1>{lang === 'AR' ? <>الوجهة السياحية: <span className="egypt-flag-text" style={{ textTransform: 'capitalize' }}>{hash || 'مصر'}</span></> : <>Destination: <span className="egypt-flag-text" style={{ textTransform: 'capitalize' }}>{hash || 'Egypt'}</span></>}</h1>
+          <p>{lang === 'AR' ? `اكتشف أفضل الأماكن السياحية في ${hash || 'مصر'}.` : `Explore the best places in ${hash || 'Egypt'}.`}</p>
         </div>
       </div>
       <main className="content" style={{ minHeight: '50vh', padding: '20px' }}>
         {loading ? (
-          <p>Loading destinations...</p>
+          <p>{lang === 'AR' ? 'جاري تحميل الوجهات السياحية...' : 'Loading destinations...'}</p>
         ) : error ? (
-          <p className="error">{error}</p>
+          <p className="error">{lang === 'AR' ? 'فشل تحميل الوجهات السياحية.' : error}</p>
         ) : (
           <div className="packages-grid">
             {filtered.length > 0 ? filtered.map((dest) => (
@@ -67,7 +68,7 @@ const Destinations = () => {
                 </div>
               </div>
             )) : (
-              <p>No destinations found.</p>
+              <p>{lang === 'AR' ? 'لم يتم العثور على أي وجهات.' : 'No destinations found.'}</p>
             )}
           </div>
         )}

@@ -49,6 +49,19 @@ class ExperienceController {
     }
   };
 
+  // Supervisor trips and booking metrics
+  getSupervisorTrips = async (req, res, next) => {
+    try {
+      const trips = await ExperienceService.getBySupervisor(req.user._id);
+      res.status(200).json({
+        message: "Supervisor trips retrieved successfully",
+        trips,
+      });
+    } catch (err) {
+      next(err);
+    }
+  };
+
   //  Update (Admin)
   update = async (req, res, next) => {
     try {

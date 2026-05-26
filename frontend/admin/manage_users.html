@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClearPath | Manage Users</title>
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <nav id="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon"><i class="fa-solid fa-map-marked-alt"></i></span> Clear<span>Path</span> Admin
+            </div>
+
+            <div class="nav-links">
+                <a href="../home/home.html">Home</a>
+                <a href="admin_dashboard.html" class="active">Dashboard</a>
+            </div>
+
+            <div class="nav-actions">
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+                    <i class="fa-solid fa-moon theme-icon"></i>
+                </button>
+                <button id="logoutBtn" class="btn-login" type="button">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="admin-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3>Menu</h3>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="admin_dashboard.html" class="sidebar-link" data-tab="reports">
+                    <i class="fa-solid fa-chart-line"></i> Reports
+                </a>
+                <a href="manage_bookings.html" class="sidebar-link" data-tab="bookings">
+                    <i class="fa-solid fa-calendar-check"></i> Bookings
+                </a>
+                <a href="manage_stays.html" class="sidebar-link" data-tab="stays">
+                    <i class="fa-solid fa-bed"></i> Stays Bookings
+                </a>
+                <a href="manage_users.html" class="sidebar-link active" data-tab="users">
+                    <i class="fa-solid fa-users"></i> Users
+                </a>
+                <a href="manage_experiences.html" class="sidebar-link" data-tab="experiences">
+                    <i class="fa-solid fa-star"></i> Experiences
+                </a>
+                <a href="manage_destinations.html" class="sidebar-link" data-tab="destinations">
+                    <i class="fa-solid fa-location-dot"></i> Destinations
+                </a>
+                <a href="manage_coupons.html" class="sidebar-link" data-tab="coupons">
+                    <i class="fa-solid fa-ticket"></i> Coupons
+                </a>
+            </nav>
+        </aside>
+
+        <main class="page-wrap">
+            <section class="card" id="panelCard">
+                <div class="panel-top">
+                    <h2>Manage Users</h2>
+                    <p id="statusText" class="hint">Ready.</p>
+                </div>
+
+                <div class="form-box" style="margin-top:20px;">
+                    <h3>User List</h3>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../assets/js/theme.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

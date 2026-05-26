@@ -137,7 +137,6 @@ const Navbar = ({ isScrolled }) => {
                 </div>
                 <div className="nav-profile-info">
                   <span className="nav-profile-name">{fullName}</span>
-                  <span className="nav-profile-level">{lang === 'AR' ? 'عبقري Genius' : 'Genius'}</span>
                 </div>
               </button>
               {showProfileMenu && (
@@ -147,6 +146,16 @@ const Navbar = ({ isScrolled }) => {
                     <p>{activeUser?.email || ''}</p>
                   </div>
                   <hr className="dropdown-divider" />
+                  {activeUser?.role === 'admin' && (
+                    <Link to="/admin" onClick={() => setShowProfileMenu(false)}>
+                      <i className="fa-solid fa-user-shield"></i> {lang === 'AR' ? 'لوحة تحكم المدير' : 'Admin Dashboard'}
+                    </Link>
+                  )}
+                  {activeUser?.role === 'supervisor' && (
+                    <Link to="/supervisor" onClick={() => setShowProfileMenu(false)}>
+                      <i className="fa-solid fa-route"></i> {lang === 'AR' ? 'لوحة المشرف' : 'Supervisor Dashboard'}
+                    </Link>
+                  )}
                   <Link to="/profile?tab=info" onClick={() => setShowProfileMenu(false)}>
                     <i className="fa-solid fa-user-circle"></i> {lang === 'AR' ? 'حسابي' : 'My Profile'}
                   </Link>

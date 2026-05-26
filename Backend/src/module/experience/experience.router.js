@@ -9,6 +9,9 @@ const router = Router();
 //  Get all experiences (search + filter + pagination)
 router.get("/", experienceController.getAll);
 
+// Supervisor can see all assigned trips and booking metrics
+router.get("/supervisor/me", authMiddleware, allowTo("supervisor"), experienceController.getSupervisorTrips);
+
 //  Get one experience
 router.get("/:id", experienceController.getOne);
 

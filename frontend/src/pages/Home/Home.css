@@ -361,6 +361,13 @@ body {
     box-shadow: 0 12px 26px rgba(197, 150, 47, 0.35);
 }
 
+.hero-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
 .hero-highlights {
     position: absolute;
     left: 50%;

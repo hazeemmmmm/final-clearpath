@@ -34,3 +34,12 @@ export const adminDeleteUser = async (req, res) => {
     await userService.removeAccount(req.params.userId);
     return res.status(200).json({ message: "User deleted by admin" });
 };
+
+export const adminCreateSupervisor = async (req, res) => {
+    try {
+        const supervisor = await userService.createSupervisor(req.body);
+        return res.status(201).json({ message: "Supervisor created successfully", supervisor });
+    } catch (error) {
+        return res.status(400).json({ message: error.message });
+    }
+};

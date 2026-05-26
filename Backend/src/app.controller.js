@@ -15,7 +15,7 @@ import providerRouter from "./module/provider/provider.router.js";
 
 const bootstrap = async (app, express) => {
     app.use(express.json());
-    connectDB();
+    await connectDB();
 
     // CORS Middleware
     app.use((req, res, next) => {
