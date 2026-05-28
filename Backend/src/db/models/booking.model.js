@@ -8,7 +8,9 @@ const bookingSchema = new mongoose.Schema({
   booking_date: { type: Date, default: Date.now },
   travel_date: { type: Date },
   numberOfGuests: { type: Number, default: 1, min: 1 },
-  total_amount: { type: Number, required: true }, // هنا هيتحسب
+  total_amount: { type: Number, required: true }, 
+  couponCode: { type: String, required: false },
+  discount_amount: { type: Number, default: 0 },
   status: { type: String, enum: ["Confirmed","Pending","Cancelled"], default: "Pending" },
   cancellationInfo: {
     canceledAt: { type: Date },
@@ -18,7 +20,6 @@ const bookingSchema = new mongoose.Schema({
   }
 }, { timestamps: true, strictPopulate: false });
 
-// Middleware: قبل التحقق والحفظ، نحسب السعر
 bookingSchema.pre("validate", async function(next) {
   if (!this.total_amount) {
     let singlePrice = 0;
@@ -33,7 +34,6 @@ bookingSchema.pre("validate", async function(next) {
     } else if (this.experience) {
       const exp = await mongoose.model("Experience").findById(this.experience);
       if (exp) {
-        // base_price plus any default itinerary activity prices
         let total = exp.base_price;
         if (exp.itinerary) {
           exp.itinerary.forEach(day => {
@@ -49,7 +49,21 @@ bookingSchema.pre("validate", async function(next) {
         return next(new Error("Experience not found"));
       }
     }
-    this.total_amount = singlePrice * (this.numberOfGuests || 1);
+    
+    let subtotal = singlePrice * (this.numberOfGuests || 1);
+    
+    // Calculate Discount
+    if (this.couponCode) {
+      const coupon = await mongoose.model("Coupon").findOne({ code: this.couponCode, is_active: true });
+      if (coupon && coupon.expires_at > new Date()) {
+        this.discount_amount = (subtotal * coupon.discount_percentage) / 100;
+        subtotal -= this.discount_amount;
+      } else {
+        this.couponCode = null; // invalid coupon
+      }
+    }
+    
+    this.total_amount = subtotal;
   }
 
   next();

@@ -23,12 +23,55 @@ class ReviewService {
       status: "Confirmed",
     });
 
+    // 🤖 AI Mock Analysis for Review Trust & Sentiment
+    let trustScore = 100;
+    let isSpam = false;
+    let sentiment = 'Neutral';
+
+    if (process.env.MOCK_GEMINI === 'true' || true) {
+      const lowerComment = (comment || '').toLowerCase();
+      
+      // 1. Bot Spammy (Repetitive Gibberish)
+      const words = lowerComment.split(/\s+/);
+      const uniqueWords = new Set(words);
+      if (words.length > 3 && uniqueWords.size === 1) {
+        sentiment = 'Positive'; // "nice nice nice"
+        trustScore = 15;
+        isSpam = true;
+      } else {
+        // 2. Sentiment Analysis
+        if (lowerComment.includes('amazing') || lowerComment.includes('great') || lowerComment.includes('incredible')) {
+          sentiment = 'Positive';
+        } else if (lowerComment.includes('bad') || lowerComment.includes('worst')) {
+          sentiment = 'Negative';
+        }
+
+        // 3. Mismatch Rating Fraud (e.g. 1 star but says "amazing")
+        if (sentiment === 'Positive' && rating <= 2) {
+          trustScore = 35;
+          isSpam = true;
+        } else if (sentiment === 'Negative' && rating >= 4) {
+          trustScore = 35;
+          isSpam = true;
+        } else if (sentiment === 'Positive' && rating >= 4) {
+          // Authentic Positive
+          trustScore = 100;
+        }
+      }
+
+      // Base Trust adjustments
+      if (!confirmedBooking) trustScore = Math.min(trustScore, 80); // Unverified purchase drops trust
+    }
+
     const review = await Review.create({
       user: userId,
       experience,
       rating,
       comment,
       isVerifiedBooking: !!confirmedBooking,
+      trustScore,
+      isSpam,
+      sentiment
     });
 
     return await review.populate([

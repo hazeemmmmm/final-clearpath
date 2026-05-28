@@ -13,12 +13,16 @@ export const ThemeProvider = ({ children }) => {
   });
 
   useEffect(() => {
-    // Apply class to body for global CSS targeting
+    // Apply class to html element for Tailwind global CSS targeting
     if (isDarkMode) {
-      document.body.classList.add('dark-mode');
+      document.documentElement.classList.add('tw-dark');
+      document.body.classList.add('tw-bg-[#0a0b0d]', 'tw-text-white');
+      document.body.classList.remove('tw-bg-slate-50', 'tw-text-slate-900');
       localStorage.setItem('clearpath_theme', 'dark');
     } else {
-      document.body.classList.remove('dark-mode');
+      document.documentElement.classList.remove('tw-dark');
+      document.body.classList.add('tw-bg-slate-50', 'tw-text-slate-900');
+      document.body.classList.remove('tw-bg-[#0a0b0d]', 'tw-text-white');
       localStorage.setItem('clearpath_theme', 'light');
     }
   }, [isDarkMode]);

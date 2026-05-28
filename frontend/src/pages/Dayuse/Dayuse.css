@@ -689,3 +689,96 @@ body.dark-mode .skeleton-btn {
   .experiences-header h1 { font-size: 2rem; }
   .experiences-grid { grid-template-columns: 1fr; }
 }
+
+/* -- Airbnb Destination Sections -- */
+.airbnb-dest-section {
+  margin-bottom: 20px;
+}
+
+.dest-section-title {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: var(--text-primary, #000000);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: 'Inter', sans-serif;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2.5px solid var(--text-primary, #000000);
+  padding-bottom: 8px;
+}
+
+body.dark-mode .dest-section-title {
+  color: #ffffff;
+  border-bottom-color: rgba(255, 255, 255, 0.2);
+}
+
+.carousel-arrows-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.carousel-arrow-btn {
+  background: none;
+  border: 1.5px solid var(--text-primary, #000000);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-primary, #000000);
+  transition: all 0.25s ease;
+}
+
+.carousel-arrow-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  transform: scale(1.05);
+}
+
+body.dark-mode .carousel-arrow-btn {
+  border-color: #ffffff;
+  color: #ffffff;
+}
+
+body.dark-mode .carousel-arrow-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.airbnb-carousel {
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  padding: 10px 4px 20px 4px;
+  margin-bottom: 20px;
+}
+
+.airbnb-carousel::-webkit-scrollbar { display: none; }
+
+.airbnb-carousel .exp-card {
+  flex: 0 0 calc(33.333% - 16px);
+  min-width: 320px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+  .airbnb-carousel .exp-card {
+    flex: 0 0 calc(50% - 12px);
+    min-width: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  .airbnb-carousel { gap: 16px; }
+  .airbnb-carousel .exp-card {
+    flex: 0 0 85%;
+    min-width: 260px;
+  }
+}

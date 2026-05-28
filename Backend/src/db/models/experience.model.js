@@ -77,6 +77,11 @@ const experienceSchema = new mongoose.Schema(
       required: true,
     },
 
+    isFeatured: {
+      type: Boolean,
+      default: false,
+    },
+
     destination: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Destination",
@@ -100,6 +105,14 @@ const experienceSchema = new mongoose.Schema(
         date: Date,
         availableSeats: Number,
       },
+    ],
+
+    addons: [
+      {
+        name: { type: String, required: true },
+        price: { type: Number, required: true },
+        description: { type: String }
+      }
     ],
 
     // 🖼️ Curated High-Quality Real Egyptian Travel Images

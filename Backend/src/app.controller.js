@@ -12,6 +12,8 @@ import bookingRouter from "./module/booking/booking.router.js";
 import destinationRouter from "./module/destination/destination.router.js";
 import paymentRouter from "./module/payment/payment.router.js";
 import providerRouter from "./module/provider/provider.router.js";
+import packingGuideRouter from "./module/packingGuide/packingGuide.router.js";
+import adminRouter from "./module/admin/admin.router.js";
 
 const bootstrap = async (app, express) => {
     app.use(express.json());
@@ -40,6 +42,8 @@ const bootstrap = async (app, express) => {
     app.use("/destination", destinationRouter);
     app.use("/payment", paymentRouter);
     app.use("/provider", providerRouter);
+    app.use("/packing-guide", packingGuideRouter);
+    app.use("/admin", adminRouter);
 
     app.use(globalErrorHandler);
 };

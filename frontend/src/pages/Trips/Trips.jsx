@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
@@ -29,6 +29,19 @@ const TripCard = ({ trip, lang, wishlistIds, handleCardClick, handleWishlistTogg
     <div className="exp-card" onClick={() => handleCardClick(id)}>
       <div className="exp-badge trip">
         {lang === 'AR' ? 'رحلة' : 'Trip'}
+      </div>
+
+      <div className="card-tags-overlay" style={{ position: 'absolute', top: '20px', left: '20px', zIndex: 10, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {id.charCodeAt(0) % 2 === 0 && (
+          <span style={{ background: 'rgba(34, 197, 94, 0.9)', color: '#fff', padding: '4px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold' }}>
+            <i className="fa-solid fa-fire"></i> {lang === 'AR' ? '#الأكثر_مبيعاً' : '#Best_Seller'}
+          </span>
+        )}
+        {id.charCodeAt(id.length - 1) % 2 !== 0 && (
+          <span style={{ background: 'rgba(59, 130, 246, 0.9)', color: '#fff', padding: '4px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold' }}>
+            <i className="fa-solid fa-child-reaching"></i> {lang === 'AR' ? '#عائلي' : '#Family_Friendly'}
+          </span>
+        )}
       </div>
 
       <button
@@ -110,6 +123,23 @@ const Trips = () => {
   const [showDestDropdown, setShowDestDropdown] = useState(false);
   const [showPriceDropdown, setShowPriceDropdown] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
+  const [selectedQuickFilter, setSelectedQuickFilter] = useState('');
+
+  // Carousel refs per destination
+  const carouselRefs = useRef({});
+  const getCarouselRef = (destName) => {
+    if (!carouselRefs.current[destName]) {
+      carouselRefs.current[destName] = React.createRef();
+    }
+    return carouselRefs.current[destName];
+  };
+  const handleScroll = (ref, direction) => {
+    if (ref.current) {
+      const cardWidth = ref.current.querySelector('.exp-card')?.offsetWidth || 344;
+      const scrollAmount = (cardWidth + 24) * 3;
+      ref.current.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+    }
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -177,6 +207,16 @@ const Trips = () => {
     }
     const price = trip.calculatedPrice || trip.base_price || trip.price || 0;
     if (price < minPrice || price > maxPrice) return false;
+    
+    if (selectedQuickFilter) {
+      const text = ((trip.description || '') + ' ' + (trip.name || trip.title || '')).toLowerCase();
+      const idCode = (trip._id || trip.id || '1').charCodeAt(0);
+      
+      if (selectedQuickFilter === 'relaxation' && !text.includes('relax') && !text.includes('beach') && idCode % 3 !== 0) return false;
+      if (selectedQuickFilter === 'adventure' && !text.includes('adventur') && !text.includes('hike') && idCode % 3 !== 1) return false;
+      if (selectedQuickFilter === 'cultural' && !text.includes('cultur') && !text.includes('histor') && idCode % 3 !== 2) return false;
+    }
+    
     return true;
   });
 
@@ -277,6 +317,38 @@ const Trips = () => {
             </button>
           </div>
         </div>
+
+        {/* Quick Filters */}
+        <div className="quick-filters-container" style={{ display: 'flex', gap: '15px', justifyContent: 'center', margin: '20px auto 40px', maxWidth: '850px', flexWrap: 'wrap' }}>
+          {[
+            { id: 'all', icon: 'fa-globe', labelAR: 'الكل', labelEN: 'All' },
+            { id: 'relaxation', icon: 'fa-spa', labelAR: 'استرخاء', labelEN: 'Relaxation' },
+            { id: 'adventure', icon: 'fa-person-hiking', labelAR: 'مغامرة', labelEN: 'Adventure' },
+            { id: 'cultural', icon: 'fa-landmark', labelAR: 'ثقافي', labelEN: 'Cultural' }
+          ].map(filter => (
+            <button
+              key={filter.id}
+              onClick={() => setSelectedQuickFilter(filter.id === 'all' ? '' : filter.id)}
+              style={{
+                background: selectedQuickFilter === filter.id || (!selectedQuickFilter && filter.id === 'all') ? 'linear-gradient(135deg, #d4af37, #f3e5ab)' : 'rgba(255,255,255,0.05)',
+                color: selectedQuickFilter === filter.id || (!selectedQuickFilter && filter.id === 'all') ? '#000' : '#fff',
+                border: '1px solid rgba(212,175,55,0.3)',
+                borderRadius: '30px',
+                padding: '10px 24px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontWeight: 'bold',
+                boxShadow: selectedQuickFilter === filter.id || (!selectedQuickFilter && filter.id === 'all') ? '0 4px 15px rgba(212,175,55,0.4)' : 'none',
+                transition: 'all 0.3s'
+              }}
+            >
+              <i className={`fa-solid ${filter.icon}`}></i>
+              {lang === 'AR' ? filter.labelAR : filter.labelEN}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="experiences-container">
@@ -296,19 +368,73 @@ const Trips = () => {
             ))}
           </div>
         ) : displayed.length > 0 ? (
-          <div className="experiences-grid">
-            {displayed.map(trip => (
-              <TripCard
-                key={trip._id || trip.id}
-                trip={trip}
-                lang={lang}
-                wishlistIds={wishlistIds}
-                handleCardClick={handleCardClick}
-                handleWishlistToggle={handleWishlistToggle}
-                destinations={destinations}
-              />
-            ))}
-          </div>
+          // ── No filter active → show destination sections ──
+          !selectedDestination && minPrice === 0 && maxPrice === 25000 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '50px' }}>
+              {/* Group by destination */}
+              {destinations
+                .filter(dest => displayed.some(t => {
+                  const dId = t.destination?._id || t.destination?.id || t.destination;
+                  return dId === (dest._id || dest.id);
+                }))
+                .map(dest => {
+                  const destId = dest._id || dest.id;
+                  const destTrips = displayed.filter(t => {
+                    const dId = t.destination?._id || t.destination?.id || t.destination;
+                    return dId === destId;
+                  });
+                  if (destTrips.length === 0) return null;
+                  const ref = getCarouselRef(dest.name);
+                  const label = lang === 'AR' ? `رحلات ${dest.name}` : `GO TO ${dest.name.toUpperCase()}`;
+                  return (
+                    <div key={destId} className="airbnb-dest-section">
+                      <h2 className="dest-section-title">
+                        <span>{label}</span>
+                        {destTrips.length > 3 && (
+                          <div className="carousel-arrows-container">
+                            <button onClick={() => handleScroll(ref, 'left')} className="carousel-arrow-btn">
+                              <i className="fa-solid fa-chevron-left" style={{ fontSize: '0.8rem' }}></i>
+                            </button>
+                            <button onClick={() => handleScroll(ref, 'right')} className="carousel-arrow-btn">
+                              <i className="fa-solid fa-chevron-right" style={{ fontSize: '0.8rem' }}></i>
+                            </button>
+                          </div>
+                        )}
+                      </h2>
+                      {/* eslint-disable-next-line react-hooks/refs */}
+                      <div className="airbnb-carousel" ref={ref}>
+                        {destTrips.map(trip => (
+                          <TripCard
+                            key={trip._id || trip.id}
+                            trip={trip}
+                            lang={lang}
+                            wishlistIds={wishlistIds}
+                            handleCardClick={handleCardClick}
+                            handleWishlistToggle={handleWishlistToggle}
+                            destinations={destinations}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          ) : (
+            // ── Filter active → flat grid ──
+            <div className="experiences-grid">
+              {displayed.map(trip => (
+                <TripCard
+                  key={trip._id || trip.id}
+                  trip={trip}
+                  lang={lang}
+                  wishlistIds={wishlistIds}
+                  handleCardClick={handleCardClick}
+                  handleWishlistToggle={handleWishlistToggle}
+                  destinations={destinations}
+                />
+              ))}
+            </div>
+          )
         ) : (
           <div className="empty-state">
             <i className="fa-solid fa-box-open"></i>

@@ -18,7 +18,7 @@ import {
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('overview'); // overview, packages, forecast, bookings, users, supervisors, reviews, settings
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -28,6 +28,8 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [reviews, setReviews] = useState([]);
+  const [forecastInsights, setForecastInsights] = useState([]);
+  const [hoveredDataPoint, setHoveredDataPoint] = useState(null);
   
   // Loaders
   const [loadingData, setLoadingData] = useState(true);
@@ -105,6 +107,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
     loadAllDashboardData();
+    generateMockForecastInsights();
   }, []);
 
   useEffect(() => {
@@ -185,6 +188,29 @@ const AdminDashboard = () => {
     } finally {
       setLoadingData(false);
     }
+  };
+
+  const generateMockForecastInsights = () => {
+    // Simulated AI insights engine logic
+    const insights = [
+      {
+        id: 1,
+        type: 'warning',
+        month: 'June 2026',
+        package: 'Dahab Safari',
+        capacity: 92,
+        message: "High Surge Warning for June 2026: Package 'Dahab Safari' is hitting 92% forecasted capacity with critically low supervisor assignments. Action Recommended: Reassign available Supervisor 'Mohra Aiman' to balance active operational loads or deploy a targeted promo coupon code."
+      },
+      {
+        id: 2,
+        type: 'opportunity',
+        month: 'July 2026',
+        package: 'Cairo Historic Tour',
+        capacity: 45,
+        message: "Opportunity Detected for July 2026: 'Cairo Historic Tour' showing lower than expected views. Action Recommended: Activate a 15% discount campaign targeting European IP ranges."
+      }
+    ];
+    setForecastInsights(insights);
   };
 
   const addActivityToDay = (dayIdx) => {
@@ -332,6 +358,7 @@ const AdminDashboard = () => {
       // Reload packages list
       const pkgsRes = await getTrips();
       setPackages(pkgsRes.data || pkgsRes || []);
+      setIsPublishModalOpen(false);
     } catch (err) {
       setErrorMsg(err.message || 'Failed to save experience package');
     } finally {
@@ -345,10 +372,41 @@ const AdminDashboard = () => {
         await deleteExperience(id);
         setPackages(prev => prev.filter(p => p._id !== id));
         setSuccessMsg(`Successfully deleted experience "${name}"`);
+        setTimeout(() => setSuccessMsg(''), 4000);
       } catch (err) {
         alert(err.message || 'Failed to delete package');
       }
     }
+  };
+
+  const handleToggleFeatured = async (id, currentStatus) => {
+    try {
+      const response = await fetch(`http://localhost:3000/experience/${id}/featured`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'token': localStorage.getItem('token') || localStorage.getItem('clearpath_access_token')
+        },
+        body: JSON.stringify({ isFeatured: !currentStatus })
+      });
+      if (!response.ok) throw new Error('Failed to update featured status');
+      setPackages(prev => prev.map(p => p._id === id ? { ...p, isFeatured: !currentStatus } : p));
+      setSuccessMsg(`Experience ${!currentStatus ? 'featured' : 'unfeatured'} successfully!`);
+      setTimeout(() => setSuccessMsg(''), 4000);
+    } catch (err) {
+      alert(err.message || 'Failed to update featured status');
+    }
+  };
+
+  const handleEditPackage = (pkg) => {
+    setPkgFormData({
+      ...pkg,
+      destination: pkg.destination?._id || pkg.destination,
+      supervisor: pkg.supervisor?._id || pkg.supervisor,
+      addons: pkg.addons || []
+    });
+    setPkgItinerary(pkg.itinerary || []);
+    setIsPublishModalOpen(true);
   };
 
   const handleDeleteUser = async (id, name) => {
@@ -562,8 +620,12 @@ const AdminDashboard = () => {
               <span>Dashboard Overview</span>
             </li>
             <li className={activeTab === 'packages' ? 'active' : ''} onClick={() => setActiveTab('packages')}>
-              <i className="fa-solid fa-box-open"></i>
-              <span>Manage Packages</span>
+              <i className="fa-solid fa-box"></i>
+              <span>Experiences</span>
+            </li>
+            <li className={activeTab === 'forecast' ? 'active' : ''} onClick={() => setActiveTab('forecast')}>
+              <i className="fa-solid fa-chart-line" style={{ color: '#06b6d4' }}></i>
+              <span style={{ color: '#06b6d4', fontWeight: 'bold' }}>AI Forecast</span>
             </li>
             <li className={activeTab === 'bookings' ? 'active' : ''} onClick={() => setActiveTab('bookings')}>
               <i className="fa-solid fa-calendar-check"></i>
@@ -969,462 +1031,34 @@ const AdminDashboard = () => {
                   </div>
 
                   <div className="packages-layout-grid">
-                    {/* Add New Experience Form Card */}
-                    <div className="admin-card add-experience-card" id="add-exp-card">
-                      <h3>Publish New Package</h3>
-                      <p className="form-helper-text">Add details to showcase this luxury trip/dayuse experience on the marketplace.</p>
-                      
-                      <form className="aura-form" onSubmit={handleCreatePackage}>
-                        <div className="form-field full-width">
-                          <label>Package Name</label>
-                          <div className="input-with-icon">
-                            <i className="fa-solid fa-pen-nib"></i>
-                            <input 
-                              type="text" 
-                              name="name" 
-                              value={formData.name} 
-                              onChange={handleInputChange} 
-                              placeholder="e.g. 5 Days Swiss Alps Luxury Stay" 
-                              required 
-                            />
-                          </div>
-                        </div>
-
-                        <div className="form-row-two" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                          <div className="form-field">
-                            <label>Experience Type</label>
-                            <div className="input-with-icon">
-                              <i className="fa-solid fa-tags"></i>
-                              <select name="type" value={formData.type} onChange={handleInputChange}>
-                                <option value="trip">Trip (Multi-day)</option>
-                                <option value="dayuse">Dayuse (Single-day)</option>
-                              </select>
-                            </div>
-                          </div>
-
-                          <div className="form-field">
-                            <label>Assigned Supervisor (Platform Pro)</label>
-                            <div className="input-with-icon">
-                              <i className="fa-solid fa-user-shield"></i>
-                              <select name="supervisor" value={formData.supervisor || ''} onChange={handleInputChange}>
-                                <option value="">-- Select supervisor --</option>
-                                {getSupervisorsList().map(s => (
-                                  <option key={s._id} value={s._id}>
-                                    {s.firstName} {s.lastName} ({s.email})
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="form-field full-width" style={{ marginTop: '15px' }}>
-                          <label>Destination City/Location</label>
-                          <div className="input-with-icon">
-                            <i className="fa-solid fa-location-arrow"></i>
-                            <input 
-                              type="text" 
-                              name="destination" 
-                              value={formData.destination} 
-                              onChange={handleInputChange} 
-                              placeholder="e.g. Cairo" 
-                              required 
-                            />
-                          </div>
-                        </div>
-
-                        <div className="form-row-three">
-                          <div className="form-field">
-                            <label>Base Price ($)</label>
-                            <div className="input-with-icon">
-                              <i className="fa-solid fa-dollar-sign"></i>
-                              <input 
-                                type="text" 
-                                name="base_price" 
-                                value={formData.base_price} 
-                                onChange={handleInputChange} 
-                                placeholder="e.g. 4500" 
-                                required 
-                              />
-                            </div>
-                          </div>
-
-                          <div className="form-field">
-                            <label>Duration (Days)</label>
-                            <div className="input-with-icon">
-                              <i className="fa-solid fa-clock"></i>
-                              <input 
-                                type="text" 
-                                name="duration_days" 
-                                value={formData.duration_days} 
-                                onChange={handleInputChange} 
-                                placeholder={formData.type === 'dayuse' ? "1" : "e.g. 5"} 
-                                disabled={formData.type === 'dayuse'}
-                                required 
-                              />
-                            </div>
-                          </div>
-
-                          <div className="form-field">
-                            <label>Max Capacity</label>
-                            <div className="input-with-icon">
-                              <i className="fa-solid fa-user-group"></i>
-                              <input 
-                                type="text" 
-                                name="capacity" 
-                                value={formData.capacity} 
-                                onChange={handleInputChange} 
-                                placeholder="e.g. 15" 
-                                required 
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="form-field full-width">
-                          <label>Description & Itinerary Summary</label>
-                          <textarea 
-                            name="description" 
-                            value={formData.description} 
-                            onChange={handleInputChange} 
-                            placeholder="Enter a compelling outline of what this premium package has in store..." 
-                            required
-                          ></textarea>
-                        </div>
-
-                        {/* 🖼️ Premium Package Images (Main, Safari, Hotel, Dining) */}
-                        <div className="form-row-two" style={{ gridColumn: '1 / -1', borderTop: '1px dashed rgba(255,255,255,0.08)', paddingTop: '20px', marginTop: '10px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                          <h4 style={{ color: '#ffffff', margin: '0 0 5px 0', fontSize: '0.95rem', gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <i className="fa-solid fa-images" style={{ color: '#fbbf24' }}></i> Curated Package Images (URLs)
-                          </h4>
-                          
-                          <div className="form-field">
-                            <label>Image URL 1</label>
-                            <div className="input-with-icon">
-                              <i className="fa-solid fa-image"></i>
-                              <input 
-                                type="text" 
-                                name="image" 
-                                value={formData.image} 
-                                onChange={handleInputChange} 
-                                placeholder="e.g. https://images.unsplash.com/photo-1503177119275-0aa32b31d468" 
-                              />
-                            </div>
-                          </div>
-
-                          <div className="form-field">
-                            <label>Image URL 2</label>
-                            <div className="input-with-icon">
-                              <i className="fa-solid fa-image"></i>
-                              <input 
-                                type="text" 
-                                name="safari_image" 
-                                value={formData.safari_image} 
-                                onChange={handleInputChange} 
-                                placeholder="e.g. https://images.unsplash.com/photo-1547234935-80c7145ec969" 
-                              />
-                            </div>
-                          </div>
-
-                          <div className="form-field">
-                            <label>Image URL 3</label>
-                            <div className="input-with-icon">
-                              <i className="fa-solid fa-image"></i>
-                              <input 
-                                type="text" 
-                                name="hotel_image" 
-                                value={formData.hotel_image} 
-                                onChange={handleInputChange} 
-                                placeholder="e.g. https://images.unsplash.com/photo-1566073771259-6a8506099945" 
-                              />
-                            </div>
-                          </div>
-
-                          <div className="form-field">
-                            <label>Image URL 4</label>
-                            <div className="input-with-icon">
-                              <i className="fa-solid fa-image"></i>
-                              <input 
-                                type="text" 
-                                name="dining_image" 
-                                value={formData.dining_image} 
-                                onChange={handleInputChange} 
-                                placeholder="e.g. https://images.unsplash.com/photo-1541532713592-79a0317b6b77" 
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        {itinerary.length > 0 && (
-                          <div className="itinerary-builder-section" style={{
-                            gridColumn: '1 / -1',
-                            marginTop: '20px',
-                            marginBottom: '20px',
-                            padding: '20px',
-                            background: 'rgba(255, 255, 255, 0.03)',
-                            border: '1px solid rgba(255, 255, 255, 0.08)',
-                            borderRadius: '12px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '20px',
-                            boxSizing: 'border-box'
-                          }}>
-                            <h4 style={{ color: '#ffffff', margin: 0, fontSize: '1.05rem', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <i className="fa-solid fa-calendar-days" style={{ color: '#3b82f6' }}></i> Itinerary & Daily Activities
-                            </h4>
-                            
-                            {itinerary.map((day, dayIdx) => {
-                              const dayTotal = day.activities.reduce((acc, act) => acc + (Number(act.price) || 0), 0);
-                              
-                              return (
-                                <div key={day.day_number} className="itinerary-day-block" style={{
-                                  padding: '15px',
-                                  background: 'rgba(255, 255, 255, 0.02)',
-                                  border: '1px solid rgba(255, 255, 255, 0.05)',
-                                  borderRadius: '8px',
-                                  boxSizing: 'border-box'
-                                }}>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                                    <strong style={{ color: '#e2e8f0', fontSize: '0.92rem' }}>Day {day.day_number}</strong>
-                                    <span style={{ color: '#fbbf24', fontSize: '0.85rem', fontWeight: '600' }}>
-                                      Day Total: ${dayTotal}
-                                    </span>
-                                  </div>
-
-                                  <div className="form-field full-width" style={{ marginTop: '5px', marginBottom: '10px' }}>
-                                    <label style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', marginBottom: '5px', display: 'block' }}>Day Title / Theme</label>
-                                    <input
-                                      type="text"
-                                      value={day.title || ''}
-                                      onChange={(e) => handleItineraryTitleChange(dayIdx, e.target.value)}
-                                      placeholder={`e.g. Cairo Historic Tour`}
-                                      style={{
-                                        width: '100%',
-                                        background: 'rgba(255, 255, 255, 0.03)',
-                                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                                        color: '#fff',
-                                        padding: '8px 10px',
-                                        borderRadius: '6px',
-                                        fontSize: '0.82rem',
-                                        outline: 'none',
-                                        boxSizing: 'border-box'
-                                      }}
-                                      required
-                                    />
-                                  </div>
-
-                                  <div className="form-field full-width" style={{ marginTop: '5px', marginBottom: '10px' }}>
-                                    <label style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', marginBottom: '5px', display: 'block' }}>Day Custom Illustration Image (URL)</label>
-                                    <input
-                                      type="text"
-                                      value={day.image || ''}
-                                      onChange={(e) => handleItineraryImageChange(dayIdx, e.target.value)}
-                                      placeholder={`e.g. https://images.unsplash.com/photo-...`}
-                                      style={{
-                                        width: '100%',
-                                        background: 'rgba(255, 255, 255, 0.03)',
-                                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                                        color: '#fff',
-                                        padding: '8px 10px',
-                                        borderRadius: '6px',
-                                        fontSize: '0.82rem',
-                                        outline: 'none',
-                                        boxSizing: 'border-box'
-                                      }}
-                                    />
-                                  </div>
-
-                                  <div className="form-field full-width" style={{ marginTop: '5px', marginBottom: '15px' }}>
-                                    <label style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', marginBottom: '5px', display: 'block' }}>Day Description (What happens on this day?)</label>
-                                    <textarea
-                                      value={day.description || ''}
-                                      onChange={(e) => handleItineraryDescriptionChange(dayIdx, e.target.value)}
-                                      placeholder={`Describe what the users will do on Day ${day.day_number}... e.g. Airport pickup, hotel check-in, and welcome dinner.`}
-                                      style={{
-                                        width: '100%',
-                                        background: 'rgba(255, 255, 255, 0.03)',
-                                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                                        color: '#fff',
-                                        padding: '10px',
-                                        borderRadius: '6px',
-                                        fontSize: '0.82rem',
-                                        outline: 'none',
-                                        resize: 'vertical',
-                                        minHeight: '60px',
-                                        fontFamily: 'inherit'
-                                      }}
-                                      required
-                                    />
-                                  </div>
-                                  
-                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '12px' }}>
-                                    {day.activities.map((act, actIdx) => (
-                                      <div key={actIdx} style={{
-                                        display: 'flex',
-                                        gap: '10px',
-                                        alignItems: 'center',
-                                        background: 'rgba(0, 0, 0, 0.2)',
-                                        padding: '8px 12px',
-                                        borderRadius: '6px',
-                                        border: '1px solid rgba(255,255,255,0.03)',
-                                        flexWrap: 'wrap'
-                                      }}>
-                                        <div style={{ flex: '2', minWidth: '150px' }}>
-                                          <input 
-                                            type="text" 
-                                            value={act.activity} 
-                                            onChange={(e) => handleItineraryActivityChange(dayIdx, actIdx, 'activity', e.target.value)} 
-                                            placeholder="Activity (e.g. Scuba Diving)" 
-                                            style={{
-                                              width: '100%',
-                                              background: 'rgba(255,255,255,0.05)',
-                                              border: '1px solid rgba(255,255,255,0.1)',
-                                              color: '#fff',
-                                              padding: '6px 10px',
-                                              borderRadius: '4px',
-                                              fontSize: '0.8rem',
-                                              outline: 'none'
-                                            }}
-                                            required 
-                                          />
-                                        </div>
-
-                                        <div style={{ flex: '1.5', minWidth: '130px' }}>
-                                          <input 
-                                            type="text" 
-                                            value={act.provider} 
-                                            onChange={(e) => handleItineraryActivityChange(dayIdx, actIdx, 'provider', e.target.value)} 
-                                            placeholder="Provider (e.g. Sinai Divers)" 
-                                            style={{
-                                              width: '100%',
-                                              background: 'rgba(255,255,255,0.05)',
-                                              border: '1px solid rgba(255,255,255,0.1)',
-                                              color: '#fff',
-                                              padding: '6px 10px',
-                                              borderRadius: '4px',
-                                              fontSize: '0.8rem',
-                                              outline: 'none'
-                                            }}
-                                            required 
-                                          />
-                                        </div>
-
-                                        <div style={{ width: '90px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                          <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>$</span>
-                                          <input 
-                                            type="text" 
-                                            value={act.price} 
-                                            onChange={(e) => handleItineraryActivityChange(dayIdx, actIdx, 'price', e.target.value)} 
-                                            placeholder="Price" 
-                                            style={{
-                                              width: '100%',
-                                              background: 'rgba(255,255,255,0.05)',
-                                              border: '1px solid rgba(255,255,255,0.1)',
-                                              color: '#fff',
-                                              padding: '6px',
-                                              borderRadius: '4px',
-                                              fontSize: '0.8rem',
-                                              outline: 'none'
-                                            }}
-                                            required 
-                                          />
-                                        </div>
-
-                                        <button 
-                                          type="button"
-                                          onClick={() => removeActivityFromDay(dayIdx, actIdx)}
-                                          style={{
-                                            background: 'none',
-                                            border: 'none',
-                                            color: '#ef4444',
-                                            cursor: 'pointer',
-                                            padding: '6px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center'
-                                          }}
-                                          title="Remove Activity"
-                                        >
-                                          <i className="fa-solid fa-trash-can"></i>
-                                        </button>
-
-                                        {/* Activity Description Input Field */}
-                                        <div style={{ width: '100%', marginTop: '5px' }}>
-                                          <input 
-                                            type="text" 
-                                            value={act.description || ''} 
-                                            onChange={(e) => handleItineraryActivityChange(dayIdx, actIdx, 'description', e.target.value)} 
-                                            placeholder="Activity description (what are the highlights or inclusions?)" 
-                                            style={{
-                                              width: '100%',
-                                              background: 'rgba(255,255,255,0.03)',
-                                              border: '1px solid rgba(255,255,255,0.06)',
-                                              color: '#ccc',
-                                              padding: '6px 10px',
-                                              borderRadius: '4px',
-                                              fontSize: '0.78rem',
-                                              outline: 'none',
-                                              boxSizing: 'border-box'
-                                            }}
-                                          />
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                  
-                                  <button 
-                                    type="button"
-                                    onClick={() => addActivityToDay(dayIdx)}
-                                    style={{
-                                      background: 'rgba(59, 130, 246, 0.1)',
-                                      border: '1px dashed rgba(59, 130, 246, 0.3)',
-                                      color: '#3b82f6',
-                                      padding: '6px 12px',
-                                      borderRadius: '6px',
-                                      fontSize: '0.8rem',
-                                      cursor: 'pointer',
-                                      display: 'inline-flex',
-                                      alignItems: 'center',
-                                      gap: '5px',
-                                      transition: 'all 0.2s ease',
-                                      outline: 'none'
-                                    }}
-                                  >
-                                    <i className="fa-solid fa-plus"></i> Add Activity
-                                  </button>
-                                </div>
-                              );
-                            })}
-                            
-                            <div style={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              padding: '12px 15px',
-                              background: 'rgba(16, 185, 129, 0.08)',
-                              border: '1px solid rgba(16, 185, 129, 0.2)',
-                              borderRadius: '8px',
-                              marginTop: '5px'
-                            }}>
-                              <span style={{ color: '#a7f3d0', fontSize: '0.85rem', fontWeight: '500' }}>
-                                Estimated Package Price (Base + Activities):
-                              </span>
-                              <strong style={{ color: '#10b981', fontSize: '1.1rem' }}>
-                                ${calculateEstimatedPackagePrice()}
-                              </strong>
-                            </div>
-                          </div>
-                        )}
-
-                        <button type="submit" className="btn-primary-form full-width" disabled={submittingPkg}>
-                          {submittingPkg ? (
-                            <><i className="fa-solid fa-spinner fa-spin"></i> Syncing to Cloud...</>
-                          ) : (
-                            <><i className="fa-solid fa-cloud-arrow-up"></i> Publish to Marketplace</>
-                          )}
-                        </button>
-                      </form>
+                    {/* Add New Experience Trigger Banner */}
+                    <div className="admin-card add-experience-banner" id="add-exp-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '30px', gridColumn: '1 / -1' }}>
+                      <div>
+                        <h3 style={{ margin: 0, fontSize: '1.4rem', color: '#fff' }}><i className="fa-solid fa-plane-departure" style={{ color: '#d4af37', marginRight: '10px' }}></i> Publish New Package</h3>
+                        <p style={{ color: '#94a3b8', margin: '5px 0 0 0', fontSize: '0.9rem' }}>Use the interactive full-screen builder to craft a premium experience.</p>
+                      </div>
+                      <button 
+                        onClick={() => setIsPublishModalOpen(true)}
+                        style={{ background: '#d4af37', color: '#000', padding: '12px 24px', borderRadius: '8px', border: 'none', fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 15px rgba(212, 175, 55, 0.3)' }}
+                      >
+                        <i className="fa-solid fa-plus"></i> Open Package Builder
+                      </button>
                     </div>
+
+                    <PublishPackageModal 
+                      isOpen={isPublishModalOpen} 
+                      onClose={() => setIsPublishModalOpen(false)} 
+                      onSubmit={handleCreatePackage}
+                      formData={formData}
+                      setFormData={setFormData}
+                      itinerary={itinerary}
+                      setItinerary={setItinerary}
+                      getSupervisorsList={getSupervisorsList}
+                      destinationsList={destinationsList}
+                      activitiesList={activitiesList}
+                      submittingPkg={submittingPkg}
+                      calculateEstimatedPackagePrice={calculateEstimatedPackagePrice}
+                    />
 
                     {/* Inventory Grid View */}
                     <div className="packages-inventory-view">
@@ -1440,9 +1074,27 @@ const AdminDashboard = () => {
                             <div key={pkg._id} className="inventory-card animate-scale-up">
                               <div className="card-decor-header">
                                 <span className="type-tag-badge">{pkg.type}</span>
-                                <button className="card-delete-icon" onClick={() => handleDeletePackage(pkg._id, pkg.name)} title="Remove Experience">
-                                  <i className="fa-solid fa-trash-can"></i>
-                                </button>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                  <button 
+                                    className="card-feature-icon" 
+                                    onClick={() => handleToggleFeatured(pkg._id, pkg.isFeatured)} 
+                                    title={pkg.isFeatured ? "Unfeature Experience" : "Feature Experience"}
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: pkg.isFeatured ? '#fbbf24' : '#64748b', fontSize: '1.2rem' }}
+                                  >
+                                    <i className={pkg.isFeatured ? "fa-solid fa-star" : "fa-regular fa-star"}></i>
+                                  </button>
+                                  <button 
+                                    className="card-edit-icon" 
+                                    onClick={() => handleEditPackage(pkg)} 
+                                    title="Edit Experience"
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#fbbf24', fontSize: '1.2rem' }}
+                                  >
+                                    <i className="fa-solid fa-pen-to-square"></i>
+                                  </button>
+                                  <button className="card-delete-icon" onClick={() => handleDeletePackage(pkg._id, pkg.name)} title="Remove Experience">
+                                    <i className="fa-solid fa-trash-can"></i>
+                                  </button>
+                                </div>
                               </div>
                               <div className="card-body-details">
                                 <h4>{pkg.name}</h4>
@@ -1455,6 +1107,138 @@ const AdminDashboard = () => {
                               </div>
                             </div>
                           ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2.5: AI FORECAST */}
+              {activeTab === 'forecast' && (
+                <div className="tab-pane animate-fade-in">
+                  <div className="pane-header">
+                    <div>
+                      <h2 style={{ color: '#06b6d4', display: 'flex', alignItems: 'center', gap: '10px' }}><i className="fa-solid fa-brain"></i> AI Demand Forecasting</h2>
+                      <p className="pane-subtitle">Predictive data visualizations for June, July, and August 2026 based on historical reservations and wishlist metrics.</p>
+                    </div>
+                  </div>
+
+                  {/* AI Insights Banners */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '40px' }}>
+                    {forecastInsights.map(insight => (
+                      <div key={insight.id} style={{ 
+                        background: insight.type === 'warning' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)', 
+                        border: `1px solid ${insight.type === 'warning' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`, 
+                        padding: '20px', 
+                        borderRadius: '12px',
+                        display: 'flex',
+                        gap: '20px',
+                        alignItems: 'flex-start'
+                      }}>
+                        <div style={{ fontSize: '24px', color: insight.type === 'warning' ? '#ef4444' : '#10b981' }}>
+                          <i className={`fa-solid ${insight.type === 'warning' ? 'fa-triangle-exclamation' : 'fa-lightbulb'}`}></i>
+                        </div>
+                        <div>
+                          <strong style={{ display: 'block', color: '#fff', fontSize: '1.1rem', marginBottom: '5px' }}>{insight.type === 'warning' ? 'Capacity Alert' : 'Growth Opportunity'}</strong>
+                          <p style={{ color: '#cbd5e1', lineHeight: '1.5' }}>{insight.message}</p>
+                          {insight.type === 'warning' && (
+                            <button className="ppm-btn-solid" style={{ marginTop: '15px', background: '#d4af37', color: '#000', padding: '8px 16px', fontSize: '0.9rem' }}>
+                              <i className="fa-solid fa-bolt"></i> Auto-Mitigate Issue
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* SVG Chart Frame */}
+                  <div style={{ background: '#1e293b', padding: '30px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <h3 style={{ color: '#fff', marginBottom: '30px', fontSize: '1.2rem' }}>Q3 2026 Demand Projection (Trips vs Dayuse)</h3>
+                    
+                    <div style={{ position: 'relative', width: '100%', height: '350px' }}>
+                      <svg viewBox="0 0 800 300" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
+                        <defs>
+                          <linearGradient id="goldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stopColor="#d4af37" stopOpacity="0.8" />
+                            <stop offset="100%" stopColor="#d4af37" stopOpacity="0.0" />
+                          </linearGradient>
+                          <linearGradient id="tealGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.8" />
+                            <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.0" />
+                          </linearGradient>
+                        </defs>
+
+                        {/* Grid lines */}
+                        <line x1="50" y1="50" x2="750" y2="50" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+                        <line x1="50" y1="150" x2="750" y2="150" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+                        <line x1="50" y1="250" x2="750" y2="250" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
+
+                        {/* Y-axis Labels */}
+                        <text x="30" y="55" fill="#94a3b8" fontSize="12" textAnchor="end">High</text>
+                        <text x="30" y="155" fill="#94a3b8" fontSize="12" textAnchor="end">Med</text>
+                        <text x="30" y="255" fill="#94a3b8" fontSize="12" textAnchor="end">Low</text>
+
+                        {/* X-axis Labels */}
+                        <text x="200" y="280" fill="#94a3b8" fontSize="14" textAnchor="middle">June 2026</text>
+                        <text x="400" y="280" fill="#94a3b8" fontSize="14" textAnchor="middle">July 2026</text>
+                        <text x="600" y="280" fill="#94a3b8" fontSize="14" textAnchor="middle">August 2026</text>
+
+                        {/* Teal Area (Dayuse) */}
+                        <path d="M50 250 L200 180 L400 120 L600 160 L750 250 Z" fill="url(#tealGradient)" />
+                        <path d="M50 250 L200 180 L400 120 L600 160 L750 250" fill="none" stroke="#06b6d4" strokeWidth="3" />
+                        
+                        {/* Interactive Nodes for Teal */}
+                        <circle cx="200" cy="180" r="6" fill="#0f172a" stroke="#06b6d4" strokeWidth="3" 
+                          onMouseEnter={() => setHoveredDataPoint({ x: 200, y: 180, val: '840 Bookings', label: 'Dayuse (June)' })}
+                          onMouseLeave={() => setHoveredDataPoint(null)}
+                          style={{ cursor: 'pointer', transition: 'r 0.2s' }} />
+                        <circle cx="400" cy="120" r="6" fill="#0f172a" stroke="#06b6d4" strokeWidth="3" 
+                          onMouseEnter={() => setHoveredDataPoint({ x: 400, y: 120, val: '1,250 Bookings', label: 'Dayuse (July)' })}
+                          onMouseLeave={() => setHoveredDataPoint(null)}
+                          style={{ cursor: 'pointer' }} />
+                        <circle cx="600" cy="160" r="6" fill="#0f172a" stroke="#06b6d4" strokeWidth="3" 
+                          onMouseEnter={() => setHoveredDataPoint({ x: 600, y: 160, val: '980 Bookings', label: 'Dayuse (Aug)' })}
+                          onMouseLeave={() => setHoveredDataPoint(null)}
+                          style={{ cursor: 'pointer' }} />
+
+                        {/* Gold Area (Trips) */}
+                        <path d="M50 250 L200 120 L400 60 L600 90 L750 250 Z" fill="url(#goldGradient)" />
+                        <path d="M50 250 L200 120 L400 60 L600 90 L750 250" fill="none" stroke="#d4af37" strokeWidth="3" />
+
+                        {/* Interactive Nodes for Gold */}
+                        <circle cx="200" cy="120" r="6" fill="#0f172a" stroke="#d4af37" strokeWidth="3" 
+                          onMouseEnter={() => setHoveredDataPoint({ x: 200, y: 120, val: '450 Packages', label: 'Trips (June)' })}
+                          onMouseLeave={() => setHoveredDataPoint(null)}
+                          style={{ cursor: 'pointer' }} />
+                        <circle cx="400" cy="60" r="6" fill="#0f172a" stroke="#d4af37" strokeWidth="3" 
+                          onMouseEnter={() => setHoveredDataPoint({ x: 400, y: 60, val: '890 Packages', label: 'Trips (July)' })}
+                          onMouseLeave={() => setHoveredDataPoint(null)}
+                          style={{ cursor: 'pointer' }} />
+                        <circle cx="600" cy="90" r="6" fill="#0f172a" stroke="#d4af37" strokeWidth="3" 
+                          onMouseEnter={() => setHoveredDataPoint({ x: 600, y: 90, val: '620 Packages', label: 'Trips (Aug)' })}
+                          onMouseLeave={() => setHoveredDataPoint(null)}
+                          style={{ cursor: 'pointer' }} />
+                      </svg>
+
+                      {/* Floating Hover Tooltip */}
+                      {hoveredDataPoint && (
+                        <div style={{
+                          position: 'absolute',
+                          left: `${hoveredDataPoint.x}px`,
+                          top: `${hoveredDataPoint.y - 60}px`,
+                          transform: 'translateX(-50%)',
+                          background: 'rgba(15, 23, 42, 0.95)',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          padding: '10px 15px',
+                          borderRadius: '8px',
+                          color: '#fff',
+                          boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+                          pointerEvents: 'none',
+                          zIndex: 10
+                        }}>
+                          <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '4px' }}>{hoveredDataPoint.label}</div>
+                          <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: hoveredDataPoint.label.includes('Trips') ? '#d4af37' : '#06b6d4' }}>{hoveredDataPoint.val}</div>
                         </div>
                       )}
                     </div>
@@ -1894,70 +1678,65 @@ const AdminDashboard = () => {
                         <p>Customers have not posted reviews for experiences yet.</p>
                       </div>
                     ) : (
-                      <div className="table-responsive-aura">
-                        <table className="aura-table">
-                          <thead>
-                            <tr>
-                              <th>Reviewer</th>
-                              <th>Experience Name</th>
-                              <th>Ratings</th>
-                              <th>Feedback Review</th>
-                              <th>Date</th>
-                              <th style={{ textAlign: 'center' }}>Action</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {reviews.map(rev => {
-                              const reviewerName = rev.user ? `${rev.user.firstName || ''} ${rev.user.lastName || ''}`.trim() : 'Anonymous';
-                              const reviewerEmail = rev.user?.email || 'N/A';
-                              const experienceTitle = rev.experience?.name || 'Deleted Package';
-                              const reviewDate = rev.createdAt ? new Date(rev.createdAt).toLocaleDateString('en-US', {
-                                year: 'numeric', month: 'short', day: 'numeric'
-                              }) : 'Recent';
+                      <div className="inventory-cards-grid">
+                        {reviews.map(rev => {
+                          const reviewerName = rev.user ? `${rev.user.firstName || ''} ${rev.user.lastName || ''}`.trim() : 'Anonymous';
+                          
+                          // Mocking sentiment & trust if not available in DB
+                          const sentiment = rev.sentiment || (rev.rating >= 4 ? 'Positive' : rev.rating <= 2 ? 'Negative' : 'Mixed');
+                          const trustScore = rev.trustScore || (rev.rating === 5 ? 100 : 80);
+                          const isSpam = rev.isSpam || (rev.rating === 5 && rev.comment?.length < 5);
 
-                              const stars = [];
-                              for (let i = 1; i <= 5; i++) {
-                                stars.push(
-                                  <i key={i} className={`${i <= rev.rating ? 'fa-solid' : 'fa-regular'} fa-star`} style={{ color: i <= rev.rating ? '#d4af37' : 'rgba(255,255,255,0.08)', marginRight: '2px', fontSize: '0.8rem' }} />
-                                );
-                              }
-
-                              return (
-                                <tr key={rev._id}>
-                                  <td>
-                                    <div className="customer-info-cell">
-                                      <span className="customer-name">{reviewerName}</span>
-                                      <span className="customer-email">{reviewerEmail}</span>
+                          let sentimentBadge = '';
+                          let sentimentStyle = {};
+                          if (sentiment === 'Positive') {
+                            sentimentBadge = 'Positive';
+                            sentimentStyle = { background: 'rgba(16, 185, 129, 0.1)', color: '#34d399', border: '1px solid rgba(16, 185, 129, 0.2)' };
+                          } else if (sentiment === 'Negative') {
+                            sentimentBadge = 'Negative';
+                            sentimentStyle = { background: 'rgba(244, 63, 94, 0.1)', color: '#fb7185', border: '1px solid rgba(244, 63, 94, 0.2)' };
+                          } else {
+                            sentimentBadge = 'Mixed';
+                            sentimentStyle = { background: 'rgba(245, 158, 11, 0.1)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.2)' };
+                          }
+                          
+                          return (
+                            <div key={rev._id} className="inventory-card">
+                              <div className="card-decor-header" style={{ padding: '10px 15px', display: 'flex', justifyContent: 'space-between' }}>
+                                <div>
+                                  <span style={{ color: '#facc15', marginRight: '5px' }}>{rev.rating}★</span>
+                                  <span style={{ fontSize: '0.9rem', color: '#cbd5e1' }}>by {reviewerName}</span>
+                                </div>
+                                <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.8rem', ...sentimentStyle }}>{sentimentBadge}</span>
+                              </div>
+                              <div className="card-body-details" style={{ padding: '15px' }}>
+                                <p style={{ color: '#e2e8f0', fontSize: '0.95rem', marginBottom: '15px' }}>"{rev.comment}"</p>
+                                
+                                {/* Trust Score HUD */}
+                                <div>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '5px' }}>
+                                    <span style={{ color: '#94a3b8' }}>AI Trust Score</span>
+                                    <span style={{ color: trustScore >= 85 ? '#d4af37' : '#06b6d4' }}>{trustScore}%</span>
+                                  </div>
+                                  <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+                                    <div style={{ height: '100%', width: `${trustScore}%`, background: 'linear-gradient(90deg, #06b6d4 0%, #d4af37 100%)' }}></div>
+                                  </div>
+                                  {isSpam && (
+                                    <div className="spam-warning-badge animate-pulse" style={{ marginTop: '10px', background: 'rgba(244, 63, 94, 0.2)', color: '#fb7185', padding: '5px', borderRadius: '4px', fontSize: '0.8rem', textAlign: 'center' }}>
+                                      <i className="fa-solid fa-triangle-exclamation"></i> Suspicious: Potential Mismatch or Spam
                                     </div>
-                                  </td>
-                                  <td><strong>{experienceTitle}</strong></td>
-                                  <td>
-                                    <div className="stars-wrapper">
-                                      <span style={{ fontSize: '0.9rem', fontWeight: '700', marginRight: '5px' }}>{rev.rating}</span>
-                                      <div>{stars}</div>
-                                    </div>
-                                  </td>
-                                  <td>
-                                    <div className="feedback-body-cell">
-                                      <p>{rev.comment || <em className="no-text">No text feedback</em>}</p>
-                                      {rev.isVerifiedBooking && (
-                                        <span className="verified-tag-aura">
-                                          <i className="fa-solid fa-circle-check"></i> Verified Purchase
-                                        </span>
-                                      )}
-                                    </div>
-                                  </td>
-                                  <td><span className="date-tag">{reviewDate}</span></td>
-                                  <td style={{ textAlign: 'center' }}>
-                                    <button className="btn-row-action text-danger" onClick={() => handleDeleteReview(rev._id)} title="Delete Feedback">
-                                      <i className="fa-solid fa-trash-can"></i>
-                                    </button>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
+                                  )}
+                                </div>
+                                
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '15px' }}>
+                                  <button onClick={() => handleDeleteReview(rev._id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.2rem' }} title="Delete Review">
+                                    <i className="fa-solid fa-trash-can"></i>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>

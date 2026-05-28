@@ -33,7 +33,7 @@ const Wishlist = () => {
         const items = response.wishlist?.experiences || response.data?.experiences || response.wishlist || response.data || [];
         setWishlistItems(Array.isArray(items) ? items : []);
       } catch (err) {
-        setError('Failed to load wishlist.');
+        console.error("Failed to load wishlist");
       } finally {
         setLoading(false);
       }
@@ -46,7 +46,7 @@ const Wishlist = () => {
       await removeFromWishlist(experienceId);
       setWishlistItems((prev) => prev.filter((item) => (item._id || item.id) !== experienceId));
     } catch (err) {
-      setError('Failed to remove item.');
+      console.error("Failed to remove item");
     }
   };
 

@@ -7,7 +7,11 @@ const reviewSchema = new mongoose.Schema({
   experience: { type: mongoose.Schema.Types.ObjectId, ref: "Experience", required: true },
   rating: { type: Number, min: 1, max: 5, required: true },
   comment: { type: String },
-  isVerifiedBooking: { type: Boolean, default: false } 
+  isVerifiedBooking: { type: Boolean, default: false },
+  // AI Trust fields
+  trustScore: { type: Number, default: 100 },
+  isSpam: { type: Boolean, default: false },
+  sentiment: { type: String, enum: ['Positive', 'Neutral', 'Negative'], default: 'Positive' }
 }, { timestamps: true });
 
 export const Review = mongoose.model("Review", reviewSchema);

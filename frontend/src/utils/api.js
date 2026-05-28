@@ -16,6 +16,14 @@ import {
   getAllReviews as fetchAllReviews,
   deleteReview as removeReview
 } from '../../js/api/reviewapi.js';
+import {
+  getPackingGuideForExperience as fetchPackingGuide,
+  getAllPackingGuides as fetchAllPackingGuides,
+  getOnePackingGuide as fetchOnePackingGuide,
+  createPackingGuide as addPackingGuide,
+  updatePackingGuide as editPackingGuide,
+  deletePackingGuide as removePackingGuide,
+} from '../../js/api/packingguideapi.js';
 
 export const login = async (credentials) => authLogin(credentials);
 export const register = async (userData) => authRegister(userData);
@@ -30,13 +38,26 @@ export const getUserProfile = async () =>
   apiCall(`${BASE_URL}/user/profile`, { method: 'GET', headers: getHeaders(true) });
 
 export const getTrips = async (query = {}) => getAllExperiences(query);
+export const getFilterOptions = async () =>
+  apiCall(`${BASE_URL}/experience/filter-options`, { method: 'GET', headers: getHeaders(true) });
+
 export const getDayuse = async (query = {}) => getAllExperiences(query);
 export const getTripDetails = async (id) => getOneExperience(id);
 export const getDayuseDetails = async (id) => getOneExperience(id);
 
 export const createExperience = async (data) => addExp(data);
 export const updateExperience = async (id, data) => editExp(id, data);
+export const duplicateExperience = async (id) =>
+  apiCall(`${BASE_URL}/experience/${id}/duplicate`, { method: 'POST', headers: getHeaders(true) });
 export const deleteExperience = async (id) => removeExp(id);
+export const getProvidersMatch = async (id) =>
+  apiCall(`${BASE_URL}/experience/${id}/providers-match`, { method: 'GET', headers: getHeaders(true) });
+export const assignGuide = async (id, providerId) =>
+  apiCall(`${BASE_URL}/experience/${id}/assign-guide`, {
+    method: 'PATCH',
+    headers: getHeaders(true),
+    body: JSON.stringify({ providerId })
+  });
 
 export const getDestinations = async () => fetchDestinations();
 
@@ -61,6 +82,15 @@ export const getChatHistory = async () =>
 
 export const getChatDetails = async (chatId) =>
   apiCall(`${BASE_URL}/chatbot/session/${chatId}`, { method: 'GET', headers: getHeaders(true) });
+
+
+
+export const applyCoupon = async (bookingId, code) =>
+  apiCall(`${BASE_URL}/bookings/${bookingId}/apply-coupon`, {
+    method: 'POST',
+    headers: getHeaders(true),
+    body: JSON.stringify({ code }),
+  });
 
 export const sendChatMessage = async (message, chatId) =>
   apiCall(`${BASE_URL}/chatbot/message`, {
@@ -168,5 +198,12 @@ export const adminCreateSupervisor = async (supervisorData) =>
     body: JSON.stringify(supervisorData)
   });
 
-
-
+// Packing Guide API
+export const getPackingGuideForExperience = async (experienceId) => fetchPackingGuide(experienceId);
+export const getAllPackingGuides   = async (query)  => fetchAllPackingGuides(query);
+export const getOnePackingGuide    = async (id)     => fetchOnePackingGuide(id);
+export const createPackingGuide    = async (data)   => addPackingGuide(data);
+export const updatePackingGuide    = async (id, data) => editPackingGuide(id, data);
+export const deletePackingGuide    = async (id)     => removePackingGuide(id);
+export const getIntelligenceDashboard = async () =>
+  apiCall(`${BASE_URL}/admin/intelligence`, { method: 'GET', headers: getHeaders(true) });

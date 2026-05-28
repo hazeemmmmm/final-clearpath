@@ -44,7 +44,21 @@ const Profile = () => {
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
 
+  const fetchReviews = async () => {
+    try {
+      setLoadingReviews(true);
+      const reviewsRes = await getMyReviews();
+      const reviewsList = reviewsRes.reviews || reviewsRes.data?.reviews || reviewsRes.data || reviewsRes || [];
+      setMyReviews(reviewsList);
+    } catch (err) {
+      console.error('Failed to load reviews', err);
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
+
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     if (profile) {
       setEditForm({
         firstName: profile.firstName || '',
@@ -60,10 +74,10 @@ const Profile = () => {
     const params = new URLSearchParams(location.search);
     const tabParam = params.get('tab');
     if (tabParam === 'reviews') {
-      setActiveTab('reviews');
+      setTimeout(() => setActiveTab('reviews'), 0);
       fetchReviews();
     } else if (tabParam === 'info') {
-      setActiveTab('info');
+      setTimeout(() => setActiveTab('info'), 0);
     }
   }, [location.search]);
 
@@ -91,18 +105,7 @@ const Profile = () => {
     fetchProfile();
   }, [token]);
 
-  const fetchReviews = async () => {
-    try {
-      setLoadingReviews(true);
-      const reviewsRes = await getMyReviews();
-      const reviewsList = reviewsRes.reviews || reviewsRes.data?.reviews || reviewsRes.data || reviewsRes || [];
-      setMyReviews(reviewsList);
-    } catch (err) {
-      console.error('Failed to load reviews', err);
-    } finally {
-      setLoadingReviews(false);
-    }
-  };
+
 
   const handleDeleteReview = async (reviewId) => {
     const confirmMsg = lang === 'AR'

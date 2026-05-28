@@ -16,6 +16,19 @@ class ExperienceController {
     }
   };
 
+  // 🔽 Get Filter Options
+  getFilterOptions = async (req, res, next) => {
+    try {
+      const data = await ExperienceService.getFilterOptions();
+      res.status(200).json({
+        success: true,
+        data,
+      });
+    } catch (err) {
+      next(err);
+    }
+  };
+
   //  Get All (Search + Filter + Pagination)
   getAll = async (req, res, next) => {
     try {
@@ -84,6 +97,53 @@ class ExperienceController {
       res.status(200).json({
         message: "Experience deleted successfully",
       });
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  // 👯 Duplicate (Admin)
+  duplicate = async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const data = await ExperienceService.duplicate(id);
+
+      res.status(201).json({
+        message: "Experience duplicated successfully",
+        data,
+      });
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  // 🧠 Smart Provider Matching
+  getProvidersMatch = async (req, res, next) => {
+    try {
+      const matches = await ExperienceService.getProvidersMatch(req.params.id);
+      res.status(200).json({ success: true, data: matches });
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  // 📝 Assign Guide
+  assignGuide = async (req, res, next) => {
+    try {
+      const { providerId } = req.body;
+      const data = await ExperienceService.update(req.params.id, { supervisor: providerId });
+      res.status(200).json({ success: true, message: "Guide assigned successfully", data });
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  // 🌟 Toggle Featured (Admin)
+  toggleFeatured = async (req, res, next) => {
+    try {
+      const { isFeatured } = req.body;
+      const data = await ExperienceService.update(req.params.id, { isFeatured });
+      res.status(200).json({ success: true, message: "Experience featured status updated", data });
     } catch (err) {
       next(err);
     }

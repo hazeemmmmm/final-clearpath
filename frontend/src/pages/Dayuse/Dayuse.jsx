@@ -109,6 +109,22 @@ const Dayuse = () => {
   const [showPriceDropdown, setShowPriceDropdown] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
 
+  // Carousel refs per destination
+  const carouselRefs = useRef({});
+  const getCarouselRef = (destName) => {
+    if (!carouselRefs.current[destName]) {
+      carouselRefs.current[destName] = React.createRef();
+    }
+    return carouselRefs.current[destName];
+  };
+  const handleScroll = (ref, direction) => {
+    if (ref.current) {
+      const cardWidth = ref.current.querySelector('.exp-card')?.offsetWidth || 344;
+      const scrollAmount = (cardWidth + 24) * 3;
+      ref.current.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+    }
+  };
+
   useEffect(() => {
     window.scrollTo(0, 0);
     document.body.style.overflow = 'auto';
@@ -290,19 +306,71 @@ const Dayuse = () => {
             ))}
           </div>
         ) : displayed.length > 0 ? (
-          <div className="experiences-grid">
-            {displayed.map(item => (
-              <DayuseCard
-                key={item._id || item.id}
-                item={item}
-                lang={lang}
-                wishlistIds={wishlistIds}
-                handleCardClick={handleCardClick}
-                handleWishlistToggle={handleWishlistToggle}
-                destinations={destinations}
-              />
-            ))}
-          </div>
+          // ── No filter active → destination sections ──
+          !selectedDestination && minPrice === 0 && maxPrice === 25000 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '50px' }}>
+              {destinations
+                .filter(dest => displayed.some(item => {
+                  const dId = item.destination?._id || item.destination?.id || item.destination;
+                  return dId === (dest._id || dest.id);
+                }))
+                .map(dest => {
+                  const destId = dest._id || dest.id;
+                  const destItems = displayed.filter(item => {
+                    const dId = item.destination?._id || item.destination?.id || item.destination;
+                    return dId === destId;
+                  });
+                  if (destItems.length === 0) return null;
+                  const ref = getCarouselRef(dest.name);
+                  const label = lang === 'AR' ? `داي يوز ${dest.name}` : `DAYUSE IN ${dest.name.toUpperCase()}`;
+                  return (
+                    <div key={destId} className="airbnb-dest-section">
+                      <h2 className="dest-section-title">
+                        <span>{label}</span>
+                        {destItems.length > 3 && (
+                          <div className="carousel-arrows-container">
+                            <button onClick={() => handleScroll(ref, 'left')} className="carousel-arrow-btn">
+                              <i className="fa-solid fa-chevron-left" style={{ fontSize: '0.8rem' }}></i>
+                            </button>
+                            <button onClick={() => handleScroll(ref, 'right')} className="carousel-arrow-btn">
+                              <i className="fa-solid fa-chevron-right" style={{ fontSize: '0.8rem' }}></i>
+                            </button>
+                          </div>
+                        )}
+                      </h2>
+                      <div className="airbnb-carousel" ref={ref}>
+                        {destItems.map(item => (
+                          <DayuseCard
+                            key={item._id || item.id}
+                            item={item}
+                            lang={lang}
+                            wishlistIds={wishlistIds}
+                            handleCardClick={handleCardClick}
+                            handleWishlistToggle={handleWishlistToggle}
+                            destinations={destinations}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          ) : (
+            // ── Filter active → flat grid ──
+            <div className="experiences-grid">
+              {displayed.map(item => (
+                <DayuseCard
+                  key={item._id || item.id}
+                  item={item}
+                  lang={lang}
+                  wishlistIds={wishlistIds}
+                  handleCardClick={handleCardClick}
+                  handleWishlistToggle={handleWishlistToggle}
+                  destinations={destinations}
+                />
+              ))}
+            </div>
+          )
         ) : (
           <div className="empty-state">
             <i className="fa-solid fa-box-open"></i>

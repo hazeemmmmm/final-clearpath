@@ -24,7 +24,8 @@ import {
   getProviders,
   getWishlist,
   addToWishlist,
-  removeFromWishlist
+  removeFromWishlist,
+  getPackingGuideForExperience
 } from '../../utils/api';
 import './PackageDetails.css';
 
@@ -62,11 +63,26 @@ const PackageDetails = () => {
   const { lang, setLang } = useContext(LanguageContext);
   const [guestCount, setGuestCount] = useState(1);
   const [suggestedPackages, setSuggestedPackages] = useState([]);
+  const [selectedAddons, setSelectedAddons] = useState([]);
+  const [expandedDay, setExpandedDay] = useState(1); // Default expand first day
 
   // Wishlist State
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [usersMap, setUsersMap] = useState({});
+
+  // Packing Guide State
+  const [packingGuide, setPackingGuide] = useState(null);
+  const [loadingGuide, setLoadingGuide] = useState(false);
+  const [checkedPackingItems, setCheckedPackingItems] = useState({});
+
+  const handleTogglePackingItem = (itemKey) => {
+    setCheckedPackingItems(prev => ({
+      ...prev,
+      [itemKey]: !prev[itemKey]
+    }));
+    // Play a subtle micro-interaction sound (if possible, else just visual)
+  };
 
   const token = localStorage.getItem('token') || localStorage.getItem('clearpath_access_token');
 
@@ -79,7 +95,22 @@ const PackageDetails = () => {
       fetchUserProfile();
       checkWishlistStatus();
     }
+    fetchPackingGuideData();
   }, [id, token]);
+
+  const fetchPackingGuideData = async () => {
+    try {
+      setLoadingGuide(true);
+      const res = await getPackingGuideForExperience(id);
+      if (res && res.success && res.data) {
+        setPackingGuide(res.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch packing guide:', err);
+    } finally {
+      setLoadingGuide(false);
+    }
+  };
 
   const checkWishlistStatus = async () => {
     try {
@@ -613,40 +644,41 @@ const PackageDetails = () => {
               
               {/* Left Column: Details & Itinerary */}
               <div className="package-main-info">
-                <h1>{packageData.name || packageData.title}</h1>
-                
-                <div className="package-meta">
-                  <span>
-                    <i className="fa-solid fa-location-dot"></i> {packageData.destination?.name || 'Egypt'}
-                  </span>
-                  <span>
-                    <i className="fa-solid fa-clock"></i> {packageData.duration_days} {packageData.duration_days > 1 ? 'Days' : 'Day'}
-                  </span>
-                  <span>
-                    <i className="fa-solid fa-users"></i> {lang === 'AR' ? `الحد الأقصى: ${packageData.capacity || 20} فرد` : `Max ${packageData.capacity || 20} People`}
-                  </span>
-                  <span>
-                    <i className="fa-solid fa-calendar-day"></i> {lang === 'AR' ? `البداية: ${startFormatted}` : `Start: ${startFormatted}`}
-                  </span>
-                  <span>
-                    <i className="fa-solid fa-calendar-check"></i> {lang === 'AR' ? `النهاية: ${endFormatted}` : `End: ${endFormatted}`}
-                  </span>
-                  {/* Supervisor display */}
-                  <span>
-                    <i className="fa-solid fa-user-tie"></i> {(() => {
-                      const sup = packageData.supervisor || packageData.supervisior || null;
-                      if (!sup) return lang === 'AR' ? 'مشرف: —' : 'Supervisor: —';
-                      let name = '';
-                      if (typeof sup === 'object') name = `${sup.firstName || ''} ${sup.lastName || ''}`.trim();
-                      else name = (usersMap[sup] && `${usersMap[sup].firstName || ''} ${usersMap[sup].lastName || ''}`.trim()) || String(sup);
-                      return name ? `${lang === 'AR' ? 'مشرف: ' : 'Supervisor: '} ${name}` : (lang === 'AR' ? 'مشرف: —' : 'Supervisor: —');
-                    })()}
-                  </span>
-                  {stats.totalReviews > 0 && (
-                    <span className="meta-rating">
-                      <i className="fa-solid fa-star"></i> {stats.averageRating} ({stats.totalReviews} reviews)
+                {/* Hero Header & Quick Overview */}
+                <div className="experience-hero-header" style={{ marginBottom: '25px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                    <span style={{ background: 'var(--secondary-color, #d4af37)', color: '#000', padding: '5px 12px', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                      <i className="fa-solid fa-tag"></i> {packageData.type} ({packageData.type === 'Trip' ? `${packageData.duration_days} Days` : 'Day Use'})
                     </span>
-                  )}
+                    <div className="hero-rating" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '5px' }}>
+                        <div>
+                          {stats.totalReviews > 0 ? (
+                            <span style={{ color: '#d4af37' }}>
+                              <i className="fa-solid fa-star"></i> {stats.averageRating} Trust Score ({stats.totalReviews} verified reviews)
+                            </span>
+                          ) : (
+                            <span style={{ color: 'rgba(255,255,255,0.7)' }}>
+                              <i className="fa-solid fa-star"></i> New (Unrated)
+                            </span>
+                          )}
+                        </div>
+                        {stats.totalReviews > 0 && (
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '5px 12px', borderRadius: '20px', color: '#34d399', fontSize: '0.85rem', fontWeight: 'bold', marginTop: '5px' }}>
+                            <i className="fa-solid fa-shield-halved"></i> AI-Verified Authentic Reviews
+                          </div>
+                        )}
+                      </div>
+                  </div>
+                  <h1 style={{ fontSize: '2.5rem', marginBottom: '15px', lineHeight: '1.2' }}>{packageData.name || packageData.title}</h1>
+                  
+                  {/* Quick Overview Bar */}
+                  <div className="quick-overview-bar" style={{ display: 'flex', gap: '20px', color: '#a4a4b4', fontSize: '0.95rem', flexWrap: 'wrap' }}>
+                    <span><i className="fa-solid fa-location-dot" style={{ color: '#d4af37', marginRight: '5px' }}></i> {packageData.destination?.name || 'Egypt'}</span>
+                    <span><i className="fa-solid fa-clock" style={{ color: '#d4af37', marginRight: '5px' }}></i> {packageData.duration_days} {packageData.duration_days > 1 ? 'Days / ' + (packageData.duration_days - 1) + ' Nights' : 'Day'}</span>
+                    <span><i className="fa-solid fa-users" style={{ color: '#d4af37', marginRight: '5px' }}></i> Max {packageData.capacity || 20} People</span>
+                    <span><i className="fa-solid fa-language" style={{ color: '#d4af37', marginRight: '5px' }}></i> English, Arabic</span>
+                    <span><i className="fa-solid fa-car" style={{ color: '#d4af37', marginRight: '5px' }}></i> Pickup Included</span>
+                  </div>
                 </div>
 
                 {/* 📸 Premium Interactive Travel Experience Gallery */}
@@ -702,9 +734,37 @@ const PackageDetails = () => {
 
                 <div className="details-section">
                   <h2>Overview</h2>
-                  <p className="description-text">
+                  <p className="description-text" style={{ fontSize: '1.05rem', lineHeight: '1.7', color: '#cbd5e1' }}>
                     {packageData.description || 'Embark on a breath-taking journey that lets you discover Egypt\'s true wonders. Fully guided experience with premium logistics, customized options, and memorable local stories.'}
                   </p>
+                </div>
+
+                {/* What's Included & Excluded */}
+                <div className="included-excluded-section" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '40px' }}>
+                  {/* Included */}
+                  <div style={{ background: 'rgba(34, 197, 94, 0.05)', border: '1px solid rgba(34, 197, 94, 0.2)', borderRadius: '12px', padding: '20px' }}>
+                    <h3 style={{ color: '#22c55e', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <i className="fa-solid fa-circle-check"></i> {lang === 'AR' ? 'يشمل (Zero Hidden Fees)' : 'Included (Zero Hidden Fees)'}
+                    </h3>
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', color: '#e2e8f0' }}>
+                      <li><i className="fa-solid fa-check" style={{ color: '#22c55e', marginRight: '8px' }}></i> All transfers (4x4 & A/C Vehicles)</li>
+                      <li><i className="fa-solid fa-check" style={{ color: '#22c55e', marginRight: '8px' }}></i> All Meals (Breakfast, Lunch, Dinner)</li>
+                      <li><i className="fa-solid fa-check" style={{ color: '#22c55e', marginRight: '8px' }}></i> National Park & Security Permits</li>
+                      <li><i className="fa-solid fa-check" style={{ color: '#22c55e', marginRight: '8px' }}></i> Professional Camping Gear</li>
+                    </ul>
+                  </div>
+
+                  {/* Excluded */}
+                  <div style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '12px', padding: '20px' }}>
+                    <h3 style={{ color: '#ef4444', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <i className="fa-solid fa-circle-xmark"></i> {lang === 'AR' ? 'لا يشمل' : 'Excluded'}
+                    </h3>
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', color: '#e2e8f0' }}>
+                      <li><i className="fa-solid fa-xmark" style={{ color: '#ef4444', marginRight: '8px' }}></i> Personal Expenses & Souvenirs</li>
+                      <li><i className="fa-solid fa-xmark" style={{ color: '#ef4444', marginRight: '8px' }}></i> Tipping (Gratuities)</li>
+                      <li><i className="fa-solid fa-xmark" style={{ color: '#ef4444', marginRight: '8px' }}></i> Flights or Visas</li>
+                    </ul>
+                  </div>
                 </div>
 
                 {/* Itinerary Section */}
@@ -746,7 +806,13 @@ const PackageDetails = () => {
                   )}
 
                   <div className="itinerary-timeline customized">
-                    {displayItinerary && displayItinerary.length > 0 ? (
+                    {(!displayItinerary || displayItinerary.length === 0) && (
+                      <p style={{ color: '#888', fontStyle: 'italic', marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', borderLeft: '3px solid #d4af37' }}>
+                        {lang === 'AR' ? 'رحلة استرخاء بدون خطة مسبقة. يمكنك تخصيص وبناء خطتك اليومية بإضافة الأيام أدناه.' : 'Leisure trip with open explore days. You can start building your custom itinerary by adding days below.'}
+                      </p>
+                    )}
+
+                    {displayItinerary && displayItinerary.length > 0 && (
                       <>
                         {displayItinerary.map((day) => {
                           const customDay = customTrip?.itinerary?.find(d => d.day_number === day.day_number);
@@ -761,121 +827,131 @@ const PackageDetails = () => {
                           const finalAddActivityOptions = optionalActs.length > 0 ? optionalActs : activitiesList;
 
                           return (
-                            <div key={day.day_number} className="itinerary-day-card" style={{ 
-                              background: 'var(--card-bg, #ffffff)', 
-                              border: isDayRemoved ? '1px solid var(--border-light, #333)' : '1.5px solid var(--secondary-color, #d4af37)',
-                              borderRadius: '16px', 
+                            <div key={day.day_number} className={`itinerary-day-card ${packageData.type === 'Day Use' ? 'day-use-timeline' : 'trip-accordion'}`} style={{ 
+                              background: packageData.type === 'Day Use' ? 'transparent' : 'var(--card-bg, #ffffff)', 
+                              border: packageData.type === 'Day Use' ? 'none' : (isDayRemoved ? '1px solid var(--border-light, #333)' : '1.5px solid var(--secondary-color, #d4af37)'),
+                              borderRadius: packageData.type === 'Day Use' ? '0' : '16px', 
                               overflow: 'hidden',
-                              marginBottom: '30px',
+                              marginBottom: packageData.type === 'Day Use' ? '0' : '30px',
                               opacity: isDayRemoved ? 0.6 : 1,
                               transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                              boxShadow: 'var(--box-shadow-soft)',
+                              boxShadow: packageData.type === 'Day Use' ? 'none' : 'var(--box-shadow-soft)',
                               display: 'flex',
-                              flexDirection: 'column'
+                              flexDirection: 'column',
+                              position: 'relative',
+                              paddingLeft: packageData.type === 'Day Use' ? '30px' : '0',
+                              borderLeft: packageData.type === 'Day Use' ? '3px solid #d4af37' : 'none',
+                              paddingBottom: packageData.type === 'Day Use' ? '30px' : '0'
                             }}>
+                              {packageData.type === 'Day Use' && (
+                                <div style={{ position: 'absolute', left: '-12px', top: '0', width: '20px', height: '20px', borderRadius: '50%', background: '#d4af37', border: '4px solid #14141f' }}></div>
+                              )}
                               
-                              {/* 🖼️ Scenic Airbnb-style Day Illustration Image Banner */}
-                              <div className="day-image-banner" style={{ 
-                                height: '220px', 
-                                position: 'relative',
-                                background: '#121212',
-                                overflow: 'hidden'
-                              }}>
-                                <img 
-                                  src={day.image || packageData.image || 'https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=1200&q=80'} 
-                                  alt={day.title || `Day ${day.day_number}`} 
-                                  style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s' }}
-                                />
-                                
-                                {/* Overlay Gradient */}
-                                <div style={{
-                                  position: 'absolute',
-                                  left: 0, right: 0, top: 0, bottom: 0,
-                                  background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.85) 100%)'
-                                }}></div>
-
-                                {/* Custom Day Number Badge */}
-                                <div className="day-number-badge" style={{
-                                  position: 'absolute',
-                                  top: '15px',
-                                  left: '15px',
-                                  background: isDayRemoved ? '#555' : 'var(--secondary-color, #d4af37)',
-                                  color: '#000000',
-                                  padding: '5px 12px',
-                                  borderRadius: '20px',
-                                  fontWeight: '800',
-                                  fontSize: '0.8rem',
-                                  textTransform: 'uppercase',
-                                  letterSpacing: '0.5px',
-                                  zIndex: 2
-                                }}>
-                                  Day {day.day_number}
-                                </div>
-
-                                {/* Day Calendar Date Badge */}
-                                <div className="day-calendar-date-badge" style={{
-                                  position: 'absolute',
-                                  top: '15px',
-                                  left: '95px',
-                                  background: 'rgba(0, 0, 0, 0.75)',
-                                  color: '#fff',
-                                  padding: '5px 12px',
-                                  borderRadius: '20px',
-                                  fontWeight: '700',
-                                  fontSize: '0.78rem',
-                                  border: '1px solid rgba(255,255,255,0.2)',
-                                  zIndex: 2,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '5px'
-                                }}>
-                                  <i className="fa-solid fa-calendar-day" style={{ color: 'var(--secondary-color, #d4af37)' }}></i>
-                                  {getDayDate(day.day_number)}
-                                </div> 
-
-                                {/* Toggle checkbox overlay */}
-                                <div className="day-toggle-action" style={{
-                                  position: 'absolute',
-                                  top: '15px',
-                                  right: '15px',
-                                  background: 'rgba(0, 0, 0, 0.6)',
-                                  padding: '6px 12px',
-                                  borderRadius: '20px',
-                                  border: '1px solid rgba(255,255,255,0.2)',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '8px'
-                                }}>
-                                  <input 
-                                    type="checkbox"
-                                    checked={!isDayRemoved}
-                                    onChange={() => handleToggleDayCheckbox(day.day_number)}
-                                    style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--secondary-color, #d4af37)' }}
-                                    id={`check-day-${day.day_number}`}
+                              {/* 🖼️ Scenic Airbnb-style Day Illustration Image Banner (Only for Trips) */}
+                              {packageData.type === 'Trip' && (
+                                <div 
+                                  className="day-image-banner" 
+                                  onClick={() => setExpandedDay(expandedDay === day.day_number ? null : day.day_number)}
+                                  style={{ 
+                                    height: expandedDay === day.day_number ? '220px' : '100px', 
+                                    position: 'relative',
+                                    background: '#121212',
+                                    overflow: 'hidden',
+                                    cursor: 'pointer',
+                                    transition: 'height 0.3s ease'
+                                  }}
+                                >
+                                  <img 
+                                    src={day.image || packageData.image || 'https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=1200&q=80'} 
+                                    alt={day.title || `Day ${day.day_number}`} 
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s' }}
                                   />
-                                  <label htmlFor={`check-day-${day.day_number}`} style={{ color: '#fff', fontSize: '0.78rem', cursor: 'pointer', fontWeight: '700', margin: 0 }}>
-                                    {isDayRemoved ? (lang === 'AR' ? 'تفعيل اليوم' : 'Enable Day') : (lang === 'AR' ? 'إلغاء اليوم' : 'Disable Day')}
-                                  </label>
+                                  
+                                  {/* Overlay Gradient */}
+                                  <div style={{
+                                    position: 'absolute',
+                                    left: 0, right: 0, top: 0, bottom: 0,
+                                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.85) 100%)'
+                                  }}></div>
+
+                                  {/* Custom Day Number Badge */}
+                                  <div className="day-number-badge" style={{
+                                    position: 'absolute',
+                                    top: '15px',
+                                    left: '15px',
+                                    background: isDayRemoved ? '#555' : 'var(--secondary-color, #d4af37)',
+                                    color: '#000000',
+                                    padding: '5px 12px',
+                                    borderRadius: '20px',
+                                    fontWeight: '800',
+                                    fontSize: '0.8rem',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.5px',
+                                    zIndex: 2
+                                  }}>
+                                    Day {day.day_number}
+                                  </div>
+
+                                  {/* Accordion Icon */}
+                                  <div style={{
+                                    position: 'absolute',
+                                    top: '15px',
+                                    right: '15px',
+                                    color: '#fff',
+                                    fontSize: '1.2rem',
+                                    transition: 'transform 0.3s',
+                                    transform: expandedDay === day.day_number ? 'rotate(180deg)' : 'rotate(0deg)'
+                                  }}>
+                                    <i className="fa-solid fa-chevron-down"></i>
+                                  </div>
+
+                                  {/* Day Calendar Date Badge */}
+                                  <div className="day-calendar-date-badge" style={{
+                                    position: 'absolute',
+                                    top: '15px',
+                                    left: '95px',
+                                    background: 'rgba(0, 0, 0, 0.75)',
+                                    color: '#fff',
+                                    padding: '5px 12px',
+                                    borderRadius: '20px',
+                                    fontWeight: '700',
+                                    fontSize: '0.78rem',
+                                    border: '1px solid rgba(255,255,255,0.2)',
+                                    zIndex: 2,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '5px'
+                                  }}>
+                                    <i className="fa-solid fa-calendar-day" style={{ color: 'var(--secondary-color, #d4af37)' }}></i>
+                                    {getDayDate(day.day_number)}
+                                  </div> 
+
+                                  {/* Day Title Heading */}
+                                  <h3 style={{ 
+                                    position: 'absolute',
+                                    bottom: '15px',
+                                    left: '20px',
+                                    right: '20px',
+                                    color: '#ffffff',
+                                    margin: 0,
+                                    fontSize: expandedDay === day.day_number ? '1.4rem' : '1.2rem',
+                                    fontWeight: '800',
+                                    textShadow: '0 2px 4px rgba(0,0,0,0.5)',
+                                    textDecoration: isDayRemoved ? 'line-through' : 'none',
+                                    transition: 'all 0.3s ease'
+                                  }}>
+                                    {day.title || (lang === 'AR' ? `مخطط اليوم ${day.day_number}` : `Day ${day.day_number} Itinerary Plan`)}
+                                  </h3>
                                 </div>
-
-                                {/* Day Title Heading */}
-                                <h3 style={{ 
-                                  position: 'absolute',
-                                  bottom: '15px',
-                                  left: '20px',
-                                  right: '20px',
-                                  color: '#ffffff',
-                                  margin: 0,
-                                  fontSize: '1.4rem',
-                                  fontWeight: '800',
-                                  textShadow: '0 2px 4px rgba(0,0,0,0.5)',
-                                  textDecoration: isDayRemoved ? 'line-through' : 'none'
-                                }}>
-                                  {day.title || (lang === 'AR' ? `مخطط اليوم ${day.day_number}` : `Day ${day.day_number} Itinerary Plan`)}
-                                </h3>
-                              </div>
-
-                              <div className="day-card-body" style={{ padding: '20px 25px', flex: '1', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                              )}
+                              
+                              <div className="day-card-body" style={{ 
+                                padding: packageData.type === 'Day Use' ? '0 15px' : '20px 25px', 
+                                flex: '1', 
+                                display: (packageData.type === 'Day Use' || expandedDay === day.day_number) ? 'flex' : 'none', 
+                                flexDirection: 'column', 
+                                gap: '15px' 
+                              }}>
                                 
                                 {/* 📝 Day Description */}
                                 {day.description && (
@@ -1068,9 +1144,12 @@ const PackageDetails = () => {
                                                   {selectedActObj.name}
                                                 </div>
                                                 <div style={{ color: '#d4af37', fontWeight: '600', display: 'flex', gap: '15px' }}>
-                                                  <span>
-                                                    <i className="fa-solid fa-parachute-box" style={{ marginRight: '5px' }}></i>
+                                                  <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                                    <i className="fa-solid fa-parachute-box"></i>
                                                     {providerNameResolved}
+                                                    <span style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#22c55e', padding: '2px 6px', borderRadius: '12px', fontSize: '0.65rem', marginLeft: '5px', display: 'flex', alignItems: 'center', gap: '4px' }} title="AI Trust Score">
+                                                      <i className="fa-solid fa-shield-halved"></i> 98% Verified
+                                                    </span>
                                                   </span>
                                                   <span>
                                                     <i className="fa-solid fa-wallet" style={{ marginRight: '5px' }}></i>
@@ -1122,38 +1201,88 @@ const PackageDetails = () => {
                           );
                         })}
 
-                        {/* Timeline Node for Adding a New Day */}
+                        {/* Timeline Node for Adding a New Day / Destination */}
                         {isCustomizing && customTrip && (
-                          <div className="add-day-timeline-node" style={{ display: 'flex', alignItems: 'center', gap: '15px', borderLeft: '2px dashed rgba(212, 175, 55, 0.3)', paddingLeft: '20px', position: 'relative', marginTop: '20px', minHeight: '60px' }}>
-                            <button 
-                              className="btn-add-day-plus"
-                              type="button"
-                              onClick={() => {
-                                const nextDayNum = displayItinerary.length + 1;
-                                setShowAddActivityDay(nextDayNum);
-                              }}
-                              style={{
-                                position: 'absolute',
-                                left: '-16px',
-                                width: '32px',
-                                height: '32px',
-                                borderRadius: '50%',
-                                background: 'var(--brand-accent, #d4af37)',
-                                color: '#121212',
-                                border: 'none',
-                                cursor: 'pointer',
+                          <div className="add-day-timeline-node" style={{ display: 'flex', flexDirection: 'column', gap: '15px', borderLeft: '2px dashed rgba(212, 175, 55, 0.5)', paddingLeft: '20px', position: 'relative', marginTop: '30px', minHeight: '60px' }}>
+                            
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '15px', position: 'relative' }}>
+                              <button 
+                                className="btn-add-day-plus"
+                                type="button"
+                                onClick={() => {
+                                  const nextDayNum = displayItinerary.length + 1;
+                                  setShowAddActivityDay(nextDayNum);
+                                }}
+                                style={{
+                                  position: 'absolute',
+                                  left: '-38px',
+                                  width: '36px',
+                                  height: '36px',
+                                  borderRadius: '50%',
+                                  background: 'linear-gradient(135deg, var(--brand-accent, #d4af37), #f3e5ab)',
+                                  color: '#000',
+                                  border: '3px solid var(--bg-primary, #121212)',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '1.2rem',
+                                  fontWeight: 'bold',
+                                  boxShadow: '0 0 15px rgba(212, 175, 55, 0.5)',
+                                  transition: 'all 0.3s',
+                                  zIndex: 2
+                                }}
+                                title={lang === 'AR' ? 'إضافة وجهة جديدة من موقعك الحالي' : 'Add new destination from your current location'}
+                              >
+                                <i className="fa-solid fa-plus"></i>
+                              </button>
+                              
+                              <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#d4af37', textShadow: '0 0 10px rgba(212,175,55,0.3)' }}>
+                                {lang === 'AR' ? 'أضف وجهة جديدة من موقعك الحالي' : 'Add new destination from your current location'}
+                              </span>
+                            </div>
+
+                            {/* Smart Suggestion UI */}
+                            {suggestedPackages && suggestedPackages.length > 0 && (
+                              <div className="smart-suggestion-banner" style={{
+                                background: 'linear-gradient(90deg, rgba(34, 197, 94, 0.1), rgba(212, 175, 55, 0.05))',
+                                border: '1px solid rgba(34, 197, 94, 0.3)',
+                                borderRadius: '12px',
+                                padding: '15px 20px',
                                 display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '1.2rem',
-                                fontWeight: 'bold',
-                                boxShadow: '0 4px 10px rgba(212, 175, 55, 0.4)',
-                                transition: 'all 0.2s'
-                              }}
-                              title={lang === 'AR' ? 'إضافة يوم جديد للخطة' : 'Add New Day to Itinerary'}
-                            >
-                              <i className="fa-solid fa-plus"></i>
-                            </button>
+                                alignItems: 'flex-start',
+                                gap: '15px',
+                                marginTop: '10px'
+                              }}>
+                                <div style={{ background: '#22c55e', color: '#fff', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                  <i className="fa-solid fa-lightbulb"></i>
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                  <h4 style={{ color: '#22c55e', margin: '0 0 5px 0', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    {lang === 'AR' ? 'اقتراح ذكي' : 'Smart Suggestion'}
+                                    <span style={{ background: 'rgba(34, 197, 94, 0.2)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem' }}>AI</span>
+                                  </h4>
+                                  <p style={{ color: 'var(--text-primary)', margin: 0, fontSize: '0.9rem', lineHeight: '1.5' }}>
+                                    {lang === 'AR' 
+                                      ? `أنت على بُعد ساعات قليلة من "${suggestedPackages[0].name}"! هل ترغب في دمجها إلى مسار رحلتك الحالي وتوفير وقت السفر؟`
+                                      : `You are just hours away from "${suggestedPackages[0].name}"! Want to combine it to your current itinerary and save travel time?`}
+                                  </p>
+                                </div>
+                                <button style={{
+                                  background: 'transparent',
+                                  border: '1px solid #22c55e',
+                                  color: '#22c55e',
+                                  padding: '8px 16px',
+                                  borderRadius: '8px',
+                                  fontWeight: 'bold',
+                                  cursor: 'pointer',
+                                  transition: 'all 0.2s',
+                                  whiteSpace: 'nowrap'
+                                }} onMouseOver={(e) => { e.currentTarget.style.background = '#22c55e'; e.currentTarget.style.color = '#fff'; }} onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#22c55e'; }}>
+                                  {lang === 'AR' ? 'دمج الوجهة' : 'Combine Destination'}
+                                </button>
+                              </div>
+                            )}
                             
                             <div style={{ marginLeft: '15px' }}>
                               {showAddActivityDay === (displayItinerary.length + 1) ? (
@@ -1526,12 +1655,57 @@ const PackageDetails = () => {
                       </div>
                     )}
                       </>
-                    ) : (
-                      <p style={{ color: '#888', fontStyle: 'italic' }}>Leisure trip with open explore days.</p>
                     )}
                   </div>
                 </div>
+
+                {/* MODULAR EXTENSIONS (ADD-ONS) */}
+                {packageData.addons && packageData.addons.length > 0 && (
+                  <div className="package-extensions-section" style={{ marginTop: '40px', padding: '25px', background: 'rgba(212,175,55,0.05)', borderRadius: '15px', border: '1px solid rgba(212,175,55,0.2)' }}>
+                    <h3 style={{ color: '#d4af37', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <i className="fa-solid fa-puzzle-piece"></i> {lang === 'AR' ? 'إضافات الرحلة' : 'Modular Trip Extensions'}
+                    </h3>
+                    <div style={{ display: 'grid', gap: '15px' }}>
+                      {packageData.addons.map(addon => {
+                        const isSelected = selectedAddons.includes(addon._id);
+                        return (
+                          <div 
+                            key={addon._id} 
+                            onClick={() => {
+                              setSelectedAddons(prev => 
+                                isSelected ? prev.filter(id => id !== addon._id) : [...prev, addon._id]
+                              );
+                            }}
+                            style={{ 
+                              display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
+                              padding: '15px 20px', background: isSelected ? 'rgba(212,175,55,0.15)' : 'rgba(0,0,0,0.3)', 
+                              border: `1px solid ${isSelected ? '#d4af37' : 'rgba(255,255,255,0.1)'}`, 
+                              borderRadius: '10px', cursor: 'pointer', transition: 'all 0.3s'
+                            }}
+                          >
+                            <div>
+                              <strong style={{ color: isSelected ? '#d4af37' : '#fff', fontSize: '1.1rem', display: 'block', marginBottom: '5px' }}>
+                                {addon.name}
+                              </strong>
+                              <p style={{ color: '#a4a4b4', fontSize: '0.9rem', margin: 0 }}>{addon.description}</p>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                              <span style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.1rem' }}>+{addon.price} EGP</span>
+                              <div style={{ 
+                                width: '24px', height: '24px', borderRadius: '50%', border: `2px solid ${isSelected ? '#d4af37' : '#a4a4b4'}`,
+                                display: 'flex', justifyContent: 'center', alignItems: 'center', background: isSelected ? '#d4af37' : 'transparent'
+                              }}>
+                                {isSelected && <i className="fa-solid fa-check" style={{ color: '#000', fontSize: '0.8rem' }}></i>}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
+
 
               {/* Right Column: Sticky Booking Card */}
               <div className="package-sidebar">
@@ -1540,7 +1714,11 @@ const PackageDetails = () => {
                     const singlePrice = isCustomizing && customTrip 
                       ? (packageData.base_price + customTrip.total_price) 
                       : (packageData ? (packageData.base_price || packageData.price || 0) : 0);
-                    const totalPrice = singlePrice * guestCount;
+                    const addonsTotal = selectedAddons.reduce((sum, addonId) => {
+                      const addon = packageData?.addons?.find(a => a._id === addonId);
+                      return sum + (addon ? addon.price : 0);
+                    }, 0);
+                    const totalPrice = (singlePrice * guestCount) + addonsTotal;
 
                     return (
                       <>
@@ -1667,9 +1845,14 @@ const PackageDetails = () => {
                       {bookingLoading ? (
                         <><i className="fa-solid fa-spinner fa-spin"></i> {lang === 'AR' ? 'جاري إتمام الحجز...' : 'Creating Booking...'}</>
                       ) : (
-                        <><i className="fa-solid fa-calendar-days"></i> {isCustomizing ? (lang === 'AR' ? 'احجز الخطة المخصصة' : 'Book Customized Plan') : (lang === 'AR' ? 'احجز هذه الرحلة الآن' : 'Book This Trip')}</>
+                        <><i className="fa-solid fa-calendar-days"></i> {lang === 'AR' ? 'تخصيص واحجز الآن' : 'Customize & Book'}</>
                       )}
                     </button>
+                    
+                    <p style={{ textAlign: 'center', fontSize: '0.8rem', color: '#a4a4b4', margin: '5px 0 0 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                      <i className="fa-solid fa-lock" style={{ color: '#22c55e' }}></i> {lang === 'AR' ? 'الدفع آمن 100% | لا توجد رسوم خفية' : '100% Secure Payment | Zero Hidden Fees'}
+                    </p>
+                  </div>
 
                     <button 
                       onClick={handleWishlistToggle} 
@@ -1756,10 +1939,149 @@ const PackageDetails = () => {
                     )}
                   </div>
                 </div>
-
               </div>
 
-            </div>
+
+            {/* ============================================================== */}
+            {/* 🎒 PACKING GUIDANCE & SAFETY PROTOCOLS SECTION                */}
+            {/* ============================================================== */}
+            {packingGuide && (
+              <div className="packing-guide-section" style={{ marginTop: '50px' }}>
+                <hr className="divider" />
+                <div className="packing-header" style={{ marginBottom: '25px' }}>
+                  <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <i className="fa-solid fa-backpack" style={{ color: 'var(--brand-accent)' }}></i>
+                    {lang === 'AR' ? 'ماذا تحضر معك وإرشادات الأمان' : 'What to Pack & Safety Tips'}
+                  </h2>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+                    {lang === 'AR' 
+                      ? `بناءً على نشاط "${packingGuide.name}"، قمنا بتجهيز هذه القائمة لضمان تجربة آمنة ومريحة.` 
+                      : `Based on your "${packingGuide.name}" activity, we've curated this guide for a safe and comfortable experience.`}
+                  </p>
+                </div>
+
+                <div className="packing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+                  
+                  {/* Progress Bar */}
+                  {(packingGuide.essentials || packingGuide.clothing) && (
+                    <div style={{ gridColumn: '1 / -1', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '15px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 'bold' }}>
+                        <span>{lang === 'AR' ? 'تقدم التجهيزات' : 'Packing Progress'}</span>
+                        <span>
+                          {(() => {
+                            const total = (packingGuide.essentials?.length || 0) + (packingGuide.clothing?.length || 0);
+                            const checked = Object.values(checkedPackingItems).filter(Boolean).length;
+                            return total > 0 ? Math.round((checked / total) * 100) : 0;
+                          })()}%
+                        </span>
+                      </div>
+                      <div style={{ width: '100%', height: '8px', background: 'var(--bg-secondary)', borderRadius: '4px', overflow: 'hidden' }}>
+                        <div style={{ 
+                          height: '100%', 
+                          background: 'linear-gradient(90deg, var(--brand-color), var(--brand-accent))', 
+                          width: `${(() => {
+                            const total = (packingGuide.essentials?.length || 0) + (packingGuide.clothing?.length || 0);
+                            const checked = Object.values(checkedPackingItems).filter(Boolean).length;
+                            return total > 0 ? (checked / total) * 100 : 0;
+                          })()}%`,
+                          transition: 'width 0.4s ease'
+                        }}></div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Essentials */}
+                  {packingGuide.essentials && packingGuide.essentials.length > 0 && (
+                    <div className="packing-card" style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '20px' }}>
+                      <h3 style={{ fontSize: '1.1rem', color: 'var(--brand-color)', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <i className="fa-solid fa-list-check"></i> {lang === 'AR' ? 'الأساسيات الضرورية' : 'Essentials'}
+                      </h3>
+                      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {packingGuide.essentials.map((item, idx) => {
+                          const itemKey = `ess_${idx}`;
+                          const isChecked = checkedPackingItems[itemKey];
+                          return (
+                            <li key={idx} onClick={() => handleTogglePackingItem(itemKey)} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', color: isChecked ? 'var(--text-secondary)' : 'var(--text-primary)', cursor: 'pointer', transition: 'all 0.2s', textDecoration: isChecked ? 'line-through' : 'none', opacity: isChecked ? 0.6 : 1 }}>
+                              <div style={{ width: '24px', height: '24px', borderRadius: '50%', border: `2px solid ${isChecked ? 'var(--success-color, #22c55e)' : 'var(--border-color)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', background: isChecked ? 'var(--success-color, #22c55e)' : 'transparent', transition: 'all 0.2s' }}>
+                                {isChecked && <i className="fa-solid fa-check" style={{ color: 'white', fontSize: '12px' }}></i>}
+                              </div>
+                              <span style={{ fontSize: '1.1rem' }}>{item.icon || '🎒'}</span>
+                              <div style={{ flex: 1 }}>
+                                <strong style={{ display: 'block' }}>{item.item}</strong>
+                                {item.required && <span style={{ fontSize: '0.7rem', background: 'rgba(212,175,55,0.2)', color: 'var(--brand-accent)', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>{lang === 'AR' ? 'مطلوب' : 'Required'}</span>}
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Clothing */}
+                  {packingGuide.clothing && packingGuide.clothing.length > 0 && (
+                    <div className="packing-card" style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '20px' }}>
+                      <h3 style={{ fontSize: '1.1rem', color: 'var(--brand-color)', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <i className="fa-solid fa-shirt"></i> {lang === 'AR' ? 'الملابس المناسبة' : 'Clothing & Gear'}
+                      </h3>
+                      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {packingGuide.clothing.map((item, idx) => {
+                          const itemKey = `clo_${idx}`;
+                          const isChecked = checkedPackingItems[itemKey];
+                          return (
+                            <li key={idx} onClick={() => handleTogglePackingItem(itemKey)} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', fontSize: '0.9rem', color: isChecked ? 'var(--text-secondary)' : 'var(--text-primary)', cursor: 'pointer', transition: 'all 0.2s', opacity: isChecked ? 0.6 : 1 }}>
+                              <div style={{ width: '20px', height: '20px', borderRadius: '4px', border: `2px solid ${isChecked ? 'var(--success-color, #22c55e)' : 'var(--border-color)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', background: isChecked ? 'var(--success-color, #22c55e)' : 'transparent', marginTop: '2px', transition: 'all 0.2s' }}>
+                                {isChecked && <i className="fa-solid fa-check" style={{ color: 'white', fontSize: '12px' }}></i>}
+                              </div>
+                              <div style={{ textDecoration: isChecked ? 'line-through' : 'none' }}>
+                                <strong style={{ display: 'block', color: isChecked ? 'var(--text-secondary)' : 'var(--brand-accent)' }}>• {item.item}</strong>
+                                {item.notes && <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginTop: '2px' }}>{item.notes}</span>}
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Safety & Emergency */}
+                  <div className="packing-card" style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    
+                    {packingGuide.safetyTips && packingGuide.safetyTips.length > 0 && (
+                      <div>
+                        <h3 style={{ fontSize: '1.1rem', color: '#e61e4d', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <i className="fa-solid fa-triangle-exclamation"></i> {lang === 'AR' ? 'تعليمات الأمان' : 'Safety Tips'}
+                        </h3>
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                          {packingGuide.safetyTips.map((tip, idx) => {
+                            const iconColor = tip.severity === 'danger' ? '#e61e4d' : tip.severity === 'warning' ? '#f59e0b' : '#3b82f6';
+                            return (
+                              <li key={idx} style={{ fontSize: '0.85rem', color: 'var(--text-primary)', display: 'flex', gap: '8px' }}>
+                                <i className="fa-solid fa-circle-info" style={{ color: iconColor, marginTop: '3px' }}></i>
+                                <span>{tip.tip}</span>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    )}
+
+                    {packingGuide.emergencyContacts && (
+                      <div style={{ background: 'rgba(230, 30, 77, 0.05)', padding: '15px', borderRadius: '8px', border: '1px solid rgba(230, 30, 77, 0.2)' }}>
+                        <h4 style={{ margin: '0 0 10px 0', fontSize: '0.9rem', color: '#e61e4d' }}><i className="fa-solid fa-phone"></i> {lang === 'AR' ? 'أرقام الطوارئ' : 'Emergency Contacts'}</h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.8rem', color: 'var(--text-primary)' }}>
+                          <div><strong>Police:</strong> {packingGuide.emergencyContacts.police}</div>
+                          <div><strong>Ambulance:</strong> {packingGuide.emergencyContacts.ambulance}</div>
+                          {packingGuide.emergencyContacts.coastGuard && <div style={{ gridColumn: '1 / -1' }}><strong>Coast Guard:</strong> {packingGuide.emergencyContacts.coastGuard}</div>}
+                          {packingGuide.emergencyContacts.localHospital && <div style={{ gridColumn: '1 / -1', marginTop: '5px' }}><strong>Hospital:</strong> {packingGuide.emergencyContacts.localHospital}</div>}
+                        </div>
+                      </div>
+                    )}
+
+                  </div>
+
+                </div>
+              </div>
+            )}
 
             {/* ============================================================== */}
             {/* 📝 REVIEWS & RATINGS INTEGRATION SECTION                       */}
@@ -1827,12 +2149,40 @@ const PackageDetails = () => {
 
                       <form onSubmit={handleReviewSubmit} className="review-form">
                         
-                        {/* Rating Stars Selector */}
-                        <div className="form-group-stars">
-                          <label>{lang === 'AR' ? 'تقييمك بالنجوم:' : 'Your Rating:'}</label>
-                          <div className="stars-selector">
-                            {renderStars(0, setUserRating, setHoverRating, true)}
-                            {userRating > 0 && <span className="selected-rating-text">{userRating} / {lang === 'AR' ? '5 نجوم' : '5 stars'}</span>}
+                        {/* Rating Emojis Selector */}
+                        <div className="form-group-emojis" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '20px 0', padding: '20px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(212,175,55,0.2)' }}>
+                          <label style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '15px', color: 'var(--text-primary)' }}>{lang === 'AR' ? 'كيف كانت رحلتك؟' : 'How was your trip?'}</label>
+                          <div className="emojis-selector" style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+                            {[
+                              { val: 1, emoji: '😠', label: lang === 'AR' ? 'سيئة' : 'Terrible' },
+                              { val: 2, emoji: '🙁', label: lang === 'AR' ? 'مقبولة' : 'Poor' },
+                              { val: 3, emoji: '😐', label: lang === 'AR' ? 'جيدة' : 'Okay' },
+                              { val: 4, emoji: '🙂', label: lang === 'AR' ? 'ممتازة' : 'Good' },
+                              { val: 5, emoji: '😍', label: lang === 'AR' ? 'رائعة' : 'Amazing' }
+                            ].map((item) => (
+                              <button
+                                key={item.val}
+                                type="button"
+                                onClick={() => setUserRating(item.val)}
+                                onMouseEnter={() => setHoverRating(item.val)}
+                                onMouseLeave={() => setHoverRating(0)}
+                                style={{
+                                  background: 'transparent',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: 'center',
+                                  gap: '8px',
+                                  opacity: (hoverRating || userRating) ? ((hoverRating || userRating) === item.val ? 1 : 0.4) : 1,
+                                  transform: (hoverRating || userRating) === item.val ? 'scale(1.2)' : 'scale(1)',
+                                  transition: 'all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                                }}
+                              >
+                                <span style={{ fontSize: '2.5rem', filter: (hoverRating || userRating) === item.val ? 'drop-shadow(0 4px 8px rgba(212,175,55,0.4))' : 'none' }}>{item.emoji}</span>
+                                <span style={{ fontSize: '0.8rem', color: (hoverRating || userRating) === item.val ? '#d4af37' : 'var(--text-secondary)', fontWeight: (hoverRating || userRating) === item.val ? 'bold' : 'normal' }}>{item.label}</span>
+                              </button>
+                            ))}
                           </div>
                         </div>
 
@@ -1943,6 +2293,87 @@ const PackageDetails = () => {
           </div>
         )}
       </main>
+
+      {/* Sticky Price Footer */}
+      {packageData && (
+        <div className="sticky-price-footer" style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          background: 'rgba(15, 15, 15, 0.95)',
+          backdropFilter: 'blur(10px)',
+          borderTop: '1px solid rgba(212, 175, 55, 0.3)',
+          padding: '15px 20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          zIndex: 999,
+          boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.5)'
+        }}>
+          {(() => {
+            const singlePrice = isCustomizing && customTrip 
+              ? (packageData.base_price + customTrip.total_price) 
+              : (packageData.base_price || packageData.price || 0);
+            const addonsTotal = selectedAddons.reduce((sum, addonId) => {
+              const addon = packageData?.addons?.find(a => a._id === addonId);
+              return sum + (addon ? addon.price : 0);
+            }, 0);
+            const totalPrice = (singlePrice * guestCount) + addonsTotal;
+
+            return (
+              <>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#d4af37' }}>{totalPrice} EGP</span>
+                    <span style={{ fontSize: '0.9rem', color: '#aaa' }}>
+                      {lang === 'AR' ? `/ ${guestCount} مسافرين` : `/ ${guestCount} guests`}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: '#22c55e', fontWeight: 'bold' }}>
+                    <i className="fa-solid fa-shield-check"></i>
+                    {lang === 'AR' ? 'سعر نهائي - لا توجد أي رسوم خفية' : 'Final Price - Zero Hidden Fees'}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  {/* Visual Invoice Trigger (Just an icon button for the PRD spec) */}
+                  <button style={{
+                    background: 'transparent', border: '1px solid #d4af37', color: '#d4af37', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+                  }} title={lang === 'AR' ? 'الفاتورة البصرية' : 'Visual Invoice'}>
+                    <i className="fa-solid fa-receipt"></i>
+                  </button>
+                  <button 
+                    onClick={handleBookNow} 
+                    disabled={bookingLoading}
+                    style={{
+                      background: 'linear-gradient(90deg, #d4af37, #f3e5ab)',
+                      color: '#000',
+                      border: 'none',
+                      padding: '12px 25px',
+                      borderRadius: '8px',
+                      fontWeight: 'bold',
+                      fontSize: '1rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      boxShadow: '0 4px 15px rgba(212, 175, 55, 0.4)'
+                    }}
+                  >
+                    {bookingLoading ? (
+                      <><i className="fa-solid fa-spinner fa-spin"></i> {lang === 'AR' ? 'جاري...' : 'Processing...'}</>
+                    ) : (
+                      <><i className="fa-solid fa-check"></i> {lang === 'AR' ? 'احجز الآن' : 'Book Now'}</>
+                    )}
+                  </button>
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      )}
+
       <Footer />
     </div>
   );

@@ -12,6 +12,9 @@ router.get("/", experienceController.getAll);
 // Supervisor can see all assigned trips and booking metrics
 router.get("/supervisor/me", authMiddleware, allowTo("supervisor"), experienceController.getSupervisorTrips);
 
+//  Get Filter Options
+router.get("/filter-options", experienceController.getFilterOptions);
+
 //  Get one experience
 router.get("/:id", experienceController.getOne);
 
@@ -34,12 +37,45 @@ router.patch(
   experienceController.update
 );
 
+
+// Duplicate experience
+router.post(
+  "/:id/duplicate",
+  authMiddleware,
+  allowTo("admin"),
+  experienceController.duplicate
+);
+
 //  Delete experience
 router.delete(
   "/:id",
   authMiddleware,
   allowTo("admin"),
   experienceController.delete
+);
+
+// 🧠 Smart Provider Match (Admin)
+router.get(
+  "/:id/providers-match",
+  authMiddleware,
+  allowTo("admin"),
+  experienceController.getProvidersMatch
+);
+
+// 📝 Assign Guide (Admin)
+router.patch(
+  "/:id/assign-guide",
+  authMiddleware,
+  allowTo("admin"),
+  experienceController.assignGuide
+);
+
+// 🌟 Toggle Featured (Admin)
+router.patch(
+  "/:id/featured",
+  authMiddleware,
+  allowTo("admin"),
+  experienceController.toggleFeatured
 );
 
 export default router;

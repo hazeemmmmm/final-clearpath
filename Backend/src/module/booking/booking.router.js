@@ -54,4 +54,11 @@ router.delete('/:bookingId',
     bookingController.deleteBooking
 );
 
+// تطبيق كود خصم
+router.post('/:bookingId/apply-coupon', 
+    authMiddleware, 
+    isValid(schema.bookingIdSchema), 
+    bookingController.applyCoupon
+);
+
 export default router;

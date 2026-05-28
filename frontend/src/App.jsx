@@ -51,7 +51,6 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/trips" element={<Trips />} />
         <Route path="/dayuse" element={<Dayuse />} />
         <Route path="/experiences" element={<Experiences />} />
@@ -59,6 +58,7 @@ function App() {
         <Route path="/package-details/:id" element={<PackageDetails />} />
         
         {/* Protected Routes */}
+        <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
         <Route path="/booking/:id/cancel" element={<ProtectedRoute><CancelConfirm /></ProtectedRoute>} />

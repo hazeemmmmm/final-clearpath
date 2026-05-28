@@ -64,40 +64,70 @@ export class ChatbotService {
 
     let aiReply = "";
 
-    // 4. Check if Gemini API Key is configured
-    const apiKey = devConfig.GEMINI_API_KEY;
-    if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY" || apiKey.trim() === "") {
-      aiReply = "⚠️ [System Notice]: Gemini API Key is not configured in dev.env. Please set GEMINI_API_KEY to start conversing with the AI assistant.";
+    // MOCK SIMULATION FOR NEGOTIATION (Graduation Project Demo)
+    const negotiationRegex = /(discount|expensive|offer|coupon|too high|cheaper|خصم|غالي|كوبون)/gi;
+    
+    // Count how many times the user mentioned negotiation words in the entire session
+    let negotiationCount = 0;
+    chatSession.messages.forEach(msg => {
+      if (msg.role === 'user') {
+        const matches = msg.content.match(negotiationRegex);
+        if (matches) negotiationCount += matches.length;
+      }
+    });
+    
+    if (negotiationCount >= 3) {
+      // User has negotiated hard enough! Generate a coupon (Max 15%)
+      const Coupon = (await import("../../db/models/coupon.model.js")).Coupon;
+      const discountPercent = Math.floor(Math.random() * 6) + 10; // 10% to 15%
+      const code = "LUXURY" + discountPercent + "X" + Math.floor(100 + Math.random() * 900);
+      
+      const newCoupon = await Coupon.create({
+        code: code,
+        discount_percentage: discountPercent,
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+        is_active: true
+      });
+
+      aiReply = `I understand that pricing is very important to you. Because you are planning your premium trip with ClearPath AI, I've managed to negotiate a special ${discountPercent}% discount just for you. 🎉\n\nPlease use the promo code **${code}** at checkout. It is valid for the next 24 hours. Let me know if you need help planning your itinerary!`;
+    } else if (userMessage.toLowerCase().match(negotiationRegex)) {
+      // Mentioned but not enough times yet
+      aiReply = "I understand you're looking for the best value! Our packages are priced to ensure premium quality and dedicated service. However, if you have a specific budget in mind, I can help you find the best options.";
     } else {
-      try {
-        // Initialize Gemini API Client
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({
-          model: "gemini-flash-latest",
-          systemInstruction: SYSTEM_INSTRUCTION,
-        });
+      // 4. Check if Gemini API Key is configured
+      const apiKey = devConfig.GEMINI_API_KEY;
+      if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY" || apiKey.trim() === "") {
+        aiReply = "I am the ClearPath AI assistant! (Mock Mode active). I can help you plan trips, find activities, and even negotiate prices. Try asking me for a discount!";
+      } else {
+        try {
+          // Initialize Gemini API Client
+          const genAI = new GoogleGenerativeAI(apiKey);
+          const model = genAI.getGenerativeModel({
+            model: "gemini-flash-latest",
+            systemInstruction: SYSTEM_INSTRUCTION,
+          });
 
-        // Convert Mongoose history to Gemini-compatible history array (excluding the newly pushed message)
-        // Gemini expects: { role: "user"|"model", parts: [{ text: "..." }] }
-        const formattedHistory = chatSession.messages
-          .slice(0, -1) // Exclude the new user message we just added
-          .map((msg) => ({
-            role: msg.role,
-            parts: [{ text: msg.content }],
-          }));
+          // Convert Mongoose history to Gemini-compatible history array (excluding the newly pushed message)
+          const formattedHistory = chatSession.messages
+            .slice(0, -1) // Exclude the new user message we just added
+            .map((msg) => ({
+              role: msg.role,
+              parts: [{ text: msg.content }],
+            }));
 
-        // Start Chat Session with history
-        const chat = model.startChat({
-          history: formattedHistory,
-        });
+          // Start Chat Session with history
+          const chat = model.startChat({
+            history: formattedHistory,
+          });
 
-        // Send the new message to get response
-        const result = await chat.sendMessage(userMessage);
-        aiReply = result.response.text();
+          // Send the new message to get response
+          const result = await chat.sendMessage(userMessage);
+          aiReply = result.response.text();
 
-      } catch (error) {
-        console.error("Gemini AI API Error:", error);
-        aiReply = `🤖 [AI Error]: Sorry, I encountered an issue while generating a response. (${error.message || "Unknown error"})`;
+        } catch (error) {
+          console.error("Gemini AI API Error:", error);
+          aiReply = `🤖 [AI Error]: Sorry, I encountered an issue while generating a response. (${error.message || "Unknown error"})`;
+        }
       }
     }
 

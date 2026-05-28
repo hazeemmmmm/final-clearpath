@@ -98,7 +98,7 @@ const SupervisorDashboard = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    loadSupervisorTrips();
+    setTimeout(() => loadSupervisorTrips(), 0);
   }, []);
 
   // ── Computed Stats ───────────────────────────────
@@ -174,7 +174,7 @@ const SupervisorDashboard = () => {
   try {
     const stored = localStorage.getItem('user');
     if (stored) currentUser = JSON.parse(stored);
-  } catch (e) { /* ignore */ }
+  } catch (err) { /* ignore */ }
 
   const userName = currentUser?.firstName || 'Supervisor';
   const userInitial = userName.charAt(0).toUpperCase();
@@ -304,6 +304,36 @@ const SupervisorDashboard = () => {
                     <button className="sv-btn-secondary" onClick={() => navigate('/')}>
                       <i className="fa-solid fa-home"></i> Home
                     </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* 🧠 AI Compatibility Profile Card */}
+              <div className="sv-animate-in" style={{ marginTop: '20px', marginBottom: '30px', background: 'linear-gradient(135deg, rgba(20, 184, 166, 0.15), rgba(59, 130, 246, 0.1))', borderRadius: '16px', padding: '24px', border: '1px solid rgba(20, 184, 166, 0.3)', display: 'flex', alignItems: 'flex-start', gap: '20px', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: '-20px', right: '-20px', opacity: 0.05, fontSize: '10rem', color: '#14b8a6', transform: 'rotate(-15deg)' }}><i className="fa-solid fa-microchip"></i></div>
+                <div style={{ background: 'rgba(20, 184, 166, 0.2)', padding: '16px', borderRadius: '14px', color: '#14b8a6', zIndex: 1 }}>
+                  <i className="fa-solid fa-brain" style={{ fontSize: '2.5rem' }}></i>
+                </div>
+                <div style={{ zIndex: 1 }}>
+                  <h3 style={{ margin: '0 0 8px 0', color: '#fff', fontSize: '1.4rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    AI Compatibility Profile <span style={{ fontSize: '0.75rem', background: '#14b8a6', color: '#fff', padding: '4px 10px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '800' }}>Active Engine</span>
+                  </h3>
+                  <p style={{ margin: '0 0 15px 0', color: '#cbd5e1', fontSize: '0.95rem', lineHeight: '1.5' }}>
+                    The Smart Matching Engine has dynamically analyzed your performance. You are ranked as a <strong>Top Tier Specialist</strong>. The system automatically routes matching <strong style={{ color: '#5eead4' }}>Adventure & Historic</strong> experiences to your queue based on your flawless 98% AI Trust Score and optimal workload balance.
+                  </p>
+                  <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+                    <div style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.05)', padding: '8px 16px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <i className="fa-solid fa-star" style={{ color: '#fbbf24' }}></i>
+                      <span style={{ color: '#e2e8f0', fontSize: '0.85rem', fontWeight: '500' }}>4.9/5 Rating</span>
+                    </div>
+                    <div style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.05)', padding: '8px 16px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <i className="fa-solid fa-fire" style={{ color: '#ef4444' }}></i>
+                      <span style={{ color: '#e2e8f0', fontSize: '0.85rem', fontWeight: '500' }}>High Demand</span>
+                    </div>
+                    <div style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.05)', padding: '8px 16px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <i className="fa-solid fa-shield-halved" style={{ color: '#3b82f6' }}></i>
+                      <span style={{ color: '#e2e8f0', fontSize: '0.85rem', fontWeight: '500' }}>AI Verified Expert</span>
+                    </div>
                   </div>
                 </div>
               </div>

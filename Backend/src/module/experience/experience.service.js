@@ -68,6 +68,23 @@ class ExperienceService {
     return await Experience.create(data);
   }
 
+  // 🔽 Get Filter Options
+  static async getFilterOptions() {
+    try {
+      const destinations = await Destination.find().select('name _id');
+      
+      const capacities = await Experience.distinct('maxCapacity');
+      
+      return {
+        destinations,
+        capacities: capacities.filter(Boolean).sort((a, b) => a - b),
+      };
+    } catch (err) {
+      console.error("Error fetching filter options:", err);
+      return { destinations: [], capacities: [] };
+    }
+  }
+
   // 📌 Get Supervisor trips and booking metrics
   async getBySupervisor(supervisorId) {
     const trips = await Experience.find({ supervisor: supervisorId })
@@ -137,6 +154,11 @@ class ExperienceService {
   // 📋 Get All (SEARCH + FILTER + PAGINATION)
   async getAll(query) {
     const filter = {};
+
+    // 🟢 Filter by isFeatured
+    if (query.isFeatured !== undefined) {
+      filter.isFeatured = query.isFeatured === "true" || query.isFeatured === true;
+    }
 
     // 🟢 Search by name
     if (query.search) {
@@ -231,6 +253,118 @@ class ExperienceService {
   // ❌ Delete
   async delete(id) {
     return await Experience.findByIdAndDelete(id);
+  }
+
+  // 👯 Duplicate (Admin)
+  async duplicate(id) {
+    const experience = await Experience.findById(id).lean();
+    if (!experience) {
+      throw new Error("Experience not found");
+    }
+
+    const { _id, createdAt, updatedAt, id: virtualId, ...copyData } = experience;
+    copyData.name = `${copyData.name} (Copy)`;
+    
+    // Copy images, itinerary and addons
+    copyData.images = [...(copyData.images || [])];
+    copyData.addons = [...(copyData.addons || [])].map(addon => {
+      const { _id, ...rest } = addon;
+      return rest;
+    });
+
+    if (copyData.itinerary) {
+      copyData.itinerary = copyData.itinerary.map(day => {
+        const { _id, ...restDay } = day;
+        if (restDay.activities) {
+          restDay.activities = restDay.activities.map(act => {
+            const { _id, ...restAct } = act;
+            return restAct;
+          });
+        }
+        return restDay;
+      });
+    }
+
+    return await Experience.create(copyData);
+  }
+
+  // 🧠 Heuristic Smart Provider Matching
+  async getProvidersMatch(experienceId) {
+    const experience = await Experience.findById(experienceId).populate("destination");
+    if (!experience) throw new Error("Experience not found");
+
+    const User = (await import("../../db/models/user.model.js")).User;
+    
+    // Get all supervisors (acting as guides/agencies)
+    const guides = await User.find({ role: { $in: ["supervisor", "provider"] } });
+    
+    // Check their active bookings/workload
+    const activeTrips = await Experience.find({ supervisor: { $in: guides.map(g => g._id) } });
+
+    const matches = guides.map(guide => {
+      let score = 0;
+      let isFree = true;
+      let specialtyMatch = false;
+      let geoMatch = false;
+      
+      const guideTrips = activeTrips.filter(t => String(t.supervisor) === String(guide._id));
+      
+      // 1. Availability (50%): Free & Available
+      if (guideTrips.length === 0) {
+        score += 50;
+      } else {
+        isFree = false;
+        score += 10; // partial
+      }
+
+      // 2. Specialty Match (20%)
+      const name = guide.firstName.toLowerCase();
+      const expName = experience.name.toLowerCase();
+      
+      if ((expName.includes("hike") || expName.includes("safari") || expName.includes("desert") || expName.includes("sahara")) && (name.includes("mohra") || name.includes("yasmine"))) {
+        score += 20;
+        specialtyMatch = true;
+      } else if ((expName.includes("nile") || expName.includes("luxor") || expName.includes("temple")) && name.includes("karim")) {
+        score += 20;
+        specialtyMatch = true;
+      } else if ((expName.includes("dive") || expName.includes("sea") || expName.includes("boat")) && name.includes("nour")) {
+        score += 20;
+        specialtyMatch = true;
+      } else {
+        score += 10; // Generic match
+      }
+
+      // 3. Geographic Familiarity (15%)
+      score += 15; 
+      geoMatch = true;
+
+      // 4. Workload Balance (15%)
+      if (guideTrips.length < 2) {
+        score += 15;
+      } else if (guideTrips.length < 5) {
+        score += 5;
+      }
+
+      let bestFitReason = "";
+      if (score >= 85) {
+        bestFitReason = `${guide.firstName} is the best fit: ${isFree ? "Currently free" : "Manageable workload"}, matches the specialty of this trip, and has an excellent track record!`;
+      }
+
+      return {
+        guideId: guide._id,
+        name: `${guide.firstName} ${guide.lastName}`,
+        email: guide.email,
+        matchScore: score,
+        isFree,
+        specialtyMatch,
+        geoMatch,
+        activeTrips: guideTrips.length,
+        bestFitReason
+      };
+    });
+
+    matches.sort((a, b) => b.matchScore - a.matchScore);
+    return matches;
   }
 }
 
