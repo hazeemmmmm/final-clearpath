@@ -179,252 +179,307 @@ const Profile = () => {
   };
 
   return (
-    <div className={`profile-page ${lang === 'AR' ? 'lang-ar' : ''}`}>
-      <Navbar lang={lang} />
+    <div className={`tw-min-h-screen tw-bg-slate-50 dark:tw-bg-[#0a0b0d] tw-transition-colors tw-duration-300 ${lang === 'AR' ? 'tw-text-right' : 'tw-text-left'} tw-font-sans`}>
+      <Navbar lang={lang} isScrolled={true} />
       
-      <main className="profile-main-container">
+      <main className="tw-max-w-7xl tw-mx-auto tw-px-4 sm:tw-px-6 lg:tw-px-8 tw-pt-32 tw-pb-16">
         {loading ? (
-          <div className="loading-spinner">
-            <i className="fa-solid fa-spinner fa-spin"></i> {lang === 'AR' ? 'جاري تحميل ملفك الشخصي...' : 'Loading profile...'}
+          <div className="tw-flex tw-flex-col tw-items-center tw-justify-center tw-py-32 tw-text-slate-400">
+            <i className="fa-solid fa-spinner fa-spin tw-text-4xl tw-text-[#dcae44] tw-mb-4"></i>
+            <p className="tw-text-lg">{lang === 'AR' ? 'جاري تحميل ملفك الشخصي...' : 'Loading profile...'}</p>
           </div>
         ) : error ? (
-          <div className="error-card">
-            <i className="fa-solid fa-circle-exclamation"></i>
-            <p>{lang === 'AR' ? 'يرجى تسجيل الدخول لعرض ملفك الشخصي.' : error}</p>
-            <Link to="/login" className="btn-back">{lang === 'AR' ? 'تسجيل الدخول الآن' : 'Log In Now'}</Link>
+          <div className="tw-flex tw-flex-col tw-items-center tw-justify-center tw-py-32 tw-text-center">
+            <div className="tw-w-20 tw-h-20 tw-bg-rose-500/10 tw-rounded-full tw-flex tw-items-center tw-justify-center tw-mb-6">
+              <i className="fa-solid fa-circle-exclamation tw-text-3xl tw-text-rose-500"></i>
+            </div>
+            <h2 className="tw-text-2xl tw-font-bold tw-text-slate-900 dark:tw-text-white tw-mb-4">
+              {lang === 'AR' ? 'يرجى تسجيل الدخول لعرض ملفك الشخصي.' : error}
+            </h2>
+            <Link to="/login" className="tw-bg-[#dcae44] hover:tw-bg-[#e5c35b] tw-text-black tw-font-bold tw-px-8 tw-py-3 tw-rounded-full tw-transition-all">
+              {lang === 'AR' ? 'تسجيل الدخول الآن' : 'Log In Now'}
+            </Link>
           </div>
         ) : (
-          <div className="profile-layout-grid">
+          <div className="tw-grid tw-grid-cols-1 lg:tw-grid-cols-4 tw-gap-8">
             
-            {/* Left Column: Sidebar / Profile Summary */}
-            <aside className="profile-summary-sidebar">
-              <div className="avatar-large">
-                {profile?.firstName?.charAt(0).toUpperCase() || 'U'}
-              </div>
-              <h3>{profile?.firstName} {profile?.lastName}</h3>
-              <p className="user-email"><i className="fa-regular fa-envelope"></i> {profile?.email}</p>
-              
-              {profile?.role && (
-                <span className={`role-badge ${profile.role.toLowerCase()}`}>
-                  {profile.role === 'admin'
-                    ? (lang === 'AR' ? 'مشرف' : 'ADMIN')
-                    : profile.role === 'supervisor'
-                    ? (lang === 'AR' ? 'مشرف جولات' : 'SUPERVISOR')
-                    : (lang === 'AR' ? 'مسافر' : 'USER')}
-                </span>
-              )}
-
-              <hr className="sidebar-divider" />
-              
-              <div className="profile-menu-navigation">
-                <button 
-                  className={`menu-nav-btn ${activeTab === 'info' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('info')}
-                >
-                  <i className="fa-solid fa-address-card"></i> {lang === 'AR' ? 'بياناتي الشخصية' : 'Personal Info'}
-                </button>
-                <button 
-                  className={`menu-nav-btn ${activeTab === 'reviews' ? 'active' : ''}`}
-                  onClick={() => { setActiveTab('reviews'); fetchReviews(); }}
-                >
-                  <i className="fa-solid fa-comment-dots"></i> {lang === 'AR' ? 'تقييماتي' : 'My Reviews'} <span className="count-bubble">{myReviews.length}</span>
-                </button>
-                {profile?.role === 'admin' && (
-                  <Link to="/admin" className="menu-nav-btn admin-link">
-                    <i className="fa-solid fa-user-shield"></i> {lang === 'AR' ? 'لوحة التحكم' : 'Admin Dashboard'}
-                  </Link>
+            {/* Sidebar */}
+            <aside className="tw-col-span-1">
+              <div className="tw-bg-white dark:tw-bg-[#15171a] tw-rounded-3xl tw-p-8 tw-shadow-sm tw-border tw-border-slate-200/50 dark:tw-border-slate-800/50 tw-flex tw-flex-col tw-items-center tw-sticky tw-top-32">
+                <div className="tw-w-28 tw-h-28 tw-rounded-full tw-bg-gradient-to-br tw-from-[#dcae44] tw-to-[#c39e2a] tw-flex tw-justify-center tw-items-center tw-text-4xl tw-font-bold tw-text-white tw-shadow-lg tw-mb-5">
+                  {profile?.firstName?.charAt(0).toUpperCase() || 'U'}
+                </div>
+                <h3 className="tw-text-xl tw-font-bold tw-text-slate-900 dark:tw-text-white tw-mb-1">{profile?.firstName} {profile?.lastName}</h3>
+                <p className="tw-text-sm tw-text-slate-500 dark:tw-text-slate-400 tw-mb-5 tw-flex tw-items-center tw-gap-2">
+                  <i className="fa-regular fa-envelope"></i> {profile?.email}
+                </p>
+                
+                {profile?.role && (
+                  <span className="tw-px-4 tw-py-1.5 tw-rounded-full tw-bg-amber-500/10 tw-text-amber-600 dark:tw-text-[#dcae44] tw-text-xs tw-font-bold tw-tracking-wider tw-uppercase tw-mb-6">
+                    {profile.role === 'admin'
+                      ? (lang === 'AR' ? 'مشرف' : 'ADMIN')
+                      : profile.role === 'supervisor'
+                      ? (lang === 'AR' ? 'مشرف جولات' : 'SUPERVISOR')
+                      : (lang === 'AR' ? 'مسافر' : 'USER')}
+                  </span>
                 )}
+
+                <div className="tw-w-full tw-h-px tw-bg-slate-200 dark:tw-bg-slate-800 tw-mb-6"></div>
+                
+                <div className="tw-w-full tw-flex tw-flex-col tw-gap-2">
+                  <button 
+                    className={`tw-w-full tw-flex tw-items-center tw-text-${lang === 'AR' ? 'right' : 'left'} tw-px-5 tw-py-3.5 tw-rounded-xl tw-font-semibold tw-transition-all ${activeTab === 'info' ? 'tw-bg-[#dcae44] tw-text-black tw-shadow-md' : 'tw-text-slate-600 dark:tw-text-slate-400 hover:tw-bg-slate-100 dark:hover:tw-bg-white/5 hover:tw-text-slate-900 dark:hover:tw-text-white'}`}
+                    onClick={() => setActiveTab('info')}
+                  >
+                    <i className={`fa-solid fa-address-card tw-w-6 ${lang === 'AR' ? 'tw-ml-2' : 'tw-mr-2'}`}></i> 
+                    {lang === 'AR' ? 'بياناتي الشخصية' : 'Personal Info'}
+                  </button>
+                  <button 
+                    className={`tw-w-full tw-flex tw-items-center tw-justify-between tw-text-${lang === 'AR' ? 'right' : 'left'} tw-px-5 tw-py-3.5 tw-rounded-xl tw-font-semibold tw-transition-all ${activeTab === 'reviews' ? 'tw-bg-[#dcae44] tw-text-black tw-shadow-md' : 'tw-text-slate-600 dark:tw-text-slate-400 hover:tw-bg-slate-100 dark:hover:tw-bg-white/5 hover:tw-text-slate-900 dark:hover:tw-text-white'}`}
+                    onClick={() => { setActiveTab('reviews'); fetchReviews(); }}
+                  >
+                    <div className="tw-flex tw-items-center">
+                      <i className={`fa-solid fa-comment-dots tw-w-6 ${lang === 'AR' ? 'tw-ml-2' : 'tw-mr-2'}`}></i> 
+                      {lang === 'AR' ? 'تقييماتي' : 'My Reviews'}
+                    </div>
+                    <span className={`tw-text-xs tw-px-2 tw-py-1 tw-rounded-full tw-font-bold ${activeTab === 'reviews' ? 'tw-bg-black/20' : 'tw-bg-slate-200 dark:tw-bg-slate-800'}`}>
+                      {myReviews.length}
+                    </span>
+                  </button>
+                  {profile?.role === 'admin' && (
+                    <Link to="/admin" className="tw-w-full tw-flex tw-items-center tw-text-rose-600 dark:tw-text-rose-400 tw-px-5 tw-py-3.5 tw-rounded-xl tw-font-semibold hover:tw-bg-rose-50 dark:hover:tw-bg-rose-500/10 tw-transition-all">
+                      <i className={`fa-solid fa-user-shield tw-w-6 ${lang === 'AR' ? 'tw-ml-2' : 'tw-mr-2'}`}></i> 
+                      {lang === 'AR' ? 'لوحة التحكم' : 'Admin Dashboard'}
+                    </Link>
+                  )}
+                </div>
               </div>
             </aside>
 
-            {/* Right Column: Tab Content */}
-            <section className="profile-tab-content">
+            {/* Main Content */}
+            <section className="tw-col-span-1 lg:tw-col-span-3 tw-space-y-8">
               
               {/* Tab 1: Personal Info */}
               {activeTab === 'info' && (
-                <div className="tab-card-container">
-                  <div className="tab-card info-tab">
-                    <div className="tab-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <>
+                  {/* Info Card */}
+                  <div className="tw-bg-white dark:tw-bg-[#15171a] tw-rounded-3xl tw-p-8 sm:tw-p-10 tw-shadow-sm tw-border tw-border-slate-200/50 dark:tw-border-slate-800/50">
+                    <div className="tw-flex tw-flex-col sm:tw-flex-row tw-justify-between tw-items-start sm:tw-items-center tw-mb-8 tw-gap-4">
                       <div>
-                        <h2>{lang === 'AR' ? 'معلومات الحساب الشخصية' : 'Personal Information'}</h2>
-                        <p className="tab-subtitle">{lang === 'AR' ? 'إدارة تفاصيل بياناتك الشخصية وإعدادات حسابك.' : 'Manage your personal details and account configurations.'}</p>
+                        <h2 className="tw-text-2xl tw-font-serif tw-font-bold tw-text-slate-900 dark:tw-text-white tw-mb-1">{lang === 'AR' ? 'معلومات الحساب' : 'Personal Information'}</h2>
+                        <p className="tw-text-slate-500 dark:tw-text-slate-400 tw-text-sm">{lang === 'AR' ? 'إدارة تفاصيل بياناتك الشخصية.' : 'Manage your personal details and account configurations.'}</p>
                       </div>
                       {!isEditing && (
-                        <button type="button" className="btn-edit-profile" onClick={() => setIsEditing(true)}>
-                          <i className="fa-solid fa-pen"></i> {lang === 'AR' ? 'تعديل الملف الشخصي' : 'Edit Profile'}
+                        <button 
+                          className="tw-flex tw-items-center tw-gap-2 tw-text-[#dcae44] tw-font-semibold hover:tw-text-[#c39e2a] tw-transition-colors tw-bg-[#dcae44]/10 tw-px-4 tw-py-2 tw-rounded-full"
+                          onClick={() => setIsEditing(true)}
+                        >
+                          <i className="fa-solid fa-pen tw-text-sm"></i> {lang === 'AR' ? 'تعديل' : 'Edit Profile'}
                         </button>
                       )}
                     </div>
 
-                    {editSuccess && <div className="profile-alert success-alert" style={{ background: 'rgba(46, 204, 113, 0.1)', color: '#2ecc71', padding: '12px', borderRadius: '8px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}><i className="fa-solid fa-circle-check"></i> {editSuccess}</div>}
-                    {editError && <div className="profile-alert error-alert" style={{ background: 'rgba(231, 76, 60, 0.1)', color: '#e74c3c', padding: '12px', borderRadius: '8px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}><i className="fa-solid fa-triangle-exclamation"></i> {editError}</div>}
+                    {editSuccess && (
+                      <div className="tw-w-full tw-bg-emerald-500/10 tw-border tw-border-emerald-500/20 tw-text-emerald-500 tw-px-4 tw-py-3 tw-rounded-xl tw-mb-8 tw-flex tw-items-center tw-gap-3">
+                        <i className="fa-solid fa-circle-check"></i> {editSuccess}
+                      </div>
+                    )}
+                    {editError && (
+                      <div className="tw-w-full tw-bg-rose-500/10 tw-border tw-border-rose-500/20 tw-text-rose-500 tw-px-4 tw-py-3 tw-rounded-xl tw-mb-8 tw-flex tw-items-center tw-gap-3">
+                        <i className="fa-solid fa-triangle-exclamation"></i> {editError}
+                      </div>
+                    )}
 
                     {isEditing ? (
-                      <form onSubmit={handleUpdateProfile} className="profile-edit-form">
-                        <div className="info-grid">
-                          <div className="info-item">
-                            <label>{lang === 'AR' ? 'الاسم الأول' : 'First Name'}</label>
+                      <form onSubmit={handleUpdateProfile}>
+                        <div className="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-6">
+                          <div className="tw-flex tw-flex-col">
+                            <label className="tw-text-[11px] tw-font-bold tw-text-slate-500 dark:tw-text-slate-400 tw-tracking-widest tw-uppercase tw-mb-2">{lang === 'AR' ? 'الاسم الأول' : 'First Name'}</label>
                             <input
                               type="text"
                               value={editForm.firstName}
                               onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
                               required
+                              className="tw-w-full tw-bg-slate-50 dark:tw-bg-[#0a0b0d] tw-border tw-border-slate-200 dark:tw-border-slate-800 tw-rounded-xl tw-px-4 tw-py-3 tw-text-slate-900 dark:tw-text-white focus:tw-outline-none focus:tw-border-[#dcae44] focus:tw-ring-1 focus:tw-ring-[#dcae44] tw-transition-all"
                             />
                           </div>
-                          <div className="info-item">
-                            <label>{lang === 'AR' ? 'الاسم الأخير' : 'Last Name'}</label>
+                          <div className="tw-flex tw-flex-col">
+                            <label className="tw-text-[11px] tw-font-bold tw-text-slate-500 dark:tw-text-slate-400 tw-tracking-widest tw-uppercase tw-mb-2">{lang === 'AR' ? 'الاسم الأخير' : 'Last Name'}</label>
                             <input
                               type="text"
                               value={editForm.lastName}
                               onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
                               required
+                              className="tw-w-full tw-bg-slate-50 dark:tw-bg-[#0a0b0d] tw-border tw-border-slate-200 dark:tw-border-slate-800 tw-rounded-xl tw-px-4 tw-py-3 tw-text-slate-900 dark:tw-text-white focus:tw-outline-none focus:tw-border-[#dcae44] focus:tw-ring-1 focus:tw-ring-[#dcae44] tw-transition-all"
                             />
                           </div>
-                          <div className="info-item">
-                            <label>{lang === 'AR' ? 'البريد الإلكتروني (لا يمكن تغييره)' : 'Email Address (Cannot change)'}</label>
-                            <div className="value-box disabled" style={{ opacity: 0.6 }}>{profile?.email || '—'}</div>
+                          <div className="tw-flex tw-flex-col">
+                            <label className="tw-text-[11px] tw-font-bold tw-text-slate-500 dark:tw-text-slate-400 tw-tracking-widest tw-uppercase tw-mb-2">{lang === 'AR' ? 'البريد الإلكتروني (ثابت)' : 'Email (Cannot change)'}</label>
+                            <div className="tw-w-full tw-bg-slate-100 dark:tw-bg-[#0a0b0d]/50 tw-border tw-border-slate-200 dark:tw-border-slate-800 tw-rounded-xl tw-px-4 tw-py-3 tw-text-slate-500 dark:tw-text-slate-500 tw-cursor-not-allowed">
+                              {profile?.email || '—'}
+                            </div>
                           </div>
-                          <div className="info-item">
-                            <label>{lang === 'AR' ? 'رقم الهاتف' : 'Phone Number'}</label>
+                          <div className="tw-flex tw-flex-col">
+                            <label className="tw-text-[11px] tw-font-bold tw-text-slate-500 dark:tw-text-slate-400 tw-tracking-widest tw-uppercase tw-mb-2">{lang === 'AR' ? 'رقم الهاتف' : 'Phone Number'}</label>
                             <input
                               type="text"
                               value={editForm.phoneNumber}
                               onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
+                              className="tw-w-full tw-bg-slate-50 dark:tw-bg-[#0a0b0d] tw-border tw-border-slate-200 dark:tw-border-slate-800 tw-rounded-xl tw-px-4 tw-py-3 tw-text-slate-900 dark:tw-text-white focus:tw-outline-none focus:tw-border-[#dcae44] focus:tw-ring-1 focus:tw-ring-[#dcae44] tw-transition-all"
                             />
                           </div>
-                          <div className="info-item">
-                            <label>{lang === 'AR' ? 'الجنس' : 'Gender'}</label>
+                          <div className="tw-flex tw-flex-col">
+                            <label className="tw-text-[11px] tw-font-bold tw-text-slate-500 dark:tw-text-slate-400 tw-tracking-widest tw-uppercase tw-mb-2">{lang === 'AR' ? 'الجنس' : 'Gender'}</label>
                             <select
                               value={editForm.gender}
                               onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
-                              style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
+                              className="tw-w-full tw-bg-slate-50 dark:tw-bg-[#0a0b0d] tw-border tw-border-slate-200 dark:tw-border-slate-800 tw-rounded-xl tw-px-4 tw-py-3 tw-text-slate-900 dark:tw-text-white focus:tw-outline-none focus:tw-border-[#dcae44] focus:tw-ring-1 focus:tw-ring-[#dcae44] tw-transition-all tw-appearance-none"
                             >
                               <option value="">{lang === 'AR' ? 'اختر الجنس' : 'Select Gender'}</option>
                               <option value="male">{lang === 'AR' ? 'ذكر' : 'Male'}</option>
                               <option value="female">{lang === 'AR' ? 'أنثى' : 'Female'}</option>
                             </select>
                           </div>
-                          <div className="info-item">
-                            <label>{lang === 'AR' ? 'الجنسية' : 'Nationality'}</label>
+                          <div className="tw-flex tw-flex-col">
+                            <label className="tw-text-[11px] tw-font-bold tw-text-slate-500 dark:tw-text-slate-400 tw-tracking-widest tw-uppercase tw-mb-2">{lang === 'AR' ? 'الجنسية' : 'Nationality'}</label>
                             <input
                               type="text"
                               value={editForm.nationality}
                               onChange={(e) => setEditForm({ ...editForm, nationality: e.target.value })}
+                              className="tw-w-full tw-bg-slate-50 dark:tw-bg-[#0a0b0d] tw-border tw-border-slate-200 dark:tw-border-slate-800 tw-rounded-xl tw-px-4 tw-py-3 tw-text-slate-900 dark:tw-text-white focus:tw-outline-none focus:tw-border-[#dcae44] focus:tw-ring-1 focus:tw-ring-[#dcae44] tw-transition-all"
                             />
                           </div>
                         </div>
-                        <div className="form-actions-row" style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
-                          <button type="submit" className="btn-save-profile" disabled={editLoading} style={{ background: 'var(--brand-color)', color: '#fff', border: 'none', cursor: 'pointer' }}>
+                        <div className="tw-flex tw-gap-4 tw-mt-8">
+                          <button type="submit" disabled={editLoading} className="tw-bg-[#dcae44] hover:tw-bg-[#e5c35b] tw-text-black tw-font-bold tw-px-8 tw-py-3 tw-rounded-xl tw-transition-all disabled:tw-opacity-50">
                             {editLoading ? <><i className="fa-solid fa-spinner fa-spin"></i> {lang === 'AR' ? 'جاري الحفظ...' : 'Saving...'}</> : (lang === 'AR' ? 'حفظ التعديلات' : 'Save Changes')}
                           </button>
-                          <button type="button" className="btn-cancel-profile" onClick={() => { setIsEditing(false); setEditError(''); setEditSuccess(''); }} style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}>
+                          <button type="button" onClick={() => { setIsEditing(false); setEditError(''); setEditSuccess(''); }} className="tw-bg-slate-200 dark:tw-bg-slate-800 hover:tw-bg-slate-300 dark:hover:tw-bg-slate-700 tw-text-slate-700 dark:tw-text-slate-300 tw-font-bold tw-px-8 tw-py-3 tw-rounded-xl tw-transition-all">
                             {lang === 'AR' ? 'إلغاء' : 'Cancel'}
                           </button>
                         </div>
                       </form>
                     ) : (
-                      <div className="info-grid">
-                        <div className="info-item">
-                          <label>{lang === 'AR' ? 'الاسم الأول' : 'First Name'}</label>
-                          <div className="value-box">{profile?.firstName || '—'}</div>
+                      <div className="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-8">
+                        <div>
+                          <p className="tw-text-xs tw-font-bold tw-text-slate-400 dark:tw-text-slate-500 tw-tracking-widest tw-uppercase tw-mb-1">{lang === 'AR' ? 'الاسم الأول' : 'First Name'}</p>
+                          <p className="tw-text-base tw-font-semibold tw-text-slate-900 dark:tw-text-white">{profile?.firstName || '—'}</p>
                         </div>
-                        <div className="info-item">
-                          <label>{lang === 'AR' ? 'الاسم الأخير' : 'Last Name'}</label>
-                          <div className="value-box">{profile?.lastName || '—'}</div>
+                        <div>
+                          <p className="tw-text-xs tw-font-bold tw-text-slate-400 dark:tw-text-slate-500 tw-tracking-widest tw-uppercase tw-mb-1">{lang === 'AR' ? 'الاسم الأخير' : 'Last Name'}</p>
+                          <p className="tw-text-base tw-font-semibold tw-text-slate-900 dark:tw-text-white">{profile?.lastName || '—'}</p>
                         </div>
-                        <div className="info-item">
-                          <label>{lang === 'AR' ? 'البريد الإلكتروني' : 'Email Address'}</label>
-                          <div className="value-box">{profile?.email || '—'}</div>
+                        <div>
+                          <p className="tw-text-xs tw-font-bold tw-text-slate-400 dark:tw-text-slate-500 tw-tracking-widest tw-uppercase tw-mb-1">{lang === 'AR' ? 'البريد الإلكتروني' : 'Email Address'}</p>
+                          <p className="tw-text-base tw-font-semibold tw-text-slate-900 dark:tw-text-white">{profile?.email || '—'}</p>
                         </div>
-                        <div className="info-item">
-                          <label>{lang === 'AR' ? 'رقم الهاتف' : 'Phone Number'}</label>
-                          <div className="value-box">{profile?.phoneNumber || '—'}</div>
+                        <div>
+                          <p className="tw-text-xs tw-font-bold tw-text-slate-400 dark:tw-text-slate-500 tw-tracking-widest tw-uppercase tw-mb-1">{lang === 'AR' ? 'رقم الهاتف' : 'Phone Number'}</p>
+                          <p className="tw-text-base tw-font-semibold tw-text-slate-900 dark:tw-text-white">{profile?.phoneNumber || '—'}</p>
                         </div>
-                        <div className="info-item">
-                          <label>{lang === 'AR' ? 'الجنس' : 'Gender'}</label>
-                          <div className="value-box">{profile?.gender === 'male' ? (lang === 'AR' ? 'ذكر' : 'Male') : profile?.gender === 'female' ? (lang === 'AR' ? 'أنثى' : 'Female') : (profile?.gender || '—')}</div>
+                        <div>
+                          <p className="tw-text-xs tw-font-bold tw-text-slate-400 dark:tw-text-slate-500 tw-tracking-widest tw-uppercase tw-mb-1">{lang === 'AR' ? 'الجنس' : 'Gender'}</p>
+                          <p className="tw-text-base tw-font-semibold tw-text-slate-900 dark:tw-text-white">
+                            {profile?.gender === 'male' ? (lang === 'AR' ? 'ذكر' : 'Male') : profile?.gender === 'female' ? (lang === 'AR' ? 'أنثى' : 'Female') : (profile?.gender || '—')}
+                          </p>
                         </div>
-                        <div className="info-item">
-                          <label>{lang === 'AR' ? 'الجنسية' : 'Nationality'}</label>
-                          <div className="value-box">{profile?.nationality || '—'}</div>
+                        <div>
+                          <p className="tw-text-xs tw-font-bold tw-text-slate-400 dark:tw-text-slate-500 tw-tracking-widest tw-uppercase tw-mb-1">{lang === 'AR' ? 'الجنسية' : 'Nationality'}</p>
+                          <p className="tw-text-base tw-font-semibold tw-text-slate-900 dark:tw-text-white">{profile?.nationality || '—'}</p>
                         </div>
                       </div>
                     )}
                   </div>
 
-                  {/* Change Password Card */}
-                  <div className="tab-card password-tab" style={{ marginTop: '30px' }}>
-                    <h2>{lang === 'AR' ? 'الأمان وكلمة المرور' : 'Security & Password'}</h2>
-                    <p className="tab-subtitle">{lang === 'AR' ? 'حافظ على أمان حسابك عن طريق تغيير كلمة المرور بشكل دوري.' : 'Keep your account secure by changing your password periodically.'}</p>
+                  {/* Password Card */}
+                  <div className="tw-bg-white dark:tw-bg-[#15171a] tw-rounded-3xl tw-p-8 sm:tw-p-10 tw-shadow-sm tw-border tw-border-slate-200/50 dark:tw-border-slate-800/50">
+                    <div className="tw-mb-8">
+                      <h2 className="tw-text-2xl tw-font-serif tw-font-bold tw-text-slate-900 dark:tw-text-white tw-mb-1">{lang === 'AR' ? 'الأمان وكلمة المرور' : 'Security & Password'}</h2>
+                      <p className="tw-text-slate-500 dark:tw-text-slate-400 tw-text-sm">{lang === 'AR' ? 'حافظ على أمان حسابك عن طريق تغيير كلمة المرور بشكل دوري.' : 'Keep your account secure by changing your password periodically.'}</p>
+                    </div>
 
-                    {passwordSuccess && <div className="profile-alert success-alert" style={{ background: 'rgba(46, 204, 113, 0.1)', color: '#2ecc71', padding: '12px', borderRadius: '8px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}><i className="fa-solid fa-circle-check"></i> {passwordSuccess}</div>}
-                    {passwordError && <div className="profile-alert error-alert" style={{ background: 'rgba(231, 76, 60, 0.1)', color: '#e74c3c', padding: '12px', borderRadius: '8px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}><i className="fa-solid fa-triangle-exclamation"></i> {passwordError}</div>}
+                    {passwordSuccess && (
+                      <div className="tw-w-full tw-bg-emerald-500/10 tw-border tw-border-emerald-500/20 tw-text-emerald-500 tw-px-4 tw-py-3 tw-rounded-xl tw-mb-8 tw-flex tw-items-center tw-gap-3">
+                        <i className="fa-solid fa-circle-check"></i> {passwordSuccess}
+                      </div>
+                    )}
+                    {passwordError && (
+                      <div className="tw-w-full tw-bg-rose-500/10 tw-border tw-border-rose-500/20 tw-text-rose-500 tw-px-4 tw-py-3 tw-rounded-xl tw-mb-8 tw-flex tw-items-center tw-gap-3">
+                        <i className="fa-solid fa-triangle-exclamation"></i> {passwordError}
+                      </div>
+                    )}
 
-                    <form onSubmit={handleChangePassword} className="password-change-form">
-                      <div className="password-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
-                        <div className="info-item">
-                          <label>{lang === 'AR' ? 'كلمة المرور الحالية' : 'Current Password'}</label>
+                    <form onSubmit={handleChangePassword}>
+                      <div className="tw-grid tw-grid-cols-1 md:tw-grid-cols-3 tw-gap-6">
+                        <div className="tw-flex tw-flex-col">
+                          <label className="tw-text-[11px] tw-font-bold tw-text-slate-500 dark:tw-text-slate-400 tw-tracking-widest tw-uppercase tw-mb-2">{lang === 'AR' ? 'كلمة المرور الحالية' : 'Current Password'}</label>
                           <input
                             type="password"
-                            placeholder={lang === 'AR' ? 'أدخل كلمة المرور الحالية' : "Enter current password"}
                             value={passwordForm.oldPassword}
                             onChange={(e) => setPasswordForm({ ...passwordForm, oldPassword: e.target.value })}
                             required
-                            style={{ width: '90%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
+                            className="tw-w-full tw-bg-slate-50 dark:tw-bg-[#0a0b0d] tw-border tw-border-slate-200 dark:tw-border-slate-800 tw-rounded-xl tw-px-4 tw-py-3 tw-text-slate-900 dark:tw-text-white focus:tw-outline-none focus:tw-border-[#dcae44] focus:tw-ring-1 focus:tw-ring-[#dcae44] tw-transition-all"
+                            placeholder="••••••••"
                           />
                         </div>
-                        <div className="info-item">
-                          <label>{lang === 'AR' ? 'كلمة المرور الجديدة' : 'New Password'}</label>
+                        <div className="tw-flex tw-flex-col">
+                          <label className="tw-text-[11px] tw-font-bold tw-text-slate-500 dark:tw-text-slate-400 tw-tracking-widest tw-uppercase tw-mb-2">{lang === 'AR' ? 'كلمة المرور الجديدة' : 'New Password'}</label>
                           <input
                             type="password"
-                            placeholder={lang === 'AR' ? 'أدخل كلمة المرور الجديدة' : "Enter new password"}
                             value={passwordForm.newPassword}
                             onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
                             required
-                            style={{ width: '90%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
+                            className="tw-w-full tw-bg-slate-50 dark:tw-bg-[#0a0b0d] tw-border tw-border-slate-200 dark:tw-border-slate-800 tw-rounded-xl tw-px-4 tw-py-3 tw-text-slate-900 dark:tw-text-white focus:tw-outline-none focus:tw-border-[#dcae44] focus:tw-ring-1 focus:tw-ring-[#dcae44] tw-transition-all"
+                            placeholder="••••••••"
                           />
                         </div>
-                        <div className="info-item">
-                          <label>{lang === 'AR' ? 'تأكيد كلمة المرور الجديدة' : 'Confirm New Password'}</label>
+                        <div className="tw-flex tw-flex-col">
+                          <label className="tw-text-[11px] tw-font-bold tw-text-slate-500 dark:tw-text-slate-400 tw-tracking-widest tw-uppercase tw-mb-2">{lang === 'AR' ? 'تأكيد كلمة المرور' : 'Confirm Password'}</label>
                           <input
                             type="password"
-                            placeholder={lang === 'AR' ? 'تأكيد كلمة المرور الجديدة' : "Confirm new password"}
                             value={passwordForm.confirmPassword}
                             onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
                             required
-                            style={{ width: '90%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
+                            className="tw-w-full tw-bg-slate-50 dark:tw-bg-[#0a0b0d] tw-border tw-border-slate-200 dark:tw-border-slate-800 tw-rounded-xl tw-px-4 tw-py-3 tw-text-slate-900 dark:tw-text-white focus:tw-outline-none focus:tw-border-[#dcae44] focus:tw-ring-1 focus:tw-ring-[#dcae44] tw-transition-all"
+                            placeholder="••••••••"
                           />
                         </div>
                       </div>
-                      <div className="form-actions-row" style={{ marginTop: '20px' }}>
-                        <button type="submit" className="btn-save-profile" disabled={passwordLoading} style={{ background: 'var(--brand-color)', color: '#fff', border: 'none', cursor: 'pointer' }}>
+                      <div className="tw-mt-8">
+                        <button type="submit" disabled={passwordLoading} className="tw-bg-slate-900 dark:tw-bg-white hover:tw-bg-slate-800 dark:hover:tw-bg-slate-200 tw-text-white dark:tw-text-slate-900 tw-font-bold tw-px-8 tw-py-3 tw-rounded-xl tw-transition-all disabled:tw-opacity-50">
                           {passwordLoading ? <><i className="fa-solid fa-spinner fa-spin"></i> {lang === 'AR' ? 'جاري التحديث...' : 'Updating...'}</> : (lang === 'AR' ? 'تحديث كلمة المرور' : 'Update Password')}
                         </button>
                       </div>
                     </form>
                   </div>
-                </div>
+                </>
               )}
 
               {/* Tab 2: Reviews Management */}
               {activeTab === 'reviews' && (
-                <div className="tab-card reviews-tab">
-                  <h2>{lang === 'AR' ? 'تقييماتي المنشورة' : 'My Submitted Reviews'}</h2>
-                  <p className="tab-subtitle">{lang === 'AR' ? 'جميع الآراء، التعليقات والتقييمات التي قمت بمشاركتها مع بقية المسافرين.' : 'All opinions, feedback, and reviews you have posted on packages.'}</p>
+                <div className="tw-bg-white dark:tw-bg-[#15171a] tw-rounded-3xl tw-p-8 sm:tw-p-10 tw-shadow-sm tw-border tw-border-slate-200/50 dark:tw-border-slate-800/50">
+                  <div className="tw-mb-8">
+                    <h2 className="tw-text-2xl tw-font-serif tw-font-bold tw-text-slate-900 dark:tw-text-white tw-mb-1">{lang === 'AR' ? 'تقييماتي المنشورة' : 'My Submitted Reviews'}</h2>
+                    <p className="tw-text-slate-500 dark:tw-text-slate-400 tw-text-sm">{lang === 'AR' ? 'جميع الآراء، التعليقات والتقييمات التي قمت بمشاركتها مع بقية المسافرين.' : 'All opinions, feedback, and reviews you have posted on packages.'}</p>
+                  </div>
 
                   {loadingReviews ? (
-                    <div className="loading-reviews">
-                      <i className="fa-solid fa-spinner fa-spin"></i> {lang === 'AR' ? 'جاري جلب تقييماتك...' : 'Fetching your reviews...'}
+                    <div className="tw-flex tw-justify-center tw-py-12 tw-text-slate-400">
+                      <i className="fa-solid fa-spinner fa-spin tw-text-2xl tw-mr-2"></i> {lang === 'AR' ? 'جاري جلب تقييماتك...' : 'Fetching your reviews...'}
                     </div>
                   ) : myReviews.length === 0 ? (
-                    <div className="empty-reviews-state" style={{ textAlign: 'center', padding: '40px 20px' }}>
-                      <i className="fa-regular fa-message" style={{ fontSize: '3rem', color: 'var(--brand-color)', marginBottom: '15px' }}></i>
-                      <h4>{lang === 'AR' ? 'لم تقم بكتابة أي تقييم بعد' : 'No reviews submitted yet'}</h4>
-                      <p>{lang === 'AR' ? 'أنت لم تقم بتقييم أي رحلات أو باقات سياحية حتى الآن. احجز رحلة وأخبرنا برأيك!' : 'You haven\'t reviewed any trips or packages. Book a journey and tell us what you think!'}</p>
-                      <Link to="/experiences" className="btn-explore" style={{ display: 'inline-block', marginTop: '15px', padding: '10px 24px', background: 'var(--brand-color)', color: '#fff', borderRadius: '30px', textDecoration: 'none' }}>{lang === 'AR' ? 'استكشف الباقات' : 'Explore Packages'}</Link>
+                    <div className="tw-text-center tw-py-16">
+                      <div className="tw-w-24 tw-h-24 tw-bg-[#dcae44]/10 tw-text-[#dcae44] tw-rounded-full tw-flex tw-items-center tw-justify-center tw-mx-auto tw-mb-6 tw-text-4xl">
+                        <i className="fa-regular fa-message"></i>
+                      </div>
+                      <h4 className="tw-text-xl tw-font-bold tw-text-slate-900 dark:tw-text-white tw-mb-2">{lang === 'AR' ? 'لم تقم بكتابة أي تقييم بعد' : 'No reviews submitted yet'}</h4>
+                      <p className="tw-text-slate-500 dark:tw-text-slate-400 tw-max-w-md tw-mx-auto tw-mb-8">{lang === 'AR' ? 'أنت لم تقم بتقييم أي رحلات أو باقات سياحية حتى الآن. احجز رحلة وأخبرنا برأيك!' : 'You haven\'t reviewed any trips or packages. Book a journey and tell us what you think!'}</p>
+                      <Link to="/experiences" className="tw-bg-[#dcae44] hover:tw-bg-[#e5c35b] tw-text-black tw-font-bold tw-px-8 tw-py-3 tw-rounded-full tw-transition-all">
+                        {lang === 'AR' ? 'استكشف الباقات' : 'Explore Packages'}
+                      </Link>
                     </div>
                   ) : (
-                    <div className="my-reviews-list">
+                    <div className="tw-flex tw-flex-col tw-gap-6">
                       {myReviews.map((rev) => {
                         const packageTitle = rev.experience?.name || (lang === 'AR' ? 'رحلة سياحية مثيرة في مصر' : 'Exciting Egypt Trip');
                         const pkgId = rev.experience?._id || rev.experience;
@@ -433,41 +488,41 @@ const Profile = () => {
                         }) : 'Recent';
 
                         return (
-                          <div key={rev._id} className="user-review-item-card">
+                          <div key={rev._id} className="tw-bg-slate-50 dark:tw-bg-[#0a0b0d] tw-border tw-border-slate-200 dark:tw-border-slate-800 tw-rounded-2xl tw-p-6">
                             
-                            {/* Card Header */}
-                            <div className="review-item-header">
+                            <div className="tw-flex tw-flex-col sm:tw-flex-row tw-justify-between tw-items-start sm:tw-items-center tw-mb-4 tw-gap-4">
                               <div>
-                                <h4>
+                                <h4 className="tw-text-lg tw-font-bold tw-text-slate-900 dark:tw-text-white tw-mb-1">
                                   {pkgId ? (
-                                    <Link to={`/package-details/${pkgId}`} className="pkg-link">
+                                    <Link to={`/package-details/${pkgId}`} className="hover:tw-text-[#dcae44] tw-transition-colors">
                                       {packageTitle}
                                     </Link>
                                   ) : packageTitle}
                                 </h4>
-                                <span className="review-item-date">{reviewDate}</span>
+                                <span className="tw-text-xs tw-text-slate-500 dark:tw-text-slate-400">{reviewDate}</span>
                               </div>
                               <button 
-                                className="btn-delete-review"
+                                className="tw-flex tw-items-center tw-gap-2 tw-text-rose-500 hover:tw-bg-rose-500/10 tw-px-3 tw-py-1.5 tw-rounded-lg tw-transition-colors tw-text-sm tw-font-semibold"
                                 onClick={() => handleDeleteReview(rev._id)}
-                                title={lang === 'AR' ? 'حذف هذا التقييم' : "Delete this review"}
                               >
                                 <i className="fa-solid fa-trash-can"></i> {lang === 'AR' ? 'حذف' : 'Delete'}
                               </button>
                             </div>
 
-                            {/* Stars Rating */}
-                            <div className="review-item-stars-row">
-                              {renderStars(rev.rating)}
+                            <div className="tw-flex tw-items-center tw-gap-4 tw-mb-4">
+                              <div className="tw-flex tw-text-[#dcae44] tw-text-sm">
+                                {Array.from({ length: 5 }).map((_, i) => (
+                                  <i key={i} className={`${i < rev.rating ? 'fa-solid' : 'fa-regular'} fa-star tw-mr-1`}></i>
+                                ))}
+                              </div>
                               {rev.isVerifiedBooking && (
-                                <span className="verified-booking-tag">
+                                <span className="tw-text-xs tw-font-bold tw-bg-emerald-500/10 tw-text-emerald-500 tw-px-2 tw-py-1 tw-rounded-md tw-flex tw-items-center tw-gap-1">
                                   <i className="fa-solid fa-circle-check"></i> {lang === 'AR' ? 'حجز مؤكد' : 'Verified Booking'}
                                 </span>
                               )}
                             </div>
 
-                            {/* Review Content */}
-                            <p className="review-item-text">
+                            <p className="tw-text-slate-700 dark:tw-text-slate-300 tw-leading-relaxed">
                               {rev.comment || (lang === 'AR' ? 'قمت بتقييم هذه التجربة بدون كتابة أي تعليقات.' : 'You rated this experience without typing any comments.')}
                             </p>
 

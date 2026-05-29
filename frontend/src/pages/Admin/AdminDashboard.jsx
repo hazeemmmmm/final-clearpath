@@ -15,6 +15,7 @@ import {
   getProviders,
   adminCreateSupervisor
 } from '../../utils/api';
+import AdminIntelligence from './AdminIntelligence';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -1117,132 +1118,7 @@ const AdminDashboard = () => {
               {/* TAB 2.5: AI FORECAST */}
               {activeTab === 'forecast' && (
                 <div className="tab-pane animate-fade-in">
-                  <div className="pane-header">
-                    <div>
-                      <h2 style={{ color: '#06b6d4', display: 'flex', alignItems: 'center', gap: '10px' }}><i className="fa-solid fa-brain"></i> AI Demand Forecasting</h2>
-                      <p className="pane-subtitle">Predictive data visualizations for June, July, and August 2026 based on historical reservations and wishlist metrics.</p>
-                    </div>
-                  </div>
-
-                  {/* AI Insights Banners */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '40px' }}>
-                    {forecastInsights.map(insight => (
-                      <div key={insight.id} style={{ 
-                        background: insight.type === 'warning' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)', 
-                        border: `1px solid ${insight.type === 'warning' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`, 
-                        padding: '20px', 
-                        borderRadius: '12px',
-                        display: 'flex',
-                        gap: '20px',
-                        alignItems: 'flex-start'
-                      }}>
-                        <div style={{ fontSize: '24px', color: insight.type === 'warning' ? '#ef4444' : '#10b981' }}>
-                          <i className={`fa-solid ${insight.type === 'warning' ? 'fa-triangle-exclamation' : 'fa-lightbulb'}`}></i>
-                        </div>
-                        <div>
-                          <strong style={{ display: 'block', color: '#fff', fontSize: '1.1rem', marginBottom: '5px' }}>{insight.type === 'warning' ? 'Capacity Alert' : 'Growth Opportunity'}</strong>
-                          <p style={{ color: '#cbd5e1', lineHeight: '1.5' }}>{insight.message}</p>
-                          {insight.type === 'warning' && (
-                            <button className="ppm-btn-solid" style={{ marginTop: '15px', background: '#d4af37', color: '#000', padding: '8px 16px', fontSize: '0.9rem' }}>
-                              <i className="fa-solid fa-bolt"></i> Auto-Mitigate Issue
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* SVG Chart Frame */}
-                  <div style={{ background: '#1e293b', padding: '30px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <h3 style={{ color: '#fff', marginBottom: '30px', fontSize: '1.2rem' }}>Q3 2026 Demand Projection (Trips vs Dayuse)</h3>
-                    
-                    <div style={{ position: 'relative', width: '100%', height: '350px' }}>
-                      <svg viewBox="0 0 800 300" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
-                        <defs>
-                          <linearGradient id="goldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stopColor="#d4af37" stopOpacity="0.8" />
-                            <stop offset="100%" stopColor="#d4af37" stopOpacity="0.0" />
-                          </linearGradient>
-                          <linearGradient id="tealGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.8" />
-                            <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.0" />
-                          </linearGradient>
-                        </defs>
-
-                        {/* Grid lines */}
-                        <line x1="50" y1="50" x2="750" y2="50" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-                        <line x1="50" y1="150" x2="750" y2="150" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-                        <line x1="50" y1="250" x2="750" y2="250" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
-
-                        {/* Y-axis Labels */}
-                        <text x="30" y="55" fill="#94a3b8" fontSize="12" textAnchor="end">High</text>
-                        <text x="30" y="155" fill="#94a3b8" fontSize="12" textAnchor="end">Med</text>
-                        <text x="30" y="255" fill="#94a3b8" fontSize="12" textAnchor="end">Low</text>
-
-                        {/* X-axis Labels */}
-                        <text x="200" y="280" fill="#94a3b8" fontSize="14" textAnchor="middle">June 2026</text>
-                        <text x="400" y="280" fill="#94a3b8" fontSize="14" textAnchor="middle">July 2026</text>
-                        <text x="600" y="280" fill="#94a3b8" fontSize="14" textAnchor="middle">August 2026</text>
-
-                        {/* Teal Area (Dayuse) */}
-                        <path d="M50 250 L200 180 L400 120 L600 160 L750 250 Z" fill="url(#tealGradient)" />
-                        <path d="M50 250 L200 180 L400 120 L600 160 L750 250" fill="none" stroke="#06b6d4" strokeWidth="3" />
-                        
-                        {/* Interactive Nodes for Teal */}
-                        <circle cx="200" cy="180" r="6" fill="#0f172a" stroke="#06b6d4" strokeWidth="3" 
-                          onMouseEnter={() => setHoveredDataPoint({ x: 200, y: 180, val: '840 Bookings', label: 'Dayuse (June)' })}
-                          onMouseLeave={() => setHoveredDataPoint(null)}
-                          style={{ cursor: 'pointer', transition: 'r 0.2s' }} />
-                        <circle cx="400" cy="120" r="6" fill="#0f172a" stroke="#06b6d4" strokeWidth="3" 
-                          onMouseEnter={() => setHoveredDataPoint({ x: 400, y: 120, val: '1,250 Bookings', label: 'Dayuse (July)' })}
-                          onMouseLeave={() => setHoveredDataPoint(null)}
-                          style={{ cursor: 'pointer' }} />
-                        <circle cx="600" cy="160" r="6" fill="#0f172a" stroke="#06b6d4" strokeWidth="3" 
-                          onMouseEnter={() => setHoveredDataPoint({ x: 600, y: 160, val: '980 Bookings', label: 'Dayuse (Aug)' })}
-                          onMouseLeave={() => setHoveredDataPoint(null)}
-                          style={{ cursor: 'pointer' }} />
-
-                        {/* Gold Area (Trips) */}
-                        <path d="M50 250 L200 120 L400 60 L600 90 L750 250 Z" fill="url(#goldGradient)" />
-                        <path d="M50 250 L200 120 L400 60 L600 90 L750 250" fill="none" stroke="#d4af37" strokeWidth="3" />
-
-                        {/* Interactive Nodes for Gold */}
-                        <circle cx="200" cy="120" r="6" fill="#0f172a" stroke="#d4af37" strokeWidth="3" 
-                          onMouseEnter={() => setHoveredDataPoint({ x: 200, y: 120, val: '450 Packages', label: 'Trips (June)' })}
-                          onMouseLeave={() => setHoveredDataPoint(null)}
-                          style={{ cursor: 'pointer' }} />
-                        <circle cx="400" cy="60" r="6" fill="#0f172a" stroke="#d4af37" strokeWidth="3" 
-                          onMouseEnter={() => setHoveredDataPoint({ x: 400, y: 60, val: '890 Packages', label: 'Trips (July)' })}
-                          onMouseLeave={() => setHoveredDataPoint(null)}
-                          style={{ cursor: 'pointer' }} />
-                        <circle cx="600" cy="90" r="6" fill="#0f172a" stroke="#d4af37" strokeWidth="3" 
-                          onMouseEnter={() => setHoveredDataPoint({ x: 600, y: 90, val: '620 Packages', label: 'Trips (Aug)' })}
-                          onMouseLeave={() => setHoveredDataPoint(null)}
-                          style={{ cursor: 'pointer' }} />
-                      </svg>
-
-                      {/* Floating Hover Tooltip */}
-                      {hoveredDataPoint && (
-                        <div style={{
-                          position: 'absolute',
-                          left: `${hoveredDataPoint.x}px`,
-                          top: `${hoveredDataPoint.y - 60}px`,
-                          transform: 'translateX(-50%)',
-                          background: 'rgba(15, 23, 42, 0.95)',
-                          border: '1px solid rgba(255,255,255,0.1)',
-                          padding: '10px 15px',
-                          borderRadius: '8px',
-                          color: '#fff',
-                          boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
-                          pointerEvents: 'none',
-                          zIndex: 10
-                        }}>
-                          <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '4px' }}>{hoveredDataPoint.label}</div>
-                          <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: hoveredDataPoint.label.includes('Trips') ? '#d4af37' : '#06b6d4' }}>{hoveredDataPoint.val}</div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  <AdminIntelligence />
                 </div>
               )}
 

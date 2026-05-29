@@ -205,5 +205,12 @@ export const getOnePackingGuide    = async (id)     => fetchOnePackingGuide(id);
 export const createPackingGuide    = async (data)   => addPackingGuide(data);
 export const updatePackingGuide    = async (id, data) => editPackingGuide(id, data);
 export const deletePackingGuide    = async (id)     => removePackingGuide(id);
+
+export const trackInteraction = async (data) =>
+  apiCall(`${BASE_URL}/analytics/track`, {
+    method: 'POST',
+    headers: getHeaders(true),
+    body: JSON.stringify(data)
+  });
 export const getIntelligenceDashboard = async () =>
   apiCall(`${BASE_URL}/admin/intelligence`, { method: 'GET', headers: getHeaders(true) });

@@ -69,19 +69,21 @@ class ExperienceService {
   }
 
   // 🔽 Get Filter Options
-  static async getFilterOptions() {
+  async getFilterOptions() {
     try {
       const destinations = await Destination.find().select('name _id');
-      
-      const capacities = await Experience.distinct('maxCapacity');
+      const capacities = await Experience.distinct('capacity');
+      const allDates = await Experience.distinct('availableDates.date');
+      const uniqueDates = Array.from(new Set(allDates.map(d => d ? new Date(d).toISOString().split('T')[0] : null).filter(Boolean))).sort();
       
       return {
         destinations,
         capacities: capacities.filter(Boolean).sort((a, b) => a - b),
+        dates: uniqueDates,
       };
     } catch (err) {
       console.error("Error fetching filter options:", err);
-      return { destinations: [], capacities: [] };
+      return { destinations: [], capacities: [], dates: [] };
     }
   }
 
@@ -193,6 +195,20 @@ class ExperienceService {
     // 🟢 Filter by days (duration)
     if (query.days) {
       filter.duration_days = { $gte: Number(query.days) };
+    }
+
+    // 🟢 Filter by date
+    if (query.date) {
+      const searchDate = new Date(query.date);
+      if (!isNaN(searchDate.getTime())) {
+        const startOfDay = new Date(searchDate.setHours(0, 0, 0, 0));
+        const endOfDay = new Date(searchDate.setHours(23, 59, 59, 999));
+        filter.availableDates = {
+          $elemMatch: {
+            date: { $gte: startOfDay, $lte: endOfDay }
+          }
+        };
+      }
     }
 
     // 🔵 Pagination

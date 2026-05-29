@@ -25,9 +25,10 @@ import {
   getWishlist,
   addToWishlist,
   removeFromWishlist,
-  getPackingGuideForExperience
+  getPackingGuideForExperience,
+  trackInteraction
 } from '../../utils/api';
-import './PackageDetails.css';
+import './PackageDetailsNew.css';
 
 const PackageDetails = () => {
   const { id } = useParams();
@@ -553,8 +554,8 @@ const PackageDetails = () => {
   };
 
   const getAvatarColor = (name) => {
-    if (!name) return '#003D59';
-    const colors = ['#003D59', '#CE1126', '#d4af37', '#2e7d32', '#6a1b9a', '#ef6c00', '#00838f'];
+    if (!name) return '#0f172a';
+    const colors = ['#0f172a', '#f59e0b', '#f59e0b', '#2e7d32', '#6a1b9a', '#ef6c00', '#00838f'];
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
       hash = name.charCodeAt(i) + ((hash << 5) - hash);
@@ -616,7 +617,7 @@ const PackageDetails = () => {
   };
 
   return (
-    <div className="package-details-page">
+    <div className={`package-details-page tw-min-h-screen tw-bg-slate-50 dark:tw-bg-[#0a0b0d] tw-text-slate-900 dark:tw-text-white tw-transition-colors tw-duration-300 ${lang === 'AR' ? 'lang-ar tw-text-right' : 'tw-text-left'}`}>
       <Navbar lang={lang} setLang={setLang} isScrolled={true} />
 
       <main className="details-container">
@@ -643,17 +644,17 @@ const PackageDetails = () => {
             <div className="package-grid">
               
               {/* Left Column: Details & Itinerary */}
-              <div className="package-main-info">
+              <div className="tw-bg-white dark:tw-bg-[#15171a] tw-rounded-3xl tw-p-6 md:tw-p-10 tw-shadow-sm dark:tw-shadow-xl tw-border tw-border-slate-100 dark:tw-border-slate-800/80">
                 {/* Hero Header & Quick Overview */}
                 <div className="experience-hero-header" style={{ marginBottom: '25px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', flexWrap: 'wrap' }}>
-                    <span style={{ background: 'var(--secondary-color, #d4af37)', color: '#000', padding: '5px 12px', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                    <span style={{ background: '#f59e0b', color: '#000', padding: '5px 12px', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.85rem' }}>
                       <i className="fa-solid fa-tag"></i> {packageData.type} ({packageData.type === 'Trip' ? `${packageData.duration_days} Days` : 'Day Use'})
                     </span>
                     <div className="hero-rating" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '5px' }}>
                         <div>
                           {stats.totalReviews > 0 ? (
-                            <span style={{ color: '#d4af37' }}>
+                            <span style={{ color: '#f59e0b' }}>
                               <i className="fa-solid fa-star"></i> {stats.averageRating} Trust Score ({stats.totalReviews} verified reviews)
                             </span>
                           ) : (
@@ -669,15 +670,15 @@ const PackageDetails = () => {
                         )}
                       </div>
                   </div>
-                  <h1 style={{ fontSize: '2.5rem', marginBottom: '15px', lineHeight: '1.2' }}>{packageData.name || packageData.title}</h1>
+                  <h1 className="tw-text-slate-900 dark:tw-text-white tw-font-bold" style={{ fontSize: '2.5rem', marginBottom: '15px', lineHeight: '1.2' }}>{packageData.name || packageData.title}</h1>
                   
                   {/* Quick Overview Bar */}
                   <div className="quick-overview-bar" style={{ display: 'flex', gap: '20px', color: '#a4a4b4', fontSize: '0.95rem', flexWrap: 'wrap' }}>
-                    <span><i className="fa-solid fa-location-dot" style={{ color: '#d4af37', marginRight: '5px' }}></i> {packageData.destination?.name || 'Egypt'}</span>
-                    <span><i className="fa-solid fa-clock" style={{ color: '#d4af37', marginRight: '5px' }}></i> {packageData.duration_days} {packageData.duration_days > 1 ? 'Days / ' + (packageData.duration_days - 1) + ' Nights' : 'Day'}</span>
-                    <span><i className="fa-solid fa-users" style={{ color: '#d4af37', marginRight: '5px' }}></i> Max {packageData.capacity || 20} People</span>
-                    <span><i className="fa-solid fa-language" style={{ color: '#d4af37', marginRight: '5px' }}></i> English, Arabic</span>
-                    <span><i className="fa-solid fa-car" style={{ color: '#d4af37', marginRight: '5px' }}></i> Pickup Included</span>
+                    <span><i className="fa-solid fa-location-dot" style={{ color: '#f59e0b', marginRight: '5px' }}></i> {packageData.destination?.name || 'Egypt'}</span>
+                    <span><i className="fa-solid fa-clock" style={{ color: '#f59e0b', marginRight: '5px' }}></i> {packageData.duration_days} {packageData.duration_days > 1 ? 'Days / ' + (packageData.duration_days - 1) + ' Nights' : 'Day'}</span>
+                    <span><i className="fa-solid fa-users" style={{ color: '#f59e0b', marginRight: '5px' }}></i> Max {packageData.capacity || 20} People</span>
+                    <span><i className="fa-solid fa-language" style={{ color: '#f59e0b', marginRight: '5px' }}></i> English, Arabic</span>
+                    <span><i className="fa-solid fa-car" style={{ color: '#f59e0b', marginRight: '5px' }}></i> Pickup Included</span>
                   </div>
                 </div>
 
@@ -716,7 +717,7 @@ const PackageDetails = () => {
                                background: '#121212',
                                position: 'relative',
                                overflow: 'hidden',
-                               border: activeImage === finalImgUrl ? '2.5px solid var(--secondary-color, #d4af37)' : '1px solid rgba(212, 175, 55, 0.25)',
+                               border: activeImage === finalImgUrl ? '2.5px solid #f59e0b' : '1px solid rgba(212, 175, 55, 0.25)',
                                borderRadius: '10px',
                                height: '80px',
                                cursor: 'pointer',
@@ -733,7 +734,7 @@ const PackageDetails = () => {
                 </div>
 
                 <div className="details-section">
-                  <h2>Overview</h2>
+                  <h2 className="tw-text-slate-900 dark:tw-text-white tw-font-bold tw-text-2xl tw-mb-6">Overview</h2>
                   <p className="description-text" style={{ fontSize: '1.05rem', lineHeight: '1.7', color: '#cbd5e1' }}>
                     {packageData.description || 'Embark on a breath-taking journey that lets you discover Egypt\'s true wonders. Fully guided experience with premium logistics, customized options, and memorable local stories.'}
                   </p>
@@ -770,15 +771,15 @@ const PackageDetails = () => {
                 {/* Itinerary Section */}
                 <div className="itinerary-section">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <h2>{isCustomizing ? '⚡ Your Customized Itinerary' : 'Planned Itinerary'}</h2>
+                    <h2 className="tw-text-slate-900 dark:tw-text-white tw-font-bold tw-text-2xl tw-mb-6">{isCustomizing ? '⚡ Your Customized Itinerary' : 'Planned Itinerary'}</h2>
                     {token && customTrip && (
                       <button 
                         onClick={handleToggleCustomization} 
                         className="btn-toggle-custom"
                         style={{
                           background: 'rgba(212, 175, 55, 0.1)',
-                          border: '1px solid #d4af37',
-                          color: '#d4af37',
+                          border: '1px solid #f59e0b',
+                          color: '#f59e0b',
                           padding: '6px 12px',
                           borderRadius: '20px',
                           cursor: 'pointer',
@@ -793,7 +794,7 @@ const PackageDetails = () => {
                   </div>
 
                   <p style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <i className="fa-solid fa-circle-info" style={{ color: '#d4af37' }}></i>
+                    <i className="fa-solid fa-circle-info" style={{ color: '#f59e0b' }}></i>
                     {token 
                       ? 'يمكنك تخصيص رحلتك بمجرد تحديد أو إلغاء تحديد الأيام والأنشطة أدناه!' 
                       : 'سجل دخولك لتتمكن من إلغاء أو تفعيل أي يوم أو نشاط وتعديل سعر الرحلة فوراً!'}
@@ -807,7 +808,7 @@ const PackageDetails = () => {
 
                   <div className="itinerary-timeline customized">
                     {(!displayItinerary || displayItinerary.length === 0) && (
-                      <p style={{ color: '#888', fontStyle: 'italic', marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', borderLeft: '3px solid #d4af37' }}>
+                      <p style={{ color: '#888', fontStyle: 'italic', marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', borderLeft: '3px solid #f59e0b' }}>
                         {lang === 'AR' ? 'رحلة استرخاء بدون خطة مسبقة. يمكنك تخصيص وبناء خطتك اليومية بإضافة الأيام أدناه.' : 'Leisure trip with open explore days. You can start building your custom itinerary by adding days below.'}
                       </p>
                     )}
@@ -827,9 +828,9 @@ const PackageDetails = () => {
                           const finalAddActivityOptions = optionalActs.length > 0 ? optionalActs : activitiesList;
 
                           return (
-                            <div key={day.day_number} className={`itinerary-day-card ${packageData.type === 'Day Use' ? 'day-use-timeline' : 'trip-accordion'}`} style={{ 
-                              background: packageData.type === 'Day Use' ? 'transparent' : 'var(--card-bg, #ffffff)', 
-                              border: packageData.type === 'Day Use' ? 'none' : (isDayRemoved ? '1px solid var(--border-light, #333)' : '1.5px solid var(--secondary-color, #d4af37)'),
+                            <div key={day.day_number} className={`tw-bg-white dark:tw-bg-[#15171a] tw-border tw-border-slate-200 dark:tw-border-slate-800 tw-rounded-2xl tw-shadow-sm ${packageData.type === 'Day Use' ? 'day-use-timeline' : 'trip-accordion'}`} style={{ 
+                              background: packageData.type === 'Day Use' ? 'transparent' : 'transparent', 
+                              border: packageData.type === 'Day Use' ? 'none' : (isDayRemoved ? '1px solid var(--border-light, #333)' : '1.5px solid #f59e0b'),
                               borderRadius: packageData.type === 'Day Use' ? '0' : '16px', 
                               overflow: 'hidden',
                               marginBottom: packageData.type === 'Day Use' ? '0' : '30px',
@@ -840,11 +841,11 @@ const PackageDetails = () => {
                               flexDirection: 'column',
                               position: 'relative',
                               paddingLeft: packageData.type === 'Day Use' ? '30px' : '0',
-                              borderLeft: packageData.type === 'Day Use' ? '3px solid #d4af37' : 'none',
+                              borderLeft: packageData.type === 'Day Use' ? '3px solid #f59e0b' : 'none',
                               paddingBottom: packageData.type === 'Day Use' ? '30px' : '0'
                             }}>
                               {packageData.type === 'Day Use' && (
-                                <div style={{ position: 'absolute', left: '-12px', top: '0', width: '20px', height: '20px', borderRadius: '50%', background: '#d4af37', border: '4px solid #14141f' }}></div>
+                                <div style={{ position: 'absolute', left: '-12px', top: '0', width: '20px', height: '20px', borderRadius: '50%', background: '#f59e0b', border: '4px solid #14141f' }}></div>
                               )}
                               
                               {/* 🖼️ Scenic Airbnb-style Day Illustration Image Banner (Only for Trips) */}
@@ -879,7 +880,7 @@ const PackageDetails = () => {
                                     position: 'absolute',
                                     top: '15px',
                                     left: '15px',
-                                    background: isDayRemoved ? '#555' : 'var(--secondary-color, #d4af37)',
+                                    background: isDayRemoved ? '#555' : '#f59e0b',
                                     color: '#000000',
                                     padding: '5px 12px',
                                     borderRadius: '20px',
@@ -922,7 +923,7 @@ const PackageDetails = () => {
                                     alignItems: 'center',
                                     gap: '5px'
                                   }}>
-                                    <i className="fa-solid fa-calendar-day" style={{ color: 'var(--secondary-color, #d4af37)' }}></i>
+                                    <i className="fa-solid fa-calendar-day" style={{ color: '#f59e0b' }}></i>
                                     {getDayDate(day.day_number)}
                                   </div> 
 
@@ -956,10 +957,10 @@ const PackageDetails = () => {
                                 {/* 📝 Day Description */}
                                 {day.description && (
                                   <div style={{
-                                    borderLeft: '3px solid var(--secondary-color, #d4af37)',
+                                    borderLeft: '3px solid #f59e0b',
                                     paddingLeft: '15px'
                                   }}>
-                                    <h5 style={{ margin: '0 0 5px 0', textTransform: 'uppercase', color: 'var(--secondary-color, #d4af37)', fontSize: '0.78rem', fontWeight: '800', letterSpacing: '0.5px' }}>
+                                    <h5 style={{ margin: '0 0 5px 0', textTransform: 'uppercase', color: '#f59e0b', fontSize: '0.78rem', fontWeight: '800', letterSpacing: '0.5px' }}>
                                       {lang === 'AR' ? 'نظرة عامة على اليوم' : 'Day overview'}
                                     </h5>
                                     <p className="day-description-info" style={{ 
@@ -976,7 +977,7 @@ const PackageDetails = () => {
                                 )}
 
                                 {/* ⚡ Day Activities Header */}
-                                <h5 style={{ margin: '5px 0 0 0', textTransform: 'uppercase', color: 'var(--primary-color, #003D59)', fontSize: '0.78rem', fontWeight: '800', letterSpacing: '0.5px' }}>
+                                <h5 style={{ margin: '5px 0 0 0', textTransform: 'uppercase', color: 'var(--primary-color, #0f172a)', fontSize: '0.78rem', fontWeight: '800', letterSpacing: '0.5px' }}>
                                   {lang === 'AR' ? 'الأنشطة المدرجة:' : 'Included daily activities'}
                                 </h5>
 
@@ -1019,14 +1020,14 @@ const PackageDetails = () => {
                                                 disabled={isDisabled}
                                                 checked={!isDisabled && !isActRemoved}
                                                 onChange={() => handleToggleActivityCheckbox(day.day_number, actObj?._id || actObj)}
-                                                style={{ width: '17px', height: '17px', cursor: isDisabled ? 'not-allowed' : 'pointer', accentColor: 'var(--secondary-color, #d4af37)' }}
+                                                style={{ width: '17px', height: '17px', cursor: isDisabled ? 'not-allowed' : 'pointer', accentColor: '#f59e0b' }}
                                               />
                                               <span style={{ textDecoration: isActRemoved ? 'line-through' : 'none', color: 'var(--text-dark, #1e293b)', fontSize: '0.95rem' }}>
                                                 <strong>{actObj?.name || act.name || 'Exciting Activity'}</strong>
                                                 {providerName && (
                                                   <span style={{ 
                                                     fontSize: '0.74rem', 
-                                                    color: 'var(--secondary-color, #d4af37)', 
+                                                    color: '#f59e0b', 
                                                     marginLeft: '10px', 
                                                     backgroundColor: 'rgba(212,175,55,0.08)', 
                                                     padding: '3px 10px', 
@@ -1043,7 +1044,7 @@ const PackageDetails = () => {
                                                 )}
                                               </span>
                                             </label>
-                                            <span className="act-price" style={{ color: (isDisabled || isActRemoved) ? '#777' : 'var(--accent-color, #CE1126)', fontWeight: '800', fontSize: '0.95rem', textDecoration: isActRemoved ? 'line-through' : 'none' }}>
+                                            <span className="act-price" style={{ color: (isDisabled || isActRemoved) ? '#777' : 'var(--accent-color, #f59e0b)', fontWeight: '800', fontSize: '0.95rem', textDecoration: isActRemoved ? 'line-through' : 'none' }}>
                                               +{act.price} EGP
                                             </span>
                                           </div>
@@ -1074,7 +1075,7 @@ const PackageDetails = () => {
                                   <div style={{ marginTop: '15px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '10px' }}>
                                     {showAddActivityDay === day.day_number ? (
                                       <div className="add-activity-inline-form" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(212, 175, 55, 0.2)', padding: '15px', borderRadius: '10px', marginTop: '10px' }}>
-                                        <h4 style={{ color: '#d4af37', fontSize: '0.92rem', margin: '0 0 10px 0', fontWeight: '800' }}>
+                                        <h4 style={{ color: '#f59e0b', fontSize: '0.92rem', margin: '0 0 10px 0', fontWeight: '800' }}>
                                           {lang === 'AR' ? 'استعراض وإضافة نشاط إضافي بالمنطقة:' : 'Browse & Add Extra Activity in region:'}
                                         </h4>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -1143,7 +1144,7 @@ const PackageDetails = () => {
                                                 <div style={{ color: '#fff', fontWeight: '700' }}>
                                                   {selectedActObj.name}
                                                 </div>
-                                                <div style={{ color: '#d4af37', fontWeight: '600', display: 'flex', gap: '15px' }}>
+                                                <div style={{ color: '#f59e0b', fontWeight: '600', display: 'flex', gap: '15px' }}>
                                                   <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                                                     <i className="fa-solid fa-parachute-box"></i>
                                                     {providerNameResolved}
@@ -1168,7 +1169,7 @@ const PackageDetails = () => {
                                           <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
                                             <button 
                                               onClick={() => handleAddActivitySubmit(day.day_number)}
-                                              style={{ background: 'var(--secondary-color, #d4af37)', color: '#000', border: 'none', padding: '8px 18px', borderRadius: '6px', cursor: 'pointer', fontWeight: '800', fontSize: '0.82rem' }}
+                                              style={{ background: '#f59e0b', color: '#000', border: 'none', padding: '8px 18px', borderRadius: '6px', cursor: 'pointer', fontWeight: '800', fontSize: '0.82rem' }}
                                             >
                                               {lang === 'AR' ? 'تأكيد إضافة النشاط' : 'Confirm Add Activity'}
                                             </button>
@@ -1187,7 +1188,7 @@ const PackageDetails = () => {
                                     ) : (
                                       <button 
                                         onClick={() => setShowAddActivityDay(day.day_number)}
-                                        style={{ background: 'rgba(212, 175, 55, 0.05)', border: '1.5px dashed rgba(212, 175, 55, 0.4)', color: '#d4af37', padding: '8px 18px', borderRadius: '25px', cursor: 'pointer', fontSize: '0.82rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s' }}
+                                        style={{ background: 'rgba(212, 175, 55, 0.05)', border: '1.5px dashed rgba(212, 175, 55, 0.4)', color: '#f59e0b', padding: '8px 18px', borderRadius: '25px', cursor: 'pointer', fontSize: '0.82rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s' }}
                                         onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(212,175,55,0.15)'; }}
                                         onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(212,175,55,0.05)'; }}
                                       >
@@ -1219,7 +1220,7 @@ const PackageDetails = () => {
                                   width: '36px',
                                   height: '36px',
                                   borderRadius: '50%',
-                                  background: 'linear-gradient(135deg, var(--brand-accent, #d4af37), #f3e5ab)',
+                                  background: 'linear-gradient(135deg, var(--brand-accent, #f59e0b), #f3e5ab)',
                                   color: '#000',
                                   border: '3px solid var(--bg-primary, #121212)',
                                   cursor: 'pointer',
@@ -1237,7 +1238,7 @@ const PackageDetails = () => {
                                 <i className="fa-solid fa-plus"></i>
                               </button>
                               
-                              <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#d4af37', textShadow: '0 0 10px rgba(212,175,55,0.3)' }}>
+                              <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#f59e0b', textShadow: '0 0 10px rgba(212,175,55,0.3)' }}>
                                 {lang === 'AR' ? 'أضف وجهة جديدة من موقعك الحالي' : 'Add new destination from your current location'}
                               </span>
                             </div>
@@ -1301,7 +1302,7 @@ const PackageDetails = () => {
                                       type="button"
                                       onClick={() => setAddDayTab('custom')}
                                       style={{
-                                        background: addDayTab === 'custom' ? 'var(--secondary-color, #d4af37)' : 'transparent',
+                                        background: addDayTab === 'custom' ? '#f59e0b' : 'transparent',
                                         color: addDayTab === 'custom' ? '#000' : '#fff',
                                         border: addDayTab === 'custom' ? 'none' : '1px solid rgba(255,255,255,0.2)',
                                         padding: '6px 12px',
@@ -1319,7 +1320,7 @@ const PackageDetails = () => {
                                       type="button"
                                       onClick={() => setAddDayTab('ready')}
                                       style={{
-                                        background: addDayTab === 'ready' ? 'var(--secondary-color, #d4af37)' : 'transparent',
+                                        background: addDayTab === 'ready' ? '#f59e0b' : 'transparent',
                                         color: addDayTab === 'ready' ? '#000' : '#fff',
                                         border: addDayTab === 'ready' ? 'none' : '1px solid rgba(255,255,255,0.2)',
                                         padding: '6px 12px',
@@ -1337,7 +1338,7 @@ const PackageDetails = () => {
 
                                   {addDayTab === 'custom' ? (
                                     <>
-                                      <h4 style={{ color: '#d4af37', fontSize: '0.9rem', margin: '0 0 10px 0', fontWeight: '800' }}>
+                                      <h4 style={{ color: '#f59e0b', fontSize: '0.9rem', margin: '0 0 10px 0', fontWeight: '800' }}>
                                         {lang === 'AR' ? `إضافة نشاط لليوم الجديد (اليوم ${displayItinerary.length + 1}):` : `Add Activity to Start Day ${displayItinerary.length + 1}:`}
                                       </h4>
                                       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -1399,7 +1400,7 @@ const PackageDetails = () => {
                                               <div style={{ color: '#fff', fontWeight: '700' }}>
                                                 {selectedActObj.name}
                                               </div>
-                                              <div style={{ color: '#d4af37', fontWeight: '600', display: 'flex', gap: '15px' }}>
+                                              <div style={{ color: '#f59e0b', fontWeight: '600', display: 'flex', gap: '15px' }}>
                                                 <span>
                                                   <i className="fa-solid fa-parachute-box" style={{ marginRight: '5px' }}></i>
                                                   {providerNameResolved}
@@ -1421,7 +1422,7 @@ const PackageDetails = () => {
                                         <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
                                           <button 
                                             onClick={() => handleAddActivitySubmit(displayItinerary.length + 1)}
-                                            style={{ background: 'var(--secondary-color, #d4af37)', color: '#000', border: 'none', padding: '8px 18px', borderRadius: '6px', cursor: 'pointer', fontWeight: '800', fontSize: '0.82rem' }}
+                                            style={{ background: '#f59e0b', color: '#000', border: 'none', padding: '8px 18px', borderRadius: '6px', cursor: 'pointer', fontWeight: '800', fontSize: '0.82rem' }}
                                           >
                                             {lang === 'AR' ? 'تأكيد إضافة اليوم والنشاط' : 'Confirm Add Day & Activity'}
                                           </button>
@@ -1439,7 +1440,7 @@ const PackageDetails = () => {
                                     </>
                                   ) : (
                                     <>
-                                      <h4 style={{ color: '#d4af37', fontSize: '0.9rem', margin: '0 0 10px 0', fontWeight: '800' }}>
+                                      <h4 style={{ color: '#f59e0b', fontSize: '0.9rem', margin: '0 0 10px 0', fontWeight: '800' }}>
                                         {lang === 'AR' ? 'اختر يوماً جاهزاً من الباقات المتاحة بنفس المنطقة:' : 'Choose a ready-made Day Use in same region:'}
                                       </h4>
                                       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '300px', overflowY: 'auto', paddingRight: '5px' }}>
@@ -1483,10 +1484,10 @@ const PackageDetails = () => {
                                                 <div style={{ color: '#94a3b8', fontSize: '0.74rem', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: '1', WebkitBoxOrient: 'vertical' }}>
                                                   {pkg.description || 'Pre-designed package.'}
                                                 </div>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#d4af37', fontSize: '0.74rem', fontWeight: '700', marginTop: '2px' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#f59e0b', fontSize: '0.74rem', fontWeight: '700', marginTop: '2px' }}>
                                                   <span>{pkg.base_price} EGP</span>
                                                   <span style={{ color: '#aaa', fontSize: '0.7rem' }}>
-                                                    <i className="fa-solid fa-bolt" style={{ marginRight: '3px', color: '#d4af37' }}></i>
+                                                    <i className="fa-solid fa-bolt" style={{ marginRight: '3px', color: '#f59e0b' }}></i>
                                                     {lang === 'AR' ? 'اضغط للإضافة' : 'Click to Inject'}
                                                   </span>
                                                 </div>
@@ -1513,7 +1514,7 @@ const PackageDetails = () => {
                                     const nextDayNum = displayItinerary.length + 1;
                                     setShowAddActivityDay(nextDayNum);
                                   }}
-                                  style={{ color: '#d4af37', fontWeight: '700', cursor: 'pointer', fontSize: '0.95rem' }}
+                                  style={{ color: '#f59e0b', fontWeight: '700', cursor: 'pointer', fontSize: '0.95rem' }}
                                 >
                                   {lang === 'AR' ? 'أضف يوماً إضافياً إلى خطتك اليومية (+)' : 'Add an extra day to your itinerary (+)'}
                                 </span>
@@ -1533,7 +1534,7 @@ const PackageDetails = () => {
                         boxSizing: 'border-box'
                       }}>
                         <h3 style={{ 
-                          color: '#d4af37', 
+                          color: '#f59e0b', 
                           fontSize: '1.25rem', 
                           fontWeight: '800', 
                           marginTop: '0', 
@@ -1582,7 +1583,7 @@ const PackageDetails = () => {
                                   top: '10px',
                                   right: '10px',
                                   background: 'rgba(0,0,0,0.7)',
-                                  color: '#d4af37',
+                                  color: '#f59e0b',
                                   padding: '4px 10px',
                                   borderRadius: '20px',
                                   fontSize: '0.72rem',
@@ -1612,7 +1613,7 @@ const PackageDetails = () => {
                                     <i className="fa-solid fa-clock" style={{ marginRight: '5px' }}></i>
                                     {pkg.duration_days} {pkg.duration_days > 1 ? (lang === 'AR' ? 'أيام' : 'Days') : (lang === 'AR' ? 'يوم' : 'Day')}
                                   </span>
-                                  <strong style={{ color: '#d4af37', fontSize: '0.95rem' }}>
+                                  <strong style={{ color: '#f59e0b', fontSize: '0.95rem' }}>
                                     {pkg.base_price} EGP
                                   </strong>
                                 </div>
@@ -1629,7 +1630,7 @@ const PackageDetails = () => {
                                       width: '100%',
                                       background: 'rgba(212, 175, 55, 0.1)',
                                       border: '1px solid rgba(212, 175, 55, 0.4)',
-                                      color: '#d4af37',
+                                      color: '#f59e0b',
                                       padding: '8px',
                                       borderRadius: '6px',
                                       cursor: 'pointer',
@@ -1641,8 +1642,8 @@ const PackageDetails = () => {
                                       gap: '5px',
                                       transition: 'all 0.2s'
                                     }}
-                                    onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--secondary-color, #d4af37)'; e.currentTarget.style.color = '#000'; }}
-                                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(212, 175, 55, 0.1)'; e.currentTarget.style.color = '#d4af37'; }}
+                                    onMouseEnter={(e) => { e.currentTarget.style.background = '#f59e0b'; e.currentTarget.style.color = '#000'; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(212, 175, 55, 0.1)'; e.currentTarget.style.color = '#f59e0b'; }}
                                   >
                                     <i className="fa-solid fa-circle-plus"></i>
                                     {lang === 'AR' ? 'إضافة اليوم لخطتي' : 'Add Day to Itinerary'}
@@ -1662,7 +1663,7 @@ const PackageDetails = () => {
                 {/* MODULAR EXTENSIONS (ADD-ONS) */}
                 {packageData.addons && packageData.addons.length > 0 && (
                   <div className="package-extensions-section" style={{ marginTop: '40px', padding: '25px', background: 'rgba(212,175,55,0.05)', borderRadius: '15px', border: '1px solid rgba(212,175,55,0.2)' }}>
-                    <h3 style={{ color: '#d4af37', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <h3 style={{ color: '#f59e0b', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <i className="fa-solid fa-puzzle-piece"></i> {lang === 'AR' ? 'إضافات الرحلة' : 'Modular Trip Extensions'}
                     </h3>
                     <div style={{ display: 'grid', gap: '15px' }}>
@@ -1679,12 +1680,12 @@ const PackageDetails = () => {
                             style={{ 
                               display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
                               padding: '15px 20px', background: isSelected ? 'rgba(212,175,55,0.15)' : 'rgba(0,0,0,0.3)', 
-                              border: `1px solid ${isSelected ? '#d4af37' : 'rgba(255,255,255,0.1)'}`, 
+                              border: `1px solid ${isSelected ? '#f59e0b' : 'rgba(255,255,255,0.1)'}`, 
                               borderRadius: '10px', cursor: 'pointer', transition: 'all 0.3s'
                             }}
                           >
                             <div>
-                              <strong style={{ color: isSelected ? '#d4af37' : '#fff', fontSize: '1.1rem', display: 'block', marginBottom: '5px' }}>
+                              <strong style={{ color: isSelected ? '#f59e0b' : '#fff', fontSize: '1.1rem', display: 'block', marginBottom: '5px' }}>
                                 {addon.name}
                               </strong>
                               <p style={{ color: '#a4a4b4', fontSize: '0.9rem', margin: 0 }}>{addon.description}</p>
@@ -1692,8 +1693,8 @@ const PackageDetails = () => {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                               <span style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.1rem' }}>+{addon.price} EGP</span>
                               <div style={{ 
-                                width: '24px', height: '24px', borderRadius: '50%', border: `2px solid ${isSelected ? '#d4af37' : '#a4a4b4'}`,
-                                display: 'flex', justifyContent: 'center', alignItems: 'center', background: isSelected ? '#d4af37' : 'transparent'
+                                width: '24px', height: '24px', borderRadius: '50%', border: `2px solid ${isSelected ? '#f59e0b' : '#a4a4b4'}`,
+                                display: 'flex', justifyContent: 'center', alignItems: 'center', background: isSelected ? '#f59e0b' : 'transparent'
                               }}>
                                 {isSelected && <i className="fa-solid fa-check" style={{ color: '#000', fontSize: '0.8rem' }}></i>}
                               </div>
@@ -1709,7 +1710,7 @@ const PackageDetails = () => {
 
               {/* Right Column: Sticky Booking Card */}
               <div className="package-sidebar">
-                <div className="booking-card">
+                <div className="tw-sticky tw-top-32 tw-bg-white/80 dark:tw-bg-[#15171a]/80 tw-backdrop-blur-xl tw-border tw-border-slate-200 dark:tw-border-slate-800/80 tw-rounded-3xl tw-p-8 tw-shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] dark:tw-shadow-2xl">
                   {(() => {
                     const singlePrice = isCustomizing && customTrip 
                       ? (packageData.base_price + customTrip.total_price) 
@@ -1731,10 +1732,10 @@ const PackageDetails = () => {
                           </div>
                           {guestCount > 1 && (
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '6px', marginTop: '4px' }}>
-                              <span className="price-label" style={{ color: '#d4af37', fontWeight: '700' }}>
+                              <span className="price-label" style={{ color: '#f59e0b', fontWeight: '700' }}>
                                 {lang === 'AR' ? `الإجمالي لـ ${guestCount} مسافرين` : `Total for ${guestCount} guests`}
                               </span>
-                              <span className="price-amount" style={{ color: '#d4af37', fontSize: '1.4rem', fontWeight: '800' }}>
+                              <span className="price-amount" style={{ color: '#f59e0b', fontSize: '1.4rem', fontWeight: '800' }}>
                                 {totalPrice} EGP
                               </span>
                             </div>
@@ -1754,7 +1755,7 @@ const PackageDetails = () => {
                         }}>
                           <label style={{ fontSize: '0.85rem', color: '#aaa', fontWeight: '600', display: 'flex', justifyContent: 'space-between', margin: 0 }}>
                             <span>{lang === 'AR' ? 'عدد المسافرين (الضيوف)' : 'Number of Travelers (Guests)'}</span>
-                            <span style={{ color: '#d4af37', fontWeight: 'bold' }}>{guestCount} {guestCount === 1 ? (lang === 'AR' ? 'مسافر' : 'Guest') : (lang === 'AR' ? 'مسافرين' : 'Guests')}</span>
+                            <span style={{ color: '#f59e0b', fontWeight: 'bold' }}>{guestCount} {guestCount === 1 ? (lang === 'AR' ? 'مسافر' : 'Guest') : (lang === 'AR' ? 'مسافرين' : 'Guests')}</span>
                           </label>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
                             <button 
@@ -1765,7 +1766,7 @@ const PackageDetails = () => {
                                 width: '32px',
                                 height: '32px',
                                 borderRadius: '50%',
-                                background: guestCount <= 1 ? '#333' : '#d4af37',
+                                background: guestCount <= 1 ? '#333' : '#f59e0b',
                                 color: '#000',
                                 border: 'none',
                                 cursor: guestCount <= 1 ? 'not-allowed' : 'pointer',
@@ -1786,7 +1787,7 @@ const PackageDetails = () => {
                                 width: '32px',
                                 height: '32px',
                                 borderRadius: '50%',
-                                background: '#d4af37',
+                                background: '#f59e0b',
                                 color: '#000',
                                 border: 'none',
                                 cursor: 'pointer',
@@ -1806,7 +1807,7 @@ const PackageDetails = () => {
                   })()}
                   
                   {isCustomizing && customTrip && (
-                    <div style={{ background: 'rgba(212, 175, 55, 0.1)', border: '1px solid #d4af37', borderRadius: '8px', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '15px', color: '#d4af37', fontSize: '0.85rem', fontWeight: '600' }}>
+                    <div style={{ background: 'rgba(212, 175, 55, 0.1)', border: '1px solid #f59e0b', borderRadius: '8px', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '15px', color: '#f59e0b', fontSize: '0.85rem', fontWeight: '600' }}>
                       <i className="fa-solid fa-sparkles"></i> {lang === 'AR' ? 'الخطة المخصصة نشطة' : 'Custom Plan Active'}
                     </div>
                   )}
@@ -1838,7 +1839,7 @@ const PackageDetails = () => {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', boxSizing: 'border-box' }}>
                     <button 
                       onClick={handleBookNow} 
-                      className="btn-book-now" 
+                      className="tw-w-full tw-flex tw-items-center tw-justify-center tw-gap-2 tw-bg-amber-500 hover:tw-bg-amber-600 tw-text-white tw-font-bold tw-py-4 tw-px-6 tw-rounded-2xl tw-transition-all tw-shadow-lg" 
                       disabled={bookingLoading}
                       style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer' }}
                     >
@@ -1896,8 +1897,8 @@ const PackageDetails = () => {
                           style={{
                             width: '100%',
                             background: 'transparent',
-                            border: '1px solid #d4af37',
-                            color: '#d4af37',
+                            border: '1px solid #f59e0b',
+                            color: '#f59e0b',
                             padding: '12px',
                             borderRadius: '8px',
                             cursor: 'pointer',
@@ -1919,8 +1920,8 @@ const PackageDetails = () => {
                           style={{
                             width: '100%',
                             background: 'transparent',
-                            border: '1px solid #d4af37',
-                            color: '#d4af37',
+                            border: '1px solid #f59e0b',
+                            color: '#f59e0b',
                             padding: '12px',
                             borderRadius: '8px',
                             cursor: 'pointer',
@@ -2090,7 +2091,7 @@ const PackageDetails = () => {
               <hr className="divider" />
               
               <div className="reviews-header">
-                <h2>{lang === 'AR' ? 'تقييمات وآراء الزوار' : 'Guest Ratings & Reviews'}</h2>
+                <h2 className="tw-text-slate-900 dark:tw-text-white tw-font-bold tw-text-2xl tw-mb-6">{lang === 'AR' ? 'تقييمات وآراء الزوار' : 'Guest Ratings & Reviews'}</h2>
                 <p>{lang === 'AR' ? 'تجارب واقعية وتقييمات من مغامرين موثقين زاروا هذا المكان' : 'Real stories and ratings from verified adventurers'}</p>
               </div>
 
@@ -2132,7 +2133,7 @@ const PackageDetails = () => {
                     </div>
                   ) : (
                     <div className="write-review-card">
-                      <h3>{lang === 'AR' ? 'شاركنا تجربتك الشخصية' : 'Share Your Experience'}</h3>
+                      <h3 className="tw-text-slate-800 dark:tw-text-slate-100 tw-font-bold tw-text-xl tw-mb-4">{lang === 'AR' ? 'شاركنا تجربتك الشخصية' : 'Share Your Experience'}</h3>
                       <p>{lang === 'AR' ? 'كيف كانت مغامرتك؟ دع الآخرين يتعرفون على تجربتك.' : 'How was your adventure? Let others know what you thought.'}</p>
 
                       {reviewSuccess && (
@@ -2180,7 +2181,7 @@ const PackageDetails = () => {
                                 }}
                               >
                                 <span style={{ fontSize: '2.5rem', filter: (hoverRating || userRating) === item.val ? 'drop-shadow(0 4px 8px rgba(212,175,55,0.4))' : 'none' }}>{item.emoji}</span>
-                                <span style={{ fontSize: '0.8rem', color: (hoverRating || userRating) === item.val ? '#d4af37' : 'var(--text-secondary)', fontWeight: (hoverRating || userRating) === item.val ? 'bold' : 'normal' }}>{item.label}</span>
+                                <span style={{ fontSize: '0.8rem', color: (hoverRating || userRating) === item.val ? '#f59e0b' : 'var(--text-secondary)', fontWeight: (hoverRating || userRating) === item.val ? 'bold' : 'normal' }}>{item.label}</span>
                               </button>
                             ))}
                           </div>
@@ -2200,7 +2201,7 @@ const PackageDetails = () => {
                           <span className="char-counter">{userComment.length} / 500 {lang === 'AR' ? 'حرف' : 'characters'}</span>
                         </div>
 
-                        <button type="submit" className="btn-submit-review" disabled={submittingReview}>
+                        <button type="submit" className="tw-flex tw-items-center tw-justify-center tw-gap-2 tw-bg-amber-500 hover:tw-bg-amber-600 tw-text-white tw-font-bold tw-py-3 tw-px-8 tw-rounded-2xl tw-transition-all tw-shadow-md" disabled={submittingReview}>
                           {submittingReview ? (
                             <><i className="fa-solid fa-spinner fa-spin"></i> {lang === 'AR' ? 'جاري الإرسال...' : 'Submitting...'}</>
                           ) : (
@@ -2222,7 +2223,7 @@ const PackageDetails = () => {
 
               {/* 3. Review Lists */}
               <div className="reviews-list-container">
-                <h3>{lang === 'AR' ? `آراء وتجارب العملاء (${reviews.length})` : `Customer Reviews (${reviews.length})`}</h3>
+                <h3 className="tw-text-slate-800 dark:tw-text-slate-100 tw-font-bold tw-text-xl tw-mb-4">{lang === 'AR' ? `آراء وتجارب العملاء (${reviews.length})` : `Customer Reviews (${reviews.length})`}</h3>
 
                 {loadingReviews ? (
                   <div className="loading-reviews">
@@ -2325,7 +2326,7 @@ const PackageDetails = () => {
               <>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#d4af37' }}>{totalPrice} EGP</span>
+                    <span style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#f59e0b' }}>{totalPrice} EGP</span>
                     <span style={{ fontSize: '0.9rem', color: '#aaa' }}>
                       {lang === 'AR' ? `/ ${guestCount} مسافرين` : `/ ${guestCount} guests`}
                     </span>
@@ -2339,7 +2340,7 @@ const PackageDetails = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                   {/* Visual Invoice Trigger (Just an icon button for the PRD spec) */}
                   <button style={{
-                    background: 'transparent', border: '1px solid #d4af37', color: '#d4af37', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+                    background: 'transparent', border: '1px solid #f59e0b', color: '#f59e0b', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
                   }} title={lang === 'AR' ? 'الفاتورة البصرية' : 'Visual Invoice'}>
                     <i className="fa-solid fa-receipt"></i>
                   </button>
@@ -2347,7 +2348,7 @@ const PackageDetails = () => {
                     onClick={handleBookNow} 
                     disabled={bookingLoading}
                     style={{
-                      background: 'linear-gradient(90deg, #d4af37, #f3e5ab)',
+                      background: 'linear-gradient(90deg, #f59e0b, #f3e5ab)',
                       color: '#000',
                       border: 'none',
                       padding: '12px 25px',

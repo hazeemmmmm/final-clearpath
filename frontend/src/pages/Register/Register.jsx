@@ -53,142 +53,213 @@ const Register = () => {
   };
 
   return (
-    <div className={`register-wrapper ${lang === 'AR' ? 'lang-ar' : ''}`}>
-      <div className="mainpage">
-        <div className="registerform">
-          <div className="registerr d-flex justify-content-center align-items-center">
-            <div className="formholder">
-              <form className="form" onSubmit={handleRegister}>
-                <p className="title">{lang === 'AR' ? 'إنشاء حساب جديد' : 'Register'}</p>
-                
-                {error && <div className="alert alert-error">{lang === 'AR' ? 'فشل إنشاء الحساب. يرجى التأكد من الحقول والمحاولة مجدداً.' : error}</div>}
+    <div className={`tw-h-screen tw-w-full tw-flex ${lang === 'AR' ? 'tw-flex-row-reverse tw-text-right' : 'tw-flex-row tw-text-left'} tw-bg-[#0f1014] tw-overflow-hidden`}>
+      
+      {/* Image Half */}
+      <div className="tw-hidden lg:tw-block tw-w-1/2 tw-h-full tw-relative">
+        <div 
+          className="tw-absolute tw-inset-0 tw-bg-cover tw-bg-center tw-bg-no-repeat"
+          style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1539650116574-8efeb43e2750?q=80&w=1920&auto=format&fit=crop")' }}
+        ></div>
+        <div className={`tw-absolute tw-inset-0 tw-bg-gradient-to-b lg:tw-bg-gradient-to-r tw-from-black/40 tw-via-black/60 tw-to-[#0f1014]`}></div>
+        
+        <div className="tw-absolute tw-inset-0 tw-flex tw-flex-col tw-justify-center tw-items-center tw-p-12 tw-text-center">
+          <Link to="/" className="tw-text-6xl xl:tw-text-7xl tw-font-serif tw-font-bold tw-text-white tw-tracking-[0.05em] tw-mb-4 hover:tw-text-[#d4af37] tw-transition-colors">
+            CLEARPATH
+          </Link>
+          <p className="tw-text-[#d4af37] tw-tracking-[0.2em] tw-uppercase tw-text-sm tw-font-semibold tw-mb-4">
+            {lang === 'AR' ? 'استكشف عظمة التاريخ' : 'Discover Ancient Majesty'}
+          </p>
+          <div className="tw-w-12 tw-h-[1px] tw-bg-[#d4af37]"></div>
+        </div>
+      </div>
 
-                <div className="flex">
-                  <label htmlFor="FirstName">
-                    <input 
-                      className="input" 
-                      type="text" 
-                      placeholder="" 
-                      required 
-                      id="FirstName"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                    />
-                    <span>{lang === 'AR' ? 'الاسم الأول' : 'Firstname'}</span>
-                  </label>
+      {/* Form Half */}
+      <div className="tw-w-full lg:tw-w-1/2 tw-h-full tw-flex tw-flex-col tw-justify-center tw-px-8 lg:tw-px-16 xl:tw-px-24 tw-py-12 tw-relative tw-overflow-y-auto tw-bg-[#0f1014] tw-scrollbar-thin tw-scrollbar-thumb-[#d4af37]/20 tw-scrollbar-track-transparent hover:tw-scrollbar-thumb-[#d4af37]/40">
+        
+        <div className="lg:tw-hidden tw-absolute tw-top-8 tw-flex tw-justify-center tw-w-full">
+           <Link to="/" className="tw-text-2xl tw-font-serif tw-font-bold tw-text-white tw-tracking-[0.05em]">
+            CLEARPATH
+          </Link>
+        </div>
 
-                  <label htmlFor="LastName">
-                    <input 
-                      className="input" 
-                      type="text" 
-                      placeholder="" 
-                      required 
-                      id="LastName"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                    />
-                    <span>{lang === 'AR' ? 'الاسم الأخير' : 'Lastname'}</span>
-                  </label>
+        <div className="tw-w-full tw-max-w-xl tw-mx-auto tw-mt-12 lg:tw-mt-0">
+          <div className="tw-mb-10">
+            <h2 className="tw-text-4xl tw-font-serif tw-font-bold tw-text-white tw-tracking-wider tw-mb-3">
+              {lang === 'AR' ? 'إنشاء حساب' : 'REGISTER'}
+            </h2>
+            <p className="tw-text-sm tw-text-slate-400 tw-font-light">
+              {lang === 'AR' ? 'أدخل تفاصيلك للانضمام إلينا' : 'Enter your details to join us'}
+            </p>
+          </div>
+
+          {error && <div className="tw-bg-rose-500/10 tw-text-rose-400 tw-p-3 tw-rounded-sm tw-text-sm tw-mb-6 tw-border tw-border-rose-500/20 tw-text-center">{lang === 'AR' ? 'فشل إنشاء الحساب. يرجى التأكد من الحقول والمحاولة مجدداً.' : error}</div>}
+          
+          <form onSubmit={handleRegister} className="tw-flex tw-flex-col tw-gap-8">
+            
+            <div className="tw-flex tw-flex-col sm:tw-flex-row tw-gap-8 sm:tw-gap-6">
+              <div className="tw-flex-1 tw-flex tw-flex-col">
+                <label className="tw-text-[11px] tw-font-bold tw-text-slate-300 tw-tracking-[0.15em] tw-uppercase tw-mb-3">
+                  {lang === 'AR' ? 'الاسم الأول' : 'FIRST NAME'}
+                </label>
+                <div className="tw-relative tw-flex tw-items-center">
+                  <i className={`fa-regular fa-user tw-absolute tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
+                  <input
+                    type="text"
+                    required
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className={`tw-w-full tw-bg-transparent tw-border-0 tw-border-b tw-border-slate-700/80 tw-text-white tw-py-2 focus:tw-outline-none focus:tw-ring-0 focus:tw-border-[#d4af37] tw-transition-colors tw-text-sm ${lang === 'AR' ? 'tw-pr-10 tw-pl-2' : 'tw-pl-10 tw-pr-2'}`}
+                  />
                 </div>
+              </div>
 
-                <label htmlFor="email">
-                  <input 
-                    className="input" 
-                    type="email" 
-                    placeholder="" 
-                    required 
-                    id="email"
+              <div className="tw-flex-1 tw-flex tw-flex-col">
+                <label className="tw-text-[11px] tw-font-bold tw-text-slate-300 tw-tracking-[0.15em] tw-uppercase tw-mb-3">
+                  {lang === 'AR' ? 'الاسم الأخير' : 'LAST NAME'}
+                </label>
+                <div className="tw-relative tw-flex tw-items-center">
+                  <i className={`fa-regular fa-user tw-absolute tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
+                  <input
+                    type="text"
+                    required
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className={`tw-w-full tw-bg-transparent tw-border-0 tw-border-b tw-border-slate-700/80 tw-text-white tw-py-2 focus:tw-outline-none focus:tw-ring-0 focus:tw-border-[#d4af37] tw-transition-colors tw-text-sm ${lang === 'AR' ? 'tw-pr-10 tw-pl-2' : 'tw-pl-10 tw-pr-2'}`}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="tw-flex tw-flex-col sm:tw-flex-row tw-gap-8 sm:tw-gap-6">
+              <div className="tw-flex-1 tw-flex tw-flex-col">
+                <label className="tw-text-[11px] tw-font-bold tw-text-slate-300 tw-tracking-[0.15em] tw-uppercase tw-mb-3">
+                  {lang === 'AR' ? 'البريد الإلكتروني' : 'EMAIL'}
+                </label>
+                <div className="tw-relative tw-flex tw-items-center">
+                  <i className={`fa-regular fa-envelope tw-absolute tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
+                  <input
+                    type="email"
+                    required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    className={`tw-w-full tw-bg-transparent tw-border-0 tw-border-b tw-border-slate-700/80 tw-text-white tw-py-2 focus:tw-outline-none focus:tw-ring-0 focus:tw-border-[#d4af37] tw-transition-colors tw-text-sm ${lang === 'AR' ? 'tw-pr-10 tw-pl-2' : 'tw-pl-10 tw-pr-2'}`}
                   />
-                  <span>{lang === 'AR' ? 'البريد الإلكتروني' : 'Email'}</span>
-                </label>
+                </div>
+              </div>
 
-                <label htmlFor="phoneNumber">
-                  <input 
-                    className="input" 
-                    type="tel" 
-                    placeholder="" 
-                    required 
-                    id="phoneNumber"
+              <div className="tw-flex-1 tw-flex tw-flex-col">
+                <label className="tw-text-[11px] tw-font-bold tw-text-slate-300 tw-tracking-[0.15em] tw-uppercase tw-mb-3">
+                  {lang === 'AR' ? 'رقم الهاتف' : 'PHONE NUMBER'}
+                </label>
+                <div className="tw-relative tw-flex tw-items-center">
+                  <i className={`fa-solid fa-phone tw-absolute tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
+                  <input
+                    type="tel"
+                    required
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
+                    className={`tw-w-full tw-bg-transparent tw-border-0 tw-border-b tw-border-slate-700/80 tw-text-white tw-py-2 focus:tw-outline-none focus:tw-ring-0 focus:tw-border-[#d4af37] tw-transition-colors tw-text-sm ${lang === 'AR' ? 'tw-pr-10 tw-pl-2' : 'tw-pl-10 tw-pr-2'}`}
                   />
-                  <span>{lang === 'AR' ? 'رقم الهاتف' : 'Phone Number'}</span>
-                </label>
+                </div>
+              </div>
+            </div>
 
-                <label htmlFor="password">
-                  <input 
-                    className="input" 
-                    type="password" 
-                    placeholder="" 
-                    required 
-                    id="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                  <span>{lang === 'AR' ? 'كلمة المرور' : 'Password'}</span>
+            <div className="tw-flex tw-flex-col sm:tw-flex-row tw-gap-8 sm:tw-gap-6">
+              <div className="tw-flex-1 tw-flex tw-flex-col">
+                <label className="tw-text-[11px] tw-font-bold tw-text-slate-300 tw-tracking-[0.15em] tw-uppercase tw-mb-3">
+                  {lang === 'AR' ? 'تاريخ الميلاد' : 'DATE OF BIRTH'}
                 </label>
-                
-                <label htmlFor="confirmPassword">
-                  <input 
-                    className="input" 
-                    type="password" 
-                    placeholder="" 
-                    required 
-                    id="confirmPassword"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                  />
-                  <span>{lang === 'AR' ? 'تأكيد كلمة المرور' : 'Confirm password'}</span>
-                </label>
-                
-                <label htmlFor="age">
-                  <input 
-                    type="date" 
-                    className="input" 
-                    placeholder="" 
-                    required 
-                    id="age"
+                <div className="tw-relative tw-flex tw-items-center">
+                  <input
+                    type="date"
+                    required
                     value={ageDate}
                     onChange={(e) => setAgeDate(e.target.value)}
+                    className={`tw-w-full tw-bg-transparent tw-border-0 tw-border-b tw-border-slate-700/80 tw-text-white tw-py-2 focus:tw-outline-none focus:tw-ring-0 focus:tw-border-[#d4af37] tw-transition-colors tw-text-sm`}
+                    style={{ colorScheme: 'dark' }}
                   />
-                  <span></span>
-                </label>
+                </div>
+              </div>
 
-                <label htmlFor="nationality">
-                  <input 
-                    className="input" 
+              <div className="tw-flex-1 tw-flex tw-flex-col">
+                <label className="tw-text-[11px] tw-font-bold tw-text-slate-300 tw-tracking-[0.15em] tw-uppercase tw-mb-3">
+                  {lang === 'AR' ? 'الجنسية' : 'NATIONALITY'}
+                </label>
+                <div className="tw-relative tw-flex tw-items-center">
+                  <i className={`fa-solid fa-globe tw-absolute tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
+                  <input
                     type="text"
                     list="country-list"
-                    required 
-                    id="nationality"
+                    required
                     value={nationality}
                     onChange={(e) => setNationality(e.target.value)}
+                    className={`tw-w-full tw-bg-transparent tw-border-0 tw-border-b tw-border-slate-700/80 tw-text-white tw-py-2 focus:tw-outline-none focus:tw-ring-0 focus:tw-border-[#d4af37] tw-transition-colors tw-text-sm ${lang === 'AR' ? 'tw-pr-10 tw-pl-2' : 'tw-pl-10 tw-pr-2'}`}
                     autoComplete="off"
                   />
                   <datalist id="country-list">
-                    <option value="Egyptian" />
                     {countries.map(country => (
                       <option key={country} value={country} />
                     ))}
                   </datalist>
-                  <span>{lang === 'AR' ? 'الجنسية' : 'Nationality'}</span>
-                </label>
-
-                <button className="submit" type="submit" disabled={isLoading}>
-                  {isLoading ? (lang === 'AR' ? 'جاري التسجيل...' : 'Registering...') : (lang === 'AR' ? 'سجل معنا' : 'Submit')}
-                </button>
-                
-                <p className="signin">
-                  {lang === 'AR' ? 'لديك حساب بالفعل؟ ' : 'Already have an account? '} 
-                  <Link className="loginBtn btn btn-primary" to="/login">{lang === 'AR' ? 'تسجيل الدخول' : 'Log In'}</Link> 
-                </p>
-              </form>
+                </div>
+              </div>
             </div>
-          </div>
+
+            <div className="tw-flex tw-flex-col sm:tw-flex-row tw-gap-8 sm:tw-gap-6">
+              <div className="tw-flex-1 tw-flex tw-flex-col">
+                <label className="tw-text-[11px] tw-font-bold tw-text-slate-300 tw-tracking-[0.15em] tw-uppercase tw-mb-3">
+                  {lang === 'AR' ? 'كلمة المرور' : 'PASSWORD'}
+                </label>
+                <div className="tw-relative tw-flex tw-items-center">
+                  <i className={`fa-solid fa-lock tw-absolute tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className={`tw-w-full tw-bg-transparent tw-border-0 tw-border-b tw-border-slate-700/80 tw-text-white tw-py-2 focus:tw-outline-none focus:tw-ring-0 focus:tw-border-[#d4af37] tw-transition-colors tw-text-sm tw-tracking-[0.2em] ${lang === 'AR' ? 'tw-pr-10 tw-pl-2' : 'tw-pl-10 tw-pr-2'}`}
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
+
+              <div className="tw-flex-1 tw-flex tw-flex-col">
+                <label className="tw-text-[11px] tw-font-bold tw-text-slate-300 tw-tracking-[0.15em] tw-uppercase tw-mb-3">
+                  {lang === 'AR' ? 'تأكيد كلمة المرور' : 'CONFIRM PASSWORD'}
+                </label>
+                <div className="tw-relative tw-flex tw-items-center">
+                  <i className={`fa-solid fa-lock tw-absolute tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
+                  <input
+                    type="password"
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className={`tw-w-full tw-bg-transparent tw-border-0 tw-border-b tw-border-slate-700/80 tw-text-white tw-py-2 focus:tw-outline-none focus:tw-ring-0 focus:tw-border-[#d4af37] tw-transition-colors tw-text-sm tw-tracking-[0.2em] ${lang === 'AR' ? 'tw-pr-10 tw-pl-2' : 'tw-pl-10 tw-pr-2'}`}
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <button 
+              type="submit" 
+              disabled={isLoading}
+              className="tw-w-full tw-bg-[#dcae44] hover:tw-bg-[#e5c35b] tw-text-black tw-font-bold tw-tracking-[0.15em] tw-uppercase tw-py-3.5 tw-rounded-sm tw-mt-4 tw-transition-all hover:tw-shadow-[0_0_15px_rgba(212,175,55,0.3)] disabled:tw-opacity-50"
+            >
+              {isLoading ? (lang === 'AR' ? 'جاري التسجيل...' : 'REGISTERING...') : (lang === 'AR' ? 'سجل معنا' : 'REGISTER')}
+            </button>
+
+            <div className="tw-text-center tw-text-sm tw-text-slate-300 tw-mt-4 tw-font-light">
+              <span>{lang === 'AR' ? 'لديك حساب بالفعل؟ ' : "Already have an account? "}</span>
+              <Link to="/login" className="tw-text-white tw-font-semibold tw-border-b tw-border-white hover:tw-text-[#d4af37] hover:tw-border-[#d4af37] tw-pb-0.5 tw-transition-colors">
+                {lang === 'AR' ? 'تسجيل الدخول' : 'Log In'}
+              </Link>
+            </div>
+          </form>
         </div>
       </div>
+
     </div>
   );
 };

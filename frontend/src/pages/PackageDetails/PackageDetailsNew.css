@@ -1,9 +1,9 @@
 /* PackageDetails.css - Premium Web App Design System */
 
 :root {
-  --primary-color: #003D59;
-  --secondary-color: #d4af37;
-  --accent-color: #CE1126;
+  --primary-color: #0f172a;
+  --secondary-color: #f59e0b;
+  --accent-color: #f59e0b;
   --bg-main: #f8fafc;
   --card-bg: #ffffff;
   --text-dark: #1e293b;
@@ -986,9 +986,9 @@
 /* 🌌 DARK MODE OVERRIDES                                         */
 /* ============================================================== */
 body.dark-mode {
-  --primary-color: #4ba6d6;
-  --secondary-color: #e5c35b;
-  --accent-color: #ff4d6a;
+  --primary-color: #0f172a;
+  --secondary-color: #f59e0b;
+  --accent-color: #f59e0b;
   --bg-main: #0f0f15;
   --card-bg: #14141f;
   --text-dark: #f1f5f9;
@@ -1136,9 +1136,9 @@ body:not(.dark-mode) .packing-card h3 {
 
 /* Root Variables (Light Mode) */
 :root {
-  --primary-color: #003D59;
-  --secondary-color: #d4af37;
-  --accent-color: #CE1126;
+  --primary-color: #0f172a;
+  --secondary-color: #f59e0b;
+  --accent-color: #f59e0b;
   --bg-main: #f8fafc;
   --card-bg: rgba(255, 255, 255, 0.9);
   --text-dark: #0f172a;
@@ -1152,9 +1152,9 @@ body:not(.dark-mode) .packing-card h3 {
 
 /* Dark Mode Overrides */
 .dark, body.dark-mode {
-  --primary-color: #60a5fa;
-  --secondary-color: #fcd34d;
-  --accent-color: #fb7185;
+  --primary-color: #0f172a;
+  --secondary-color: #f59e0b;
+  --accent-color: #f59e0b;
   --bg-main: #0a0b0d;
   --card-bg: rgba(21, 23, 26, 0.85);
   --text-dark: #f8fafc;
@@ -1258,4 +1258,104 @@ body:not(.dark-mode) .packing-card h3 {
 .btn-book-now:hover, .btn-submit-review:hover {
   filter: brightness(1.15);
   transform: translateY(-2px);
+}
+\n
+/* ============================================================== */
+/* 🌟 LUXURY THEME & CACHE BUSTER OVERRIDES                       */
+/* ============================================================== */
+
+/* Force Font */
+.package-details-page * {
+  font-family: 'Outfit', 'Inter', sans-serif !important;
+}
+
+/* Light Mode Overrides */
+.package-details-page {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+.package-main-info, .booking-card, .write-review-card, .review-card, .stats-panel-grid, .packing-guide-section {
+  background: #ffffff !important;
+  border: 1px solid rgba(0,0,0,0.05) !important;
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08) !important;
+  color: #0f172a !important;
+}
+.package-main-info h1, .package-main-info h2, .package-main-info h3, .reviews-header h2, .reviewer-name {
+  color: #0f172a !important;
+}
+.description-text, .review-card-body p, .benefit-item p {
+  color: #475569 !important;
+}
+.btn-book-now, .btn-submit-review {
+  background: #f59e0b !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3) !important;
+  border-radius: 50px !important;
+}
+.btn-book-now:hover, .btn-submit-review:hover {
+  background: #d97706 !important;
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4) !important;
+}
+
+/* 🌙 Dark Mode Deep Overrides (Using Tailwind .dark class) */
+.dark .package-details-page {
+  background-color: #0a0b0d !important;
+  color: #f8fafc !important;
+}
+.dark .package-main-info, 
+.dark .booking-card, 
+.dark .write-review-card, 
+.dark .review-card, 
+.dark .stats-panel-grid, 
+.dark .packing-guide-section,
+.dark .day-content {
+  background: #15171a !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5) !important;
+  color: #f8fafc !important;
+}
+.dark .package-main-info h1, 
+.dark .package-main-info h2, 
+.dark .package-main-info h3, 
+.dark .reviews-header h2, 
+.dark .reviewer-name {
+  color: #f8fafc !important;
+}
+.dark .description-text, 
+.dark .review-card-body p, 
+.dark .benefit-item p {
+  color: #94a3b8 !important;
+}
+.dark .review-form textarea {
+  background: rgba(255,255,255,0.05) !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+}
+
+/* RTL Support via .lang-ar */
+.package-details-page.lang-ar {
+  direction: rtl !important;
+  text-align: right !important;
+}
+.lang-ar .package-grid {
+  direction: rtl;
+}
+.lang-ar .breadcrumb i.fa-chevron-right {
+  transform: rotate(180deg) !important;
+}
+.lang-ar .itinerary-timeline {
+  padding-left: 0 !important;
+  padding-right: 20px !important;
+}
+.lang-ar .itinerary-timeline::before {
+  left: auto !important;
+  right: 31px !important;
+}
+.lang-ar .day-badge {
+  margin-right: 0 !important;
+  margin-left: 15px !important;
+}
+.lang-ar .activity-item i, .lang-ar .benefit-item i {
+  margin-right: 0 !important;
+  margin-left: 8px !important;
 }

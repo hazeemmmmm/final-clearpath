@@ -87,7 +87,7 @@ class AuthService {
             payload: { id: user._id.toString(), role: user.role },
             options: { expiresIn: "20d" }
         });
-            return res.status(200).json({ message: "Logged in successfully", data: { accessToken, refreshToken } });
+            return res.status(200).json({ message: "Logged in successfully", data: { accessToken, refreshToken, user } });
         } catch (err) {
             next(err);
         }

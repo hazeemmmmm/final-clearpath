@@ -4,19 +4,26 @@ import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import { getBookingDetails, cancelBooking } from '../../utils/api';
 import { LanguageContext } from '../../context/LanguageContext';
-import './CancelConfirm.css';
 
 const CancelConfirm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { lang } = useContext(LanguageContext);
+  const { lang, setLang } = useContext(LanguageContext);
   
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [processing, setProcessing] = useState(false);
-  const [successInfo, setSuccessInfo] = useState(null); // { feeAmount, autoCharged, chargeReason }
+  const [successInfo, setSuccessInfo] = useState(null);
   const [countdown, setCountdown] = useState(6);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     const load = async () => {
@@ -64,7 +71,6 @@ const CancelConfirm = () => {
         chargeReason: info.chargeReason || ''
       });
 
-      // Start automatic redirect countdown
       let count = 6;
       const interval = setInterval(() => {
         count -= 1;
@@ -83,63 +89,75 @@ const CancelConfirm = () => {
   };
 
   if (loading) return (
-    <div style={{ padding: '140px 20px', textAlign: 'center', background: '#081018', minHeight: '100vh', color: '#fff' }}>
-      <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: '30px', color: '#d4af37' }}></i>
-      <p style={{ marginTop: '15px' }}>{lang === 'AR' ? 'جاري جلب تفاصيل الحجز...' : 'Loading booking details...'}</p>
+    <div className={`tw-min-h-screen tw-bg-slate-50 dark:tw-bg-[#0a0b0d] tw-font-sans tw-flex tw-flex-col ${lang === 'AR' ? 'tw-dir-rtl' : ''}`}>
+      <Navbar lang={lang} setLang={setLang} isScrolled={true} />
+      <div className="tw-flex-grow tw-flex tw-flex-col tw-items-center tw-justify-center">
+        <i className="fa-solid fa-circle-notch fa-spin tw-text-4xl tw-text-amber-500 tw-mb-4"></i>
+        <p className="tw-text-slate-600 dark:tw-text-slate-400 tw-font-medium">{lang === 'AR' ? 'جاري جلب تفاصيل الحجز...' : 'Loading booking details...'}</p>
+      </div>
     </div>
   );
 
   if (error) return (
-    <div style={{ padding: '140px 20px', textAlign: 'center', background: '#081018', minHeight: '100vh', color: '#fff' }}>
-      <i className="fa-solid fa-triangle-exclamation" style={{ fontSize: '30px', color: '#ef4444' }}></i>
-      <p style={{ marginTop: '15px', color: '#cbd5e1' }}>{error}</p>
-      <button onClick={() => navigate(-1)} style={{ marginTop: '12px', background: '#d4af37', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
-        {lang === 'AR' ? 'العودة' : 'Go Back'}
-      </button>
+    <div className={`tw-min-h-screen tw-bg-slate-50 dark:tw-bg-[#0a0b0d] tw-font-sans tw-flex tw-flex-col ${lang === 'AR' ? 'tw-dir-rtl' : ''}`}>
+      <Navbar lang={lang} setLang={setLang} isScrolled={true} />
+      <div className="tw-flex-grow tw-flex tw-justify-center tw-items-center tw-p-4">
+        <div className="tw-bg-white dark:tw-bg-[#111111] tw-border tw-border-red-200 dark:tw-border-red-900/30 tw-rounded-2xl tw-p-10 tw-text-center tw-max-w-lg tw-w-full tw-shadow-xl">
+          <i className="fa-solid fa-triangle-exclamation tw-text-5xl tw-text-red-500 tw-mb-6"></i>
+          <p className="tw-text-slate-700 dark:tw-text-slate-300 tw-mb-6">{error}</p>
+          <button 
+            className="tw-bg-amber-500 hover:tw-bg-amber-600 tw-text-slate-900 tw-font-bold tw-py-3 tw-px-8 tw-rounded-sm tw-transition-colors"
+            onClick={() => navigate(-1)}
+          >
+            {lang === 'AR' ? 'العودة' : 'Go Back'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 
   const { feePercent, feeAmount, refundedAmount } = computeFee(booking || {});
 
   return (
-    <div className={`cancel-confirm-page ${lang === 'AR' ? 'lang-ar' : ''}`}>
-      <Navbar isScrolled={true} />
-      <main style={{ padding: '120px 20px 60px', display: 'flex', justifyContent: 'center' }}>
-        <div style={{ maxWidth: '720px', width: '100%', background: '#0f1724', padding: '35px', borderRadius: '24px', border: '1px solid rgba(212, 175, 55, 0.15)', boxShadow: '0 20px 45px rgba(0,0,0,0.6)' }}>
+    <div className={`tw-min-h-screen tw-bg-slate-50 dark:tw-bg-[#0a0b0d] tw-font-sans tw-flex tw-flex-col ${lang === 'AR' ? 'tw-dir-rtl' : ''}`}>
+      <Navbar lang={lang} setLang={setLang} isScrolled={true} />
+      
+      <main className="tw-flex-grow tw-flex tw-justify-center tw-items-center tw-px-4 tw-py-32">
+        <div className="tw-bg-white dark:tw-bg-[#111111] tw-border tw-border-slate-200 dark:tw-border-[#1f1f1f] tw-shadow-xl tw-rounded-xl tw-p-8 md:tw-p-10 tw-w-full tw-max-w-2xl">
           
           {successInfo ? (
-            /* 🟢 Beautiful Success Screen */
-            <div style={{ textAlign: 'center', padding: '10px 0' }}>
-              <div style={{ width: '80px', height: '80px', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.25)', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '0 auto 20px' }}>
-                <i className="fa-solid fa-circle-check" style={{ fontSize: '3.2rem', color: '#10b981' }}></i>
+            /* Success Screen */
+            <div className="tw-text-center tw-py-4">
+              <div className="tw-w-20 tw-h-20 tw-bg-emerald-500/10 tw-border tw-border-emerald-500/30 tw-rounded-full tw-flex tw-items-center tw-justify-center tw-mx-auto tw-mb-6">
+                <i className="fa-solid fa-circle-check tw-text-4xl tw-text-emerald-500"></i>
               </div>
 
-              <h2 style={{ fontSize: '1.9rem', fontWeight: '800', color: '#10b981', marginBottom: '15px' }}>
+              <h2 className="tw-text-2xl tw-font-serif tw-font-bold tw-text-emerald-500 tw-mb-6">
                 {lang === 'AR' ? 'تم إلغاء الحجز بنجاح!' : 'Booking Cancelled Successfully!'}
               </h2>
 
-              <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '16px', padding: '24px', textAlign: lang === 'AR' ? 'right' : 'left', marginBottom: '25px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.92rem', color: '#94a3b8', marginBottom: '8px' }}>
+              <div className="tw-bg-slate-50 dark:tw-bg-white/5 tw-border tw-border-slate-200 dark:tw-border-white/10 tw-rounded-lg tw-p-6 tw-mb-8 tw-text-left">
+                <div className="tw-flex tw-justify-between tw-text-sm tw-text-slate-500 dark:tw-text-slate-400 tw-mb-3">
                   <span>{lang === 'AR' ? 'حالة الإلغاء:' : 'Status:'}</span>
-                  <span style={{ color: '#ef4444', fontWeight: '700' }}>{lang === 'AR' ? 'ملغي' : 'Cancelled'}</span>
+                  <span className="tw-text-red-500 tw-font-bold">{lang === 'AR' ? 'ملغي' : 'Cancelled'}</span>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.92rem', color: '#94a3b8', marginBottom: '8px' }}>
+                <div className="tw-flex tw-justify-between tw-text-sm tw-text-slate-500 dark:tw-text-slate-400 tw-mb-4">
                   <span>{lang === 'AR' ? 'رسوم الإلغاء:' : 'Cancellation Fee:'}</span>
-                  <span style={{ color: '#fff', fontWeight: '600' }}>{successInfo.feeAmount} EGP</span>
+                  <span className="tw-text-slate-900 dark:tw-text-white tw-font-bold">{successInfo.feeAmount} EGP</span>
                 </div>
 
-                <div style={{ borderTop: '1px dashed rgba(255,255,255,0.08)', margin: '15px 0' }}></div>
+                <div className="tw-border-t tw-border-slate-200 dark:tw-border-white/10 tw-my-4"></div>
 
                 {successInfo.autoCharged ? (
-                  <p style={{ color: '#10b981', fontSize: '0.92rem', fontWeight: '600', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <p className="tw-text-emerald-500 tw-text-sm tw-font-bold tw-flex tw-items-center tw-gap-2 tw-m-0">
                     <i className="fa-solid fa-credit-card"></i>
                     {lang === 'AR' 
                       ? `تم خصم رسوم الإلغاء (${successInfo.feeAmount} EGP) تلقائياً من بطاقتك الائتمانية.` 
                       : `Cancellation fee of ${successInfo.feeAmount} EGP was charged automatically from your card.`}
                   </p>
                 ) : (
-                  <p style={{ color: '#f59e0b', fontSize: '0.92rem', fontWeight: '600', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', lineHeight: '1.5' }}>
+                  <p className="tw-text-amber-500 tw-text-sm tw-font-bold tw-flex tw-items-center tw-gap-2 tw-m-0 tw-leading-relaxed">
                     <i className="fa-solid fa-circle-exclamation"></i>
                     {lang === 'AR' 
                       ? `تم إلغاء الحجز. لم يتم خصم رسوم الإلغاء تلقائياً: ${successInfo.chargeReason || 'حساب تجريبي'}` 
@@ -148,7 +166,7 @@ const CancelConfirm = () => {
                 )}
               </div>
 
-              <p style={{ color: '#d4af37', fontSize: '0.9rem', fontWeight: '700', background: 'rgba(212, 175, 55, 0.1)', padding: '8px 18px', borderRadius: '20px', border: '1px solid rgba(212, 175, 55, 0.2)', display: 'inline-flex', alignItems: 'center', gap: '8px', animation: 'pulse-gold 2s infinite' }}>
+              <p className="tw-inline-flex tw-items-center tw-gap-2 tw-bg-amber-500/10 tw-border tw-border-amber-500/20 tw-text-amber-600 dark:tw-text-amber-500 tw-py-2 tw-px-5 tw-rounded-full tw-text-sm tw-font-bold tw-animate-pulse">
                 <i className="fa-solid fa-circle-notch fa-spin"></i>
                 {lang === 'AR' 
                   ? `سيتم توجيهك تلقائياً لصفحة حجوزاتك خلال ${countdown} ثوانٍ...` 
@@ -156,17 +174,17 @@ const CancelConfirm = () => {
               </p>
             </div>
           ) : (
-            /* 🔴 Main Cancellation Confirm Form */
+            /* Main Cancellation Form */
             <>
-              <h2 style={{ color: '#d4af37', marginBottom: '10px', fontSize: '1.8rem', fontWeight: '800' }}>
+              <h2 className="tw-text-3xl tw-font-serif tw-font-bold tw-text-slate-900 dark:tw-text-amber-500 tw-mb-6">
                 {lang === 'AR' ? 'تأكيد إلغاء الحجز' : 'Confirm Booking Cancellation'}
               </h2>
 
-              <div style={{ color: '#cbd5e1', marginBottom: '20px', lineHeight: '1.6' }}>
-                <p style={{ fontWeight: '700', fontSize: '1.05rem', color: '#fff', marginBottom: '10px' }}>
+              <div className="tw-text-slate-600 dark:tw-text-slate-300 tw-mb-8 tw-leading-relaxed">
+                <p className="tw-font-bold tw-text-slate-900 dark:tw-text-white tw-mb-3 tw-text-lg">
                   {lang === 'AR' ? 'الشروط وقواعد الإلغاء:' : 'Policy & Cancellation Rules:'}
                 </p>
-                <ul style={{ paddingLeft: lang === 'AR' ? '0' : '20px', paddingRight: lang === 'AR' ? '20px' : '0', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.92rem' }}>
+                <ul className={`tw-flex tw-flex-col tw-gap-2 tw-text-sm ${lang === 'AR' ? 'tw-pr-5' : 'tw-pl-5'} tw-list-disc`}>
                   <li>{lang === 'AR' ? 'أول 24 ساعة بعد الحجز مباشرة: مجاني بالكامل (0%).' : 'First 24 hours after booking: Fully Free (0% fee).'}</li>
                   <li>{lang === 'AR' ? 'بعد مرور 24 ساعة (وقبل أكثر من أسبوع من الرحلة): خصم 5% رسوم إلغاء.' : 'After 24 hours (and more than 7 days before travel): 5% cancellation fee.'}</li>
                   <li>{lang === 'AR' ? 'خلال الأسبوع الأخير وحتى يومين قبل الرحلة: خصم 10% رسوم إلغاء.' : 'Within the last week up to 2 days before travel: 10% cancellation fee.'}</li>
@@ -174,83 +192,64 @@ const CancelConfirm = () => {
                 </ul>
               </div>
 
-              <div style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.05)', marginBottom: '20px' }}>
-                <p style={{ fontWeight: '800', color: '#fff', fontSize: '1.05rem', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <i className="fa-solid fa-receipt" style={{ color: '#d4af37' }}></i>
+              <div className="tw-bg-slate-50 dark:tw-bg-white/5 tw-border tw-border-slate-200 dark:tw-border-white/10 tw-rounded-lg tw-p-5 tw-mb-6">
+                <p className="tw-font-bold tw-text-slate-900 dark:tw-text-white tw-mb-4 tw-flex tw-items-center tw-gap-2">
+                  <i className="fa-solid fa-receipt tw-text-amber-500"></i>
                   {lang === 'AR' ? 'تفاصيل الحجز الحالي' : 'Booking Details'}
                 </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.9rem', color: '#cbd5e1' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div className="tw-flex tw-flex-col tw-gap-3 tw-text-sm tw-text-slate-600 dark:tw-text-slate-400">
+                  <div className="tw-flex tw-justify-between">
                     <span>{lang === 'AR' ? 'رقم مرجع الحجز:' : 'Booking ID:'}</span>
-                    <strong style={{ color: '#fff' }}>#{booking._id.slice(-8).toUpperCase()}</strong>
+                    <strong className="tw-text-slate-900 dark:tw-text-white tw-font-mono">#{booking._id.slice(-8).toUpperCase()}</strong>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <div className="tw-flex tw-justify-between">
                     <span>{lang === 'AR' ? 'تاريخ السفر:' : 'Travel Date:'}</span>
-                    <strong style={{ color: '#fff' }}>
+                    <strong className="tw-text-slate-900 dark:tw-text-white">
                       {booking.travel_date ? new Date(booking.travel_date).toLocaleDateString(lang === 'AR' ? 'ar-EG' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : (lang === 'AR' ? 'غير محدد' : 'N/A')}
                     </strong>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <div className="tw-flex tw-justify-between">
                     <span>{lang === 'AR' ? 'المبلغ الكلي المدفوع:' : 'Total Amount Paid:'}</span>
-                    <strong style={{ color: '#10b981' }}>{booking.total_amount || 0} EGP</strong>
+                    <strong className="tw-text-emerald-600 dark:tw-text-emerald-500">{booking.total_amount || 0} EGP</strong>
                   </div>
                 </div>
               </div>
 
-              <div style={{ background: 'rgba(212, 175, 55, 0.05)', border: '1px solid rgba(212, 175, 55, 0.2)', padding: '18px', borderRadius: '14px', marginBottom: '25px' }}>
-                <p style={{ fontWeight: '800', color: '#d4af37', fontSize: '1.05rem', marginBottom: '10px' }}>
+              <div className="tw-bg-amber-500/10 tw-border tw-border-amber-500/20 tw-rounded-lg tw-p-5 tw-mb-8">
+                <p className="tw-font-bold tw-text-amber-600 dark:tw-text-amber-500 tw-mb-4">
                   {lang === 'AR' ? 'الحساب المالي للإلغاء الفعلي' : 'Calculated Cancellation Fee'}
                 </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.92rem', color: '#cbd5e1' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div className="tw-flex tw-flex-col tw-gap-3 tw-text-sm tw-text-slate-600 dark:tw-text-slate-400">
+                  <div className="tw-flex tw-justify-between">
                     <span>{lang === 'AR' ? 'نسبة رسوم الإلغاء المحتسبة:' : 'Applicable Penalty Rate:'}</span>
-                    <span style={{ color: '#fff', fontWeight: '700' }}>{feePercent}%</span>
+                    <strong className="tw-text-slate-900 dark:tw-text-white">{feePercent}%</strong>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <div className="tw-flex tw-justify-between">
                     <span>{lang === 'AR' ? 'مبلغ رسوم الإلغاء المحتجز:' : 'Cancellation Fee Amount:'}</span>
-                    <span style={{ color: '#ef4444', fontWeight: '700' }}>{feeAmount} EGP</span>
+                    <strong className="tw-text-red-500">{feeAmount} EGP</strong>
                   </div>
-                  <div style={{ borderTop: '1px dashed rgba(212,175,55,0.15)', margin: '6px 0' }}></div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                    <span style={{ color: '#fff', fontWeight: '700' }}>{lang === 'AR' ? 'المبلغ المسترد المتوقع:' : 'Expected Refund Amount:'}</span>
-                    <strong style={{ color: '#10b981', fontSize: '1.25rem' }}>{refundedAmount} EGP</strong>
+                  <div className="tw-border-t tw-border-amber-500/20 tw-my-2"></div>
+                  <div className="tw-flex tw-justify-between tw-items-baseline">
+                    <strong className="tw-text-slate-900 dark:tw-text-white">{lang === 'AR' ? 'المبلغ المسترد المتوقع:' : 'Expected Refund Amount:'}</strong>
+                    <strong className="tw-text-emerald-600 dark:tw-text-emerald-500 tw-text-xl">{refundedAmount} EGP</strong>
                   </div>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '15px' }}>
+              <div className="tw-flex tw-flex-col sm:tw-flex-row tw-gap-4">
                 <button 
                   onClick={() => navigate(-1)} 
-                  style={{ 
-                    flex: 1, 
-                    padding: '14px', 
-                    borderRadius: '12px', 
-                    background: 'rgba(255,255,255,0.04)', 
-                    color: '#fff', 
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    fontWeight: '700',
-                    fontSize: '0.95rem'
-                  }}
+                  className="tw-flex-1 tw-bg-transparent tw-border tw-border-slate-300 dark:tw-border-[#333333] tw-text-slate-700 dark:tw-text-[#aaaaaa] hover:tw-border-slate-400 hover:tw-text-slate-900 dark:hover:tw-border-slate-500 dark:hover:tw-text-white tw-font-bold tw-py-3 tw-rounded-sm tw-transition-colors tw-text-sm"
                 >
                   {lang === 'AR' ? 'تراجع عن الإلغاء' : 'Go Back'}
                 </button>
                 <button 
                   onClick={handleConfirm} 
                   disabled={processing} 
-                  style={{ 
-                    flex: 1, 
-                    padding: '14px', 
-                    borderRadius: '12px', 
-                    background: 'linear-gradient(135deg, #ef4444, #b91c1c)', 
-                    color: '#fff', 
-                    border: 'none', 
-                    fontWeight: '700',
-                    fontSize: '0.95rem',
-                    boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)'
-                  }}
+                  className="tw-flex-1 tw-bg-red-500 hover:tw-bg-red-600 tw-text-white tw-font-bold tw-py-3 tw-rounded-sm tw-transition-colors tw-text-sm tw-shadow-md"
                 >
                   {processing ? (
-                    <><i className="fa-solid fa-spinner fa-spin" style={{ marginRight: '6px' }}></i> {lang === 'AR' ? 'جاري الإلغاء...' : 'Cancelling...'}</>
+                    <><i className="fa-solid fa-spinner fa-spin tw-mr-2"></i> {lang === 'AR' ? 'جاري الإلغاء...' : 'Cancelling...'}</>
                   ) : (
                     <>{lang === 'AR' ? 'تأكيد إلغاء الحجز' : 'Confirm Cancellation'}</>
                   )}

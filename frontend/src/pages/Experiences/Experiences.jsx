@@ -1,81 +1,60 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-import { addToWishlist, getTrips, getDestinations } from '../../utils/api';
+import { addToWishlist, getTrips, getDestinations, trackInteraction } from '../../utils/api';
 import { LanguageContext } from '../../context/LanguageContext';
-import './Experiences.css';
 
-// ── ExperienceCard Component with Image Carousel ──
-const ExperienceCard = ({ exp, lang, wishlistIds, handleCardClick, handleWishlistToggle, destinations }) => {
-  const [currentImgIndex, setCurrentImgIndex] = useState(0);
-  const images = Array.isArray(exp.images) && exp.images.length > 0 ? exp.images : [exp.image || "/img/cairo_pyramids_1775971845389.png"];
+const ExperienceCard = ({ exp, destinations, wishlistIds, handleCardClick, handleWishlistToggle, lang }) => {
+  const images = Array.isArray(exp.images) && exp.images.length > 0 ? exp.images : [exp.image || "https://images.unsplash.com/photo-1572252009286-268acec5ca0a?q=80&w=800"];
+  const destName = exp.destination?.name || destinations.find(d => d._id === (exp.destination?._id || exp.destination))?.name || (lang === 'AR' ? 'مصر' : 'Egypt');
+  const price = exp.calculatedPrice || exp.base_price || 0;
   const isDayuse = exp.duration_days === 1;
-  const typeLabel = isDayuse 
-    ? (lang === 'AR' ? 'داي يوز' : 'Dayuse')
-    : (lang === 'AR' ? 'رحلة' : 'Trip');
-
-  const handlePrevImage = (e) => {
-    e.stopPropagation();
-    setCurrentImgIndex(prev => (prev - 1 + images.length) % images.length);
-  };
-
-  const handleNextImage = (e) => {
-    e.stopPropagation();
-    setCurrentImgIndex(prev => (prev + 1) % images.length);
-  };
+  const tagText = isDayuse 
+    ? (lang === 'AR' ? 'داي يوز - دخول حصري' : 'DAYUSE - EXCLUSIVE ACCESS')
+    : (lang === 'AR' ? `${exp.duration_days} أيام - جولة خاصة` : `${exp.duration_days} DAYS - PRIVATE CHARTER`);
 
   return (
-    <div className="exp-card" onClick={() => handleCardClick(exp._id)}>
-      <div className={`exp-badge ${isDayuse ? 'dayuse' : 'trip'}`}>
-        {typeLabel}
+    <div 
+      className="tw-bg-white dark:tw-bg-[#111111] tw-rounded-xl tw-overflow-hidden tw-border tw-border-slate-200 dark:tw-border-white/5 hover:tw-border-slate-300 dark:hover:tw-border-white/20 hover:tw-shadow-xl dark:hover:tw-shadow-2xl hover:tw-shadow-slate-200 dark:hover:tw-shadow-[#ffd700]/5 hover:-tw-translate-y-1 tw-transition-all tw-duration-300 tw-cursor-pointer tw-flex tw-flex-col tw-h-[500px] tw-w-[340px] tw-flex-shrink-0 tw-group tw-snap-start"
+      onClick={() => handleCardClick(exp._id)}
+    >
+      {/* Image Section */}
+      <div className="tw-relative tw-h-64 tw-w-full tw-overflow-hidden tw-flex-shrink-0">
+        <img src={images[0]} alt={exp.name} className="tw-w-full tw-h-full tw-object-cover group-hover:tw-scale-105 tw-transition-transform tw-duration-700" />
+        {/* Wishlist Button Overlay */}
+        <button 
+          className={`tw-absolute tw-top-4 tw-right-4 tw-w-10 tw-h-10 tw-rounded-full tw-flex tw-items-center tw-justify-center tw-bg-black/30 tw-backdrop-blur-sm tw-transition-colors hover:tw-bg-black/60 ${wishlistIds.has(exp._id) ? 'tw-text-red-500' : 'tw-text-white'}`}
+          onClick={(e) => handleWishlistToggle(e, exp._id)}
+        >
+          <i className={`${wishlistIds.has(exp._id) ? 'fa-solid' : 'fa-regular'} fa-heart tw-text-lg`}></i>
+        </button>
+        {/* Bottom fade gradient */}
+        <div className="tw-absolute tw-inset-x-0 tw-bottom-0 tw-h-1/2 tw-bg-gradient-to-t tw-from-white dark:tw-from-[#111111] tw-to-transparent"></div>
       </div>
-      
-      <button 
-        className={`wishlist-btn ${wishlistIds.has(exp._id) ? 'active' : ''}`}
-        onClick={(e) => handleWishlistToggle(e, exp._id)}
-        title={lang === 'AR' ? 'إضافة إلى المفضلة' : 'Add to Wishlist'}
-        type="button"
-      >
-        <i className={`${wishlistIds.has(exp._id) ? 'fa-solid' : 'fa-regular'} fa-heart`}></i>
-      </button>
 
-      <div className="exp-image">
-        <img src={images[currentImgIndex]} alt={exp.name} className="carousel-img-slide" />
-        {images.length > 1 && (
-          <>
-            <button className="carousel-nav-btn prev" onClick={handlePrevImage}>
-              <i className="fa-solid fa-chevron-left"></i>
-            </button>
-            <button className="carousel-nav-btn next" onClick={handleNextImage}>
-              <i className="fa-solid fa-chevron-right"></i>
-            </button>
-            <div className="carousel-indicators">
-              {images.map((_, idx) => (
-                <span 
-                  key={idx} 
-                  className={`indicator-dot ${idx === currentImgIndex ? 'active' : ''}`}
-                ></span>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-      <div className="exp-content">
-        <h3 className="exp-title">{exp.name}</h3>
-        <div className="exp-location" style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-          <i className="fa-solid fa-location-dot"></i> 
-          {exp.destination?.name || destinations.find(d => d._id === (exp.destination?._id || exp.destination))?.name || (lang === 'AR' ? 'وجهات متعددة' : 'Multiple Locations')}
+      {/* Content Section */}
+      <div className="tw-p-6 tw-flex tw-flex-col tw-flex-grow">
+        <div className="tw-text-amber-600 dark:tw-text-[#ffd700] tw-text-[10px] tw-font-bold tw-tracking-widest tw-uppercase tw-mb-2">
+          {tagText}
         </div>
-        <p className="exp-desc">{exp.description || (lang === 'AR' ? 'استمتع بجمال وتاريخ مصر العريق من خلال جولاتنا السياحية المصممة باحتراف.' : 'Experience the beauty and history of Egypt with our expertly guided tours.')}</p>
+        <h3 className="tw-text-xl tw-font-serif tw-font-bold tw-text-slate-900 dark:tw-text-white tw-mb-2 tw-leading-tight group-hover:tw-text-amber-600 dark:group-hover:tw-text-[#ffd700] tw-transition-colors tw-line-clamp-2">
+          {exp.name}
+        </h3>
+        <p className="tw-text-xs tw-text-slate-600 dark:tw-text-slate-400 tw-mb-4 tw-line-clamp-2 tw-leading-relaxed">
+          {exp.description || `${lang === 'AR' ? 'اكتشف سحر' : 'Discover the magic of'} ${destName}`}
+        </p>
         
-        <div className="exp-footer">
-          <div className="exp-price">
-            {exp.calculatedPrice || exp.base_price || 0} EGP <span>{lang === 'AR' ? '/ للفرد' : '/ person'}</span>
+        {/* Card Footer */}
+        <div className="tw-mt-auto tw-flex tw-justify-between tw-items-center tw-pt-4 tw-border-t tw-border-slate-100 dark:tw-border-white/5">
+          <div className="tw-flex tw-flex-col">
+            <span className="tw-text-amber-600 dark:tw-text-[#ffd700] tw-font-serif tw-font-bold tw-text-lg">
+              From ${price.toLocaleString()}
+            </span>
           </div>
-          <div className="exp-duration" style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-            <i className="fa-regular fa-clock"></i> 
-            {exp.duration_days} {exp.duration_days === 1 ? (lang === 'AR' ? 'يوم' : 'Day') : (lang === 'AR' ? 'أيام' : 'Days')}
+          <div className="tw-flex tw-items-center tw-gap-2 tw-text-amber-600 dark:tw-text-[#ffd700] tw-text-[10px] tw-font-bold tw-tracking-widest tw-uppercase">
+            {lang === 'AR' ? 'التفاصيل' : 'VIEW DETAIL'}
+            <i className="fa-solid fa-arrow-right tw-text-[10px]"></i>
           </div>
         </div>
       </div>
@@ -89,23 +68,7 @@ const Experiences = () => {
   const [loading, setLoading] = useState(true);
   const [wishlistIds, setWishlistIds] = useState(new Set());
   
-  // Refs for Airbnb-style horizontal carousels
-  const dahabRef = useRef(null);
-  const cairoRef = useRef(null);
-  const otherRef = useRef(null);
-
-  const handleScroll = (ref, direction) => {
-    if (ref.current) {
-      const cardWidth = ref.current.querySelector('.exp-card')?.offsetWidth || 344;
-      const scrollAmount = (cardWidth + 24) * 3; // Scroll exactly 3 cards
-      ref.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth'
-      });
-    }
-  };
-  
-  // Airbnb-style Search States
+  // Search States
   const [destinations, setDestinations] = useState([]);
   const [selectedDestination, setSelectedDestination] = useState('');
   const [selectedDestName, setSelectedDestName] = useState('');
@@ -113,18 +76,18 @@ const Experiences = () => {
   const [maxPrice, setMaxPrice] = useState(25000);
   const [showDestDropdown, setShowDestDropdown] = useState(false);
   const [showPriceDropdown, setShowPriceDropdown] = useState(false);
-  const [isSticky, setIsSticky] = useState(false);
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
 
   const { lang, setLang } = useContext(LanguageContext);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Scroll to top when page loads
     window.scrollTo(0, 0);
-    // Ensure body overflow is auto so user can scroll
     document.body.style.overflow = 'auto';
 
-    // Click outside listener to close dropdowns
     const handleClickOutside = (event) => {
       if (!event.target.closest('.search-item')) {
         setShowDestDropdown(false);
@@ -132,27 +95,15 @@ const Experiences = () => {
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-
-    // Scroll listener for sticky search
-    const handleScrollEvent = () => {
-      if (window.scrollY > 150) {
-        setIsSticky(true);
-      } else {
-        setIsSticky(false);
-      }
-    };
-    window.addEventListener('scroll', handleScrollEvent);
-
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-      window.removeEventListener('scroll', handleScrollEvent);
     };
   }, []);
 
   useEffect(() => {
     fetchExperiences();
     fetchDestinationsData();
-  }, []); // Fetch all experiences once on mount
+  }, []);
 
   const fetchDestinationsData = async () => {
     try {
@@ -167,7 +118,6 @@ const Experiences = () => {
   const fetchExperiences = async () => {
     setLoading(true);
     try {
-      // Fetch all packages/experiences in one request
       const data = await getTrips({});
       if (data && data.data) {
         setExperiences(data.data);
@@ -178,10 +128,9 @@ const Experiences = () => {
       console.error('Error fetching experiences:', error.message);
       setExperiences([]);
     } finally {
-      // Artificially wait 800ms for high-end shimmer effect to look smooth
       setTimeout(() => {
         setLoading(false);
-      }, 800);
+      }, 500);
     }
   };
 
@@ -189,79 +138,124 @@ const Experiences = () => {
     navigate(`/package-details/${id}`);
   };
 
-  const handleWishlistToggle = async (e, id) => {
-    e.stopPropagation(); // Prevent opening the package details
+  const handleWishlistToggle = async (e, experienceId) => {
+    e.stopPropagation();
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const inWishlist = wishlistIds.has(experienceId);
     
-    // Optimistic UI update
+    // Optimistic update
     setWishlistIds(prev => {
       const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
+      if (inWishlist) newSet.delete(experienceId);
+      else newSet.add(experienceId);
       return newSet;
     });
 
     try {
-      await addToWishlist(id);
+      const action = inWishlist ? removeFromWishlist : addToWishlist;
+      const res = await action(experienceId);
+      
+      if (res && res.success && !inWishlist) {
+         trackInteraction({
+            experienceId,
+            actionType: 'WISHLIST_ADD',
+            metadata: { source: 'ExperiencesPage' }
+         }).catch(err => console.log('Tracking error', err));
+      }
     } catch (err) {
-      console.error('Failed to add to wishlist:', err);
+      console.error('Failed to toggle wishlist:', err);
+      // Revert optimistic update
+      setWishlistIds(prev => {
+        const newSet = new Set(prev);
+        if (inWishlist) newSet.add(experienceId);
+        else newSet.delete(experienceId);
+        return newSet;
+      });
     }
   };
 
   const displayedExperiences = experiences.filter((exp) => {
-    // 1. Tab type filter
     if (activeTab === 'dayuse' && exp.duration_days !== 1) return false;
     if (activeTab === 'trip' && exp.duration_days <= 1) return false;
-    
-    // 2. Destination filter
     if (selectedDestination) {
       const expDestId = exp.destination?._id || exp.destination?.id || exp.destination;
       if (expDestId !== selectedDestination) return false;
     }
-    
-    // 3. Price filter
     const price = exp.calculatedPrice || exp.base_price || 0;
     if (price < minPrice || price > maxPrice) return false;
-    
     return true;
   });
 
+  const totalPages = Math.max(1, Math.ceil(displayedExperiences.length / itemsPerPage));
+  const currentExperiences = displayedExperiences.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+      document.getElementById('recommended-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(prev => prev + 1);
+      document.getElementById('recommended-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
-    <div className={`experiences-page ${lang === 'AR' ? 'lang-ar' : ''}`}>
-      <Navbar lang={lang} isScrolled={true} />
+    <div className={`tw-min-h-screen tw-bg-slate-50 dark:tw-bg-[#0a0b0d] tw-font-sans tw-flex tw-flex-col ${lang === 'AR' ? 'tw-dir-rtl' : ''}`}>
+      <Navbar lang={lang} setLang={setLang} isScrolled={true} />
 
-      <div className="experiences-header">
-        <h1>
-          {lang === 'AR' ? <>اكتشف <span>مصر</span></> : <>Discover <span className="egypt-flag-text">Egypt</span></>}
-        </h1>
-        <p style={{ marginBottom: '35px' }}>
-          {lang === 'AR' 
-            ? 'من عجائب الفراعنة القديمة إلى أيام الاسترخاء والراحة على ساحل البحر الأحمر، اعثر على تجربتك المصرية المثالية معنا.' 
-            : 'From the ancient wonders of the pharaohs to relaxing days on the Red Sea coast, find your perfect Egyptian experience.'}
-        </p>
+      {/* Hero Section with Pyramids Background */}
+      <header className="tw-relative tw-w-full tw-min-h-[80vh] tw-flex tw-flex-col tw-items-center tw-justify-center tw-pt-32 tw-pb-16">
+        <div className="tw-absolute tw-inset-0 tw-z-0 tw-bg-slate-900 dark:tw-bg-black">
+          <img 
+            src="https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?q=80&w=2000&auto=format&fit=crop" 
+            alt="Hero Pyramids" 
+            className="tw-w-full tw-h-full tw-object-cover tw-opacity-60 dark:tw-opacity-60"
+            style={{ objectPosition: 'center' }}
+          />
+          <div className="tw-absolute tw-inset-0 tw-bg-gradient-to-b tw-from-slate-900/40 dark:tw-from-black/40 tw-via-slate-900/20 dark:tw-via-black/20 tw-to-slate-50 dark:tw-to-[#0a0b0d]"></div>
+        </div>
 
-        {/* 🔍 Airbnb-Style Floating Search Bar */}
-        <div className={`airbnb-search-bar-container ${isSticky ? 'sticky' : ''}`}>
-          <div className="search-filter-bar">
-            {/* Destination Selection Section */}
-            <div className="search-item" onClick={() => { setShowDestDropdown(!showDestDropdown); setShowPriceDropdown(false); }}>
-              <div className="search-item-icon"><i className="fa-solid fa-location-dot"></i></div>
-              <div className="search-item-text">
-                <span className="search-label">{lang === 'AR' ? 'الوجهة' : 'Where'}</span>
-                <span className="search-val">{selectedDestName || (lang === 'AR' ? 'ابحث عن وجهة' : 'Search destinations')}</span>
+        <div className="tw-relative tw-z-10 tw-text-center tw-px-4 tw-mb-12">
+          <h1 className="tw-text-4xl md:tw-text-6xl tw-font-serif tw-font-bold tw-text-white tw-mb-4 tw-tracking-tight drop-shadow-lg">
+            {lang === 'AR' ? 'اكتشف مصر' : 'Discover Egypt'} <span className="tw-text-amber-400 dark:tw-text-[#ffd700] tw-italic tw-font-light">{lang === 'AR' ? 'وتجاربها' : 'Experience'}</span>
+          </h1>
+          <p className="tw-text-white/90 dark:tw-text-slate-200 tw-text-sm md:tw-text-base tw-max-w-2xl tw-mx-auto tw-leading-relaxed tw-font-medium dark:tw-font-light drop-shadow-md">
+            {lang === 'AR' 
+              ? 'من عجائب الفراعنة القديمة إلى أيام الاسترخاء والراحة على ساحل البحر الأحمر، اعثر على تجربتك المصرية المثالية معنا.' 
+              : 'From the ancient wonders of the pharaohs to relaxing days on the Red Sea coast, find your perfect Egyptian experience.'}
+          </p>
+        </div>
+
+        {/* Floating Search Bar */}
+        <div className="tw-relative tw-z-20 tw-w-full tw-max-w-4xl tw-px-4">
+          <div className="tw-bg-white/95 dark:tw-bg-[#1a1a1a]/80 tw-backdrop-blur-xl tw-border tw-border-slate-200 dark:tw-border-white/10 tw-rounded-xl tw-p-2 tw-flex tw-flex-col md:tw-flex-row tw-items-center tw-justify-between tw-shadow-2xl tw-relative tw-z-50">
+            
+            {/* Where Input */}
+            <div className="search-item tw-flex-1 tw-w-full tw-relative tw-cursor-pointer hover:tw-bg-slate-100 dark:hover:tw-bg-white/5 tw-rounded-lg tw-transition-colors tw-px-5 tw-py-4" onClick={() => { setShowDestDropdown(!showDestDropdown); setShowPriceDropdown(false); }}>
+              <div className="tw-flex tw-items-center tw-gap-3">
+                <i className="fa-solid fa-location-dot tw-text-amber-500 dark:tw-text-[#ffd700] tw-text-lg"></i>
+                <div className="tw-flex tw-flex-col">
+                  <span className="tw-text-[10px] tw-font-bold tw-text-amber-600 dark:tw-text-[#ffd700] tw-uppercase tw-tracking-widest">{lang === 'AR' ? 'الوجهة' : 'WHERE'}</span>
+                  <span className="tw-text-slate-900 dark:tw-text-white tw-font-medium tw-text-sm">{selectedDestName || (lang === 'AR' ? 'ابحث عن وجهة' : 'Search destinations')}</span>
+                </div>
               </div>
+              
               {showDestDropdown && (
-                <div className="search-dropdown destination-dropdown" onClick={(e) => e.stopPropagation()}>
-                  <div className="dropdown-item-header">
+                <div className="tw-absolute tw-top-full tw-left-0 tw-mt-2 tw-w-full md:tw-w-64 tw-bg-white dark:tw-bg-[#1f1f1f] tw-border tw-border-slate-200 dark:tw-border-white/10 tw-rounded-xl tw-shadow-2xl tw-overflow-hidden tw-z-50" onClick={(e) => e.stopPropagation()}>
+                  <div className="tw-px-4 tw-py-3 tw-bg-slate-50 dark:tw-bg-white/5 tw-text-xs tw-font-bold tw-text-amber-600 dark:tw-text-[#ffd700] tw-uppercase tw-tracking-wider tw-border-b tw-border-slate-200 dark:tw-border-white/10">
                     {lang === 'AR' ? 'الوجهات المتاحة لدينا' : 'Our Available Destinations'}
                   </div>
-                  <div className="dropdown-item" onClick={() => { setSelectedDestination(''); setSelectedDestName(''); setShowDestDropdown(false); }}>
+                  <div className="tw-px-4 tw-py-3 tw-text-slate-700 dark:tw-text-white hover:tw-bg-amber-50 dark:hover:tw-bg-[#ffd700]/10 hover:tw-text-amber-600 dark:hover:tw-text-[#ffd700] tw-cursor-pointer tw-transition-colors tw-flex tw-items-center tw-gap-2" onClick={() => { setSelectedDestination(''); setSelectedDestName(''); setShowDestDropdown(false); }}>
                     <i className="fa-solid fa-globe"></i> {lang === 'AR' ? 'كل الوجهات في مصر' : 'All Destinations in Egypt'}
                   </div>
                   {destinations.map(d => (
-                    <div key={d._id || d.id} className="dropdown-item" onClick={() => { setSelectedDestination(d._id || d.id); setSelectedDestName(d.name); setShowDestDropdown(false); }}>
+                    <div key={d._id || d.id} className="tw-px-4 tw-py-3 tw-text-slate-700 dark:tw-text-white hover:tw-bg-amber-50 dark:hover:tw-bg-[#ffd700]/10 hover:tw-text-amber-600 dark:hover:tw-text-[#ffd700] tw-cursor-pointer tw-transition-colors tw-flex tw-items-center tw-gap-2" onClick={() => { setSelectedDestination(d._id || d.id); setSelectedDestName(d.name); setShowDestDropdown(false); }}>
                       <i className="fa-solid fa-map-pin"></i> {d.name}
                     </div>
                   ))}
@@ -269,69 +263,57 @@ const Experiences = () => {
               )}
             </div>
 
-            <div className="search-divider"></div>
+            {/* Divider */}
+            <div className="tw-hidden md:tw-block tw-w-[1px] tw-h-10 tw-bg-slate-200 dark:tw-bg-white/10"></div>
 
-            {/* Price Selection Section */}
-            <div className="search-item" onClick={() => { setShowPriceDropdown(!showPriceDropdown); setShowDestDropdown(false); }}>
-              <div className="search-item-icon"><i className="fa-solid fa-money-bill-wave"></i></div>
-              <div className="search-item-text">
-                <span className="search-label">{lang === 'AR' ? 'الميزانية' : 'Price'}</span>
-                <span className="search-val">
-                  {maxPrice === 25000 && minPrice === 0 
-                    ? (lang === 'AR' ? 'أي سعر متاح' : 'Any price range') 
-                    : `${minPrice} - ${maxPrice} EGP`}
-                </span>
+            {/* Price Input */}
+            <div className="search-item tw-flex-1 tw-w-full tw-relative tw-cursor-pointer hover:tw-bg-slate-100 dark:hover:tw-bg-white/5 tw-rounded-lg tw-transition-colors tw-px-5 tw-py-4" onClick={() => { setShowPriceDropdown(!showPriceDropdown); setShowDestDropdown(false); }}>
+              <div className="tw-flex tw-items-center tw-gap-3">
+                <i className="fa-regular fa-money-bill-1 tw-text-amber-500 dark:tw-text-[#ffd700] tw-text-lg"></i>
+                <div className="tw-flex tw-flex-col">
+                  <span className="tw-text-[10px] tw-font-bold tw-text-amber-600 dark:tw-text-[#ffd700] tw-uppercase tw-tracking-widest">{lang === 'AR' ? 'الميزانية' : 'PRICE'}</span>
+                  <span className="tw-text-slate-900 dark:tw-text-white tw-font-medium tw-text-sm">
+                    {maxPrice === 25000 && minPrice === 0 
+                      ? (lang === 'AR' ? 'أي سعر متاح' : 'Any price range') 
+                      : `${minPrice} - ${maxPrice} EGP`}
+                  </span>
+                </div>
               </div>
+
               {showPriceDropdown && (
-                <div className="search-dropdown price-dropdown" onClick={(e) => e.stopPropagation()}>
-                  <h4>{lang === 'AR' ? 'نطاق السعر المقدر' : 'Estimated Price Range'}</h4>
+                <div className="tw-absolute tw-top-full tw-left-0 tw-mt-2 tw-w-full md:tw-w-72 tw-bg-white dark:tw-bg-[#1f1f1f] tw-border tw-border-slate-200 dark:tw-border-white/10 tw-rounded-xl tw-shadow-2xl tw-p-5 tw-z-50" onClick={(e) => e.stopPropagation()}>
+                  <h4 className="tw-text-sm tw-font-bold tw-text-slate-900 dark:tw-text-white tw-mb-4">{lang === 'AR' ? 'نطاق السعر المقدر' : 'Estimated Price Range'}</h4>
                   
-                  <div className="price-inputs-container">
-                    <div className="price-input-box">
-                      <span className="price-input-label">{lang === 'AR' ? 'الحد الأدنى' : 'Min'}</span>
-                      <div className="price-input-wrapper">
-                        <input 
-                          type="number" 
-                          value={minPrice} 
-                          onChange={(e) => setMinPrice(Math.max(0, parseInt(e.target.value) || 0))}
-                        />
-                        <span className="currency-unit">EGP</span>
+                  <div className="tw-flex tw-items-center tw-gap-3 tw-mb-6">
+                    <div className="tw-flex-1 tw-bg-slate-50 dark:tw-bg-black/50 tw-border tw-border-slate-200 dark:tw-border-white/10 tw-rounded-lg tw-p-2 tw-flex tw-flex-col">
+                      <span className="tw-text-[10px] tw-text-slate-500 dark:tw-text-slate-400 tw-uppercase">{lang === 'AR' ? 'الحد الأدنى' : 'Min'}</span>
+                      <div className="tw-flex tw-items-center">
+                        <input type="number" className="tw-bg-transparent tw-text-slate-900 dark:tw-text-white tw-w-full tw-outline-none tw-text-sm" value={minPrice} onChange={(e) => setMinPrice(Math.max(0, parseInt(e.target.value) || 0))} />
+                        <span className="tw-text-xs tw-text-slate-500">EGP</span>
                       </div>
                     </div>
-                    <div className="price-input-divider">-</div>
-                    <div className="price-input-box">
-                      <span className="price-input-label">{lang === 'AR' ? 'الحد الأقصى' : 'Max'}</span>
-                      <div className="price-input-wrapper">
-                        <input 
-                          type="number" 
-                          value={maxPrice} 
-                          onChange={(e) => setMaxPrice(Math.max(0, parseInt(e.target.value) || 25000))}
-                        />
-                        <span className="currency-unit">EGP</span>
+                    <span className="tw-text-slate-400 dark:tw-text-slate-500">-</span>
+                    <div className="tw-flex-1 tw-bg-slate-50 dark:tw-bg-black/50 tw-border tw-border-slate-200 dark:tw-border-white/10 tw-rounded-lg tw-p-2 tw-flex tw-flex-col">
+                      <span className="tw-text-[10px] tw-text-slate-500 dark:tw-text-slate-400 tw-uppercase">{lang === 'AR' ? 'الحد الأقصى' : 'Max'}</span>
+                      <div className="tw-flex tw-items-center">
+                        <input type="number" className="tw-bg-transparent tw-text-slate-900 dark:tw-text-white tw-w-full tw-outline-none tw-text-sm" value={maxPrice} onChange={(e) => setMaxPrice(Math.max(0, parseInt(e.target.value) || 25000))} />
+                        <span className="tw-text-xs tw-text-slate-500">EGP</span>
                       </div>
                     </div>
                   </div>
 
-                  <input 
-                    type="range" 
-                    min="0" 
-                    max="25000" 
-                    step="500"
-                    value={maxPrice}
-                    className="price-range-slider"
-                    onChange={(e) => setMaxPrice(parseInt(e.target.value))}
-                  />
-                  <div className="price-range-labels">
+                  <input type="range" min="0" max="25000" step="500" value={maxPrice} onChange={(e) => setMaxPrice(parseInt(e.target.value))} className="tw-w-full tw-accent-amber-500 dark:tw-accent-[#ffd700] tw-mb-2" />
+                  <div className="tw-flex tw-justify-between tw-text-xs tw-text-slate-500 tw-mb-6">
                     <span>0 EGP</span>
                     <span>12.5k EGP</span>
                     <span>25k+ EGP</span>
                   </div>
 
-                  <div className="price-dropdown-footer">
-                    <button className="price-clear-btn" onClick={() => { setMinPrice(0); setMaxPrice(25000); setShowPriceDropdown(false); }}>
+                  <div className="tw-flex tw-gap-2">
+                    <button className="tw-flex-1 tw-py-2 tw-rounded-md tw-text-slate-600 dark:tw-text-slate-300 hover:tw-bg-slate-100 dark:hover:tw-bg-white/10 tw-transition-colors tw-text-sm tw-font-medium" onClick={() => { setMinPrice(0); setMaxPrice(25000); setShowPriceDropdown(false); }}>
                       {lang === 'AR' ? 'إعادة ضبط' : 'Reset'}
                     </button>
-                    <button className="price-apply-btn" onClick={() => setShowPriceDropdown(false)}>
+                    <button className="tw-flex-1 tw-py-2 tw-rounded-md tw-bg-amber-500 dark:tw-bg-[#ffd700] hover:tw-bg-amber-600 dark:hover:tw-bg-[#e5c100] tw-text-black tw-transition-colors tw-text-sm tw-font-bold" onClick={() => setShowPriceDropdown(false)}>
                       {lang === 'AR' ? 'تطبيق الفلتر' : 'Apply Filter'}
                     </button>
                   </div>
@@ -339,54 +321,56 @@ const Experiences = () => {
               )}
             </div>
 
-            {/* Circular Search Icon Button */}
-            <button className="search-action-btn" onClick={() => { setShowDestDropdown(false); setShowPriceDropdown(false); }}>
+            {/* Search Button */}
+            <button 
+              className="tw-w-full md:tw-w-auto tw-mt-2 md:tw-mt-0 tw-bg-amber-500 dark:tw-bg-[#ffd700] hover:tw-bg-amber-600 dark:hover:tw-bg-[#e5c100] tw-text-black tw-px-10 tw-py-4 tw-rounded-lg tw-font-bold tw-text-sm tw-tracking-wide tw-flex tw-items-center tw-justify-center tw-gap-2 tw-transition-colors tw-shadow-lg"
+              onClick={() => { setShowDestDropdown(false); setShowPriceDropdown(false); document.getElementById('recommended-section')?.scrollIntoView({ behavior: 'smooth' }); }}
+            >
               <i className="fa-solid fa-magnifying-glass"></i>
+              {lang === 'AR' ? 'بحث' : 'SEARCH'}
+            </button>
+          </div>
+
+          {/* Category Pills */}
+          <div className="tw-flex tw-flex-wrap tw-justify-center tw-gap-3 tw-mt-8 tw-relative tw-z-10">
+            <button 
+              className={`tw-px-6 tw-py-2.5 tw-rounded-full tw-text-sm tw-font-bold tw-transition-colors ${activeTab === 'all' ? 'tw-bg-amber-500 dark:tw-bg-[#ffd700] tw-text-black tw-shadow-md' : 'tw-bg-white/80 dark:tw-bg-[#1a1a1a]/80 tw-backdrop-blur-md tw-text-slate-700 dark:tw-text-slate-300 hover:tw-bg-white dark:hover:tw-bg-white/10 tw-border tw-border-slate-200 dark:tw-border-white/10'}`}
+              onClick={() => setActiveTab('all')}
+            >
+              {lang === 'AR' ? 'كل التجارب' : 'All Experiences'}
+            </button>
+            <button 
+              className={`tw-px-6 tw-py-2.5 tw-rounded-full tw-text-sm tw-font-bold tw-transition-colors ${activeTab === 'trip' ? 'tw-bg-amber-500 dark:tw-bg-[#ffd700] tw-text-black tw-shadow-md' : 'tw-bg-white/80 dark:tw-bg-[#1a1a1a]/80 tw-backdrop-blur-md tw-text-slate-700 dark:tw-text-slate-300 hover:tw-bg-white dark:hover:tw-bg-white/10 tw-border tw-border-slate-200 dark:tw-border-white/10'}`}
+              onClick={() => setActiveTab('trip')}
+            >
+              {lang === 'AR' ? 'الرحلات السياحية' : 'Trips'}
+            </button>
+            <button 
+              className={`tw-px-6 tw-py-2.5 tw-rounded-full tw-text-sm tw-font-bold tw-transition-colors ${activeTab === 'dayuse' ? 'tw-bg-amber-500 dark:tw-bg-[#ffd700] tw-text-black tw-shadow-md' : 'tw-bg-white/80 dark:tw-bg-[#1a1a1a]/80 tw-backdrop-blur-md tw-text-slate-700 dark:tw-text-slate-300 hover:tw-bg-white dark:hover:tw-bg-white/10 tw-border tw-border-slate-200 dark:tw-border-white/10'}`}
+              onClick={() => setActiveTab('dayuse')}
+            >
+              {lang === 'AR' ? 'داي يوز استجمام' : 'Dayuse'}
             </button>
           </div>
         </div>
-        
-        <div className="experiences-tabs" style={{ marginTop: '25px' }}>
-          <button 
-            className={`tab-btn ${activeTab === 'all' ? 'active' : ''}`}
-            onClick={() => setActiveTab('all')}
-          >
-            {lang === 'AR' ? 'كل التجارب' : 'All Experiences'}
-          </button>
-          <button 
-            className={`tab-btn ${activeTab === 'trip' ? 'active' : ''}`}
-            onClick={() => setActiveTab('trip')}
-          >
-            {lang === 'AR' ? 'الرحلات السياحية' : 'Trips'}
-          </button>
-          <button 
-            className={`tab-btn ${activeTab === 'dayuse' ? 'active' : ''}`}
-            onClick={() => setActiveTab('dayuse')}
-          >
-            {lang === 'AR' ? 'داي يوز استجمام' : 'Dayuse'}
-          </button>
-        </div>
-      </div>
+      </header>
 
-      <div className="experiences-container">
+      {/* Main Content: City Sections */}
+      <main id="recommended-section" className="tw-flex-grow tw-container tw-mx-auto tw-px-4 tw-py-16 tw-max-w-[1400px]">
         {loading ? (
-          <div className="experiences-grid">
-            {[1, 2, 3, 4, 5, 6].map(i => (
-              <div key={i} className="skeleton-card">
-                <div className="skeleton-img"></div>
-                <div className="skeleton-text"></div>
-                <div className="skeleton-text short"></div>
-                <div className="skeleton-desc"></div>
-                <div className="skeleton-footer">
-                  <div className="skeleton-btn"></div>
-                  <div className="skeleton-btn"></div>
-                </div>
-              </div>
-            ))}
+          <div className="tw-flex tw-justify-center tw-items-center tw-py-32">
+            <i className="fa-solid fa-circle-notch fa-spin tw-text-5xl tw-text-[#ffd700]"></i>
           </div>
-        ) : displayedExperiences.length > 0 ? (
+        ) : displayedExperiences.length === 0 ? (
+          <div className="tw-bg-white dark:tw-bg-[#111111] tw-border tw-border-slate-200 dark:tw-border-white/5 tw-rounded-2xl tw-p-16 tw-text-center">
+             <i className="fa-solid fa-plane-slash tw-text-6xl tw-text-slate-400 dark:tw-text-slate-700 tw-mb-6"></i>
+             <h3 className="tw-text-2xl tw-font-serif tw-font-bold tw-text-slate-900 dark:tw-text-white tw-mb-4">{lang === 'AR' ? 'لا توجد تجارب مطابقة لبحثك' : 'No experiences match your search'}</h3>
+             <p className="tw-text-slate-500 dark:tw-text-slate-400">{lang === 'AR' ? 'جرب تغيير الفلاتر أو البحث عن وجهة مختلفة.' : 'Try adjusting your filters or searching for a different destination.'}</p>
+          </div>
+        ) : (
           !selectedDestination && activeTab === 'all' && minPrice === 0 && maxPrice === 25000 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '50px' }}>
+            <div className="tw-flex tw-flex-col tw-gap-16">
+              
               {/* Go to Dahab Section */}
               {(() => {
                 const dahabExps = displayedExperiences.filter(exp => {
@@ -397,44 +381,21 @@ const Experiences = () => {
                 if (dahabExps.length === 0) return null;
 
                 return (
-                  <div className="airbnb-dest-section">
-                    <h2 className="dest-section-title">
-                      <span>{lang === 'AR' ? 'سافر إلى دهب (GO TO DAHAB)' : 'GO TO DAHAB'}</span>
-                      {dahabExps.length > 3 && (
-                        <div className="carousel-arrows-container">
-                          <button 
-                            onClick={() => handleScroll(dahabRef, 'left')}
-                            className="carousel-arrow-btn"
-                          >
-                            <i className="fa-solid fa-chevron-left" style={{ fontSize: '0.8rem' }}></i>
-                          </button>
-                          <button 
-                            onClick={() => handleScroll(dahabRef, 'right')}
-                            className="carousel-arrow-btn"
-                          >
-                            <i className="fa-solid fa-chevron-right" style={{ fontSize: '0.8rem' }}></i>
-                          </button>
-                        </div>
-                      )}
-                    </h2>
-                    <div className="airbnb-carousel" ref={dahabRef}>
-                      {dahabExps.map(exp => (
-                        <ExperienceCard 
-                          key={exp._id} 
-                          exp={exp} 
-                          lang={lang} 
-                          wishlistIds={wishlistIds} 
-                          handleCardClick={handleCardClick} 
-                          handleWishlistToggle={handleWishlistToggle} 
-                          destinations={destinations} 
-                        />
-                      ))}
+                  <div className="tw-flex tw-flex-col">
+                    <div className="tw-flex tw-justify-between tw-items-center tw-mb-8">
+                      <h2 className="tw-flex tw-items-center tw-gap-3 tw-text-lg md:tw-text-xl tw-font-bold tw-text-slate-900 dark:tw-text-white tw-tracking-widest tw-uppercase">
+                        <i className="fa-solid fa-wand-magic-sparkles tw-text-amber-500 dark:tw-text-[#ffd700]"></i>
+                        {lang === 'AR' ? 'اذهب إلى دهب' : 'GO TO DAHAB'}
+                      </h2>
+                    </div>
+                    <div className="tw-flex tw-overflow-x-auto tw-snap-x tw-snap-mandatory tw-gap-6 tw-pb-8 tw-scrollbar-thin tw-scrollbar-thumb-slate-300 dark:tw-scrollbar-thumb-[#ffd700]/30 tw-scrollbar-track-transparent">
+                      {dahabExps.map(exp => <ExperienceCard key={exp._id} exp={exp} destinations={destinations} wishlistIds={wishlistIds} handleCardClick={handleCardClick} handleWishlistToggle={handleWishlistToggle} lang={lang} />)}
                     </div>
                   </div>
                 );
               })()}
 
-              {/* Go to Cairo Section */}
+              {/* Explore Cairo Section */}
               {(() => {
                 const cairoExps = displayedExperiences.filter(exp => {
                   const destName = exp.destination?.name?.toLowerCase() || 
@@ -444,44 +405,21 @@ const Experiences = () => {
                 if (cairoExps.length === 0) return null;
 
                 return (
-                  <div className="airbnb-dest-section">
-                    <h2 className="dest-section-title">
-                      <span>{lang === 'AR' ? 'سافر إلى القاهرة (GO TO CAIRO)' : 'GO TO CAIRO'}</span>
-                      {cairoExps.length > 3 && (
-                        <div className="carousel-arrows-container">
-                          <button 
-                            onClick={() => handleScroll(cairoRef, 'left')}
-                            className="carousel-arrow-btn"
-                          >
-                            <i className="fa-solid fa-chevron-left" style={{ fontSize: '0.8rem' }}></i>
-                          </button>
-                          <button 
-                            onClick={() => handleScroll(cairoRef, 'right')}
-                            className="carousel-arrow-btn"
-                          >
-                            <i className="fa-solid fa-chevron-right" style={{ fontSize: '0.8rem' }}></i>
-                          </button>
-                        </div>
-                      )}
-                    </h2>
-                    <div className="airbnb-carousel" ref={cairoRef}>
-                      {cairoExps.map(exp => (
-                        <ExperienceCard 
-                          key={exp._id} 
-                          exp={exp} 
-                          lang={lang} 
-                          wishlistIds={wishlistIds} 
-                          handleCardClick={handleCardClick} 
-                          handleWishlistToggle={handleWishlistToggle} 
-                          destinations={destinations} 
-                        />
-                      ))}
+                  <div className="tw-flex tw-flex-col">
+                    <div className="tw-flex tw-justify-between tw-items-center tw-mb-8">
+                      <h2 className="tw-flex tw-items-center tw-gap-3 tw-text-lg md:tw-text-xl tw-font-bold tw-text-slate-900 dark:tw-text-white tw-tracking-widest tw-uppercase">
+                        <i className="fa-solid fa-wand-magic-sparkles tw-text-amber-500 dark:tw-text-[#ffd700]"></i>
+                        {lang === 'AR' ? 'استكشف القاهرة' : 'EXPLORE CAIRO'}
+                      </h2>
+                    </div>
+                    <div className="tw-flex tw-overflow-x-auto tw-snap-x tw-snap-mandatory tw-gap-6 tw-pb-8 tw-scrollbar-thin tw-scrollbar-thumb-slate-300 dark:tw-scrollbar-thumb-[#ffd700]/30 tw-scrollbar-track-transparent">
+                      {cairoExps.map(exp => <ExperienceCard key={exp._id} exp={exp} destinations={destinations} wishlistIds={wishlistIds} handleCardClick={handleCardClick} handleWishlistToggle={handleWishlistToggle} lang={lang} />)}
                     </div>
                   </div>
                 );
               })()}
 
-              {/* Other Destinations Section */}
+              {/* Discover More Section */}
               {(() => {
                 const otherExps = displayedExperiences.filter(exp => {
                   const destName = exp.destination?.name?.toLowerCase() || 
@@ -491,72 +429,41 @@ const Experiences = () => {
                 if (otherExps.length === 0) return null;
 
                 return (
-                  <div className="airbnb-dest-section">
-                    <h2 className="dest-section-title">
-                      <span>{lang === 'AR' ? 'وجهات مصرية ساحرة أخرى' : 'EXPLORE MORE OF EGYPT'}</span>
-                      {otherExps.length > 3 && (
-                        <div className="carousel-arrows-container">
-                          <button 
-                            onClick={() => handleScroll(otherRef, 'left')}
-                            className="carousel-arrow-btn"
-                          >
-                            <i className="fa-solid fa-chevron-left" style={{ fontSize: '0.8rem' }}></i>
-                          </button>
-                          <button 
-                            onClick={() => handleScroll(otherRef, 'right')}
-                            className="carousel-arrow-btn"
-                          >
-                            <i className="fa-solid fa-chevron-right" style={{ fontSize: '0.8rem' }}></i>
-                          </button>
-                        </div>
-                      )}
-                    </h2>
-                    <div className="airbnb-carousel" ref={otherRef}>
-                      {otherExps.map(exp => (
-                        <ExperienceCard 
-                          key={exp._id} 
-                          exp={exp} 
-                          lang={lang} 
-                          wishlistIds={wishlistIds} 
-                          handleCardClick={handleCardClick} 
-                          handleWishlistToggle={handleWishlistToggle} 
-                          destinations={destinations} 
-                        />
-                      ))}
+                  <div className="tw-flex tw-flex-col">
+                    <div className="tw-flex tw-justify-between tw-items-center tw-mb-8">
+                      <h2 className="tw-flex tw-items-center tw-gap-3 tw-text-lg md:tw-text-xl tw-font-bold tw-text-slate-900 dark:tw-text-white tw-tracking-widest tw-uppercase">
+                        <i className="fa-solid fa-wand-magic-sparkles tw-text-amber-500 dark:tw-text-[#ffd700]"></i>
+                        {lang === 'AR' ? 'اكتشف المزيد' : 'DISCOVER MORE'}
+                      </h2>
+                    </div>
+                    <div className="tw-flex tw-overflow-x-auto tw-snap-x tw-snap-mandatory tw-gap-6 tw-pb-8 tw-scrollbar-thin tw-scrollbar-thumb-slate-300 dark:tw-scrollbar-thumb-[#ffd700]/30 tw-scrollbar-track-transparent">
+                      {otherExps.map(exp => <ExperienceCard key={exp._id} exp={exp} destinations={destinations} wishlistIds={wishlistIds} handleCardClick={handleCardClick} handleWishlistToggle={handleWishlistToggle} lang={lang} />)}
                     </div>
                   </div>
                 );
               })()}
+
             </div>
           ) : (
-            <div className="experiences-grid">
-              {displayedExperiences.map((exp) => (
-                <ExperienceCard 
-                  key={exp._id} 
-                  exp={exp} 
-                  lang={lang} 
-                  wishlistIds={wishlistIds} 
-                  handleCardClick={handleCardClick} 
-                  handleWishlistToggle={handleWishlistToggle} 
-                  destinations={destinations} 
-                />
-              ))}
+            /* Search Results Grid */
+            <div className="tw-flex tw-flex-col">
+              <div className="tw-flex tw-justify-between tw-items-center tw-mb-8">
+                <h2 className="tw-flex tw-items-center tw-gap-3 tw-text-lg md:tw-text-xl tw-font-bold tw-text-slate-900 dark:tw-text-white tw-tracking-widest tw-uppercase">
+                  <i className="fa-solid fa-wand-magic-sparkles tw-text-amber-500 dark:tw-text-[#ffd700]"></i>
+                  {lang === 'AR' ? 'نتائج البحث' : 'SEARCH RESULTS'}
+                </h2>
+              </div>
+              <div className="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-3 xl:tw-grid-cols-4 tw-gap-6 tw-mb-16">
+                {displayedExperiences.map((exp) => (
+                  <ExperienceCard key={exp._id} exp={exp} destinations={destinations} wishlistIds={wishlistIds} handleCardClick={handleCardClick} handleWishlistToggle={handleWishlistToggle} lang={lang} />
+                ))}
+              </div>
             </div>
           )
-        ) : (
-          <div className="empty-state">
-            <i className="fa-solid fa-box-open"></i>
-            <h3>{lang === 'AR' ? 'لا توجد تجارب متاحة حالياً' : 'No Experiences Found'}</h3>
-            <p>
-              {lang === 'AR' 
-                ? `لم نتمكن من العثور على أي تجارب ${activeTab !== 'all' ? (activeTab === 'trip' ? 'رحلات' : 'داي يوز') : ''} حالياً. يرجى مراجعة الموقع لاحقاً!` 
-                : `We couldn't find any ${activeTab !== 'all' ? activeTab : ''} experiences right now. Please check back later!`}
-            </p>
-          </div>
         )}
-      </div>
+      </main>
 
-      <Footer isHome={false} />
+      <Footer />
     </div>
   );
 };

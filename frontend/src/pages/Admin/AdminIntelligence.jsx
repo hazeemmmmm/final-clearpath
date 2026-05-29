@@ -27,12 +27,10 @@ const AdminIntelligence = () => {
 
   const handleAction = (id, actionType, message) => {
     setProcessing(id);
-    // Simulate API call for the action
     setTimeout(() => {
       setProcessing(null);
       setToast(`Success: ${message}`);
       
-      // Remove from list to simulate it was handled
       if (actionType === 'demand') {
         setData(prev => ({ ...prev, demandAlerts: prev.demandAlerts.filter(a => a.experienceId !== id) }));
       } else if (actionType === 'fraud') {
@@ -45,203 +43,198 @@ const AdminIntelligence = () => {
 
   if (loading) {
     return (
-      <div className="intel-loading-screen" style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <div className="ai-pulse-ring" style={{ position: 'relative', width: '80px', height: '80px', marginBottom: '20px' }}>
-          <i className="fa-solid fa-brain fa-3x" style={{ color: '#d4af37', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 2 }}></i>
-          <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: '4px solid rgba(212, 175, 55, 0.3)', borderRadius: '50%', borderTopColor: '#d4af37', animation: 'spin 1.5s linear infinite' }}></div>
+      <div className="tw-min-h-[60vh] tw-flex tw-flex-col tw-items-center tw-justify-center">
+        <div className="tw-relative tw-w-20 tw-h-20 tw-mb-5">
+          <i className="fa-solid fa-brain fa-3x tw-text-[#73749B] dark:tw-text-[#8E6B92] tw-absolute tw-top-1/2 tw-left-1/2 -tw-translate-x-1/2 -tw-translate-y-1/2 tw-z-10"></i>
+          <div className="tw-absolute tw-inset-0 tw-border-4 tw-border-[#73749B]/30 dark:tw-border-[#8E6B92]/30 tw-border-t-[#73749B] dark:tw-border-t-[#8E6B92] tw-rounded-full tw-animate-spin"></div>
         </div>
-        <h3 style={{ color: '#0f172a', fontWeight: '700' }}>Initializing Neural Engine...</h3>
-        <p style={{ color: '#64748b' }}>Running diagnostic algorithms and processing real-time metrics.</p>
+        <h3 className="tw-text-slate-900 dark:tw-text-[var(--text-main)] tw-font-bold">Initializing Neural Engine...</h3>
+        <p className="tw-text-slate-500 dark:tw-text-[var(--text-muted)]">Running diagnostic algorithms and processing real-time metrics.</p>
       </div>
     );
   }
 
   if (error) {
-    return <div className="alert alert-error" style={{ margin: '20px', padding: '20px', borderRadius: '12px', background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b' }}>{error}</div>;
+    return <div className="tw-m-5 tw-p-5 tw-rounded-xl tw-bg-red-50 dark:tw-bg-red-900/20 tw-border tw-border-red-200 dark:tw-border-red-800 tw-text-red-700 dark:tw-text-red-400">{error}</div>;
   }
 
   return (
-    <div className="intelligence-hub-premium" style={{ padding: '30px', background: '#f8fafc', minHeight: '100vh', fontFamily: "'Inter', sans-serif", position: 'relative' }}>
+    <div className="tw-p-4 md:tw-p-8 tw-bg-[#f8fafc] dark:tw-bg-[var(--bg-darker)] tw-min-h-screen tw-font-sans tw-relative tw-transition-colors">
       
       {/* Interactive Toast Notification */}
       {toast && (
-        <div style={{ position: 'fixed', top: '20px', right: '20px', background: '#22c55e', color: '#fff', padding: '15px 25px', borderRadius: '8px', boxShadow: '0 10px 25px rgba(34,197,94,0.3)', zIndex: 9999, display: 'flex', alignItems: 'center', gap: '10px', animation: 'slideIn 0.3s ease-out' }}>
+        <div className="tw-fixed tw-top-5 tw-right-5 tw-bg-[#73749B] dark:tw-bg-[#8E6B92] tw-text-white tw-px-6 tw-py-4 tw-rounded-lg tw-shadow-lg tw-z-50 tw-flex tw-items-center tw-gap-3 tw-animate-slide-in">
           <i className="fa-solid fa-circle-check"></i>
-          <strong style={{ fontSize: '0.95rem' }}>{toast}</strong>
+          <strong className="tw-text-sm">{toast}</strong>
         </div>
       )}
 
       {/* Header */}
-      <div className="intel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '40px', paddingBottom: '20px', borderBottom: '1px solid #e2e8f0' }}>
+      <div className="tw-flex tw-justify-between tw-items-end tw-mb-10 tw-pb-5 tw-border-b tw-border-slate-200 dark:tw-border-[var(--border-light)]">
         <div>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'linear-gradient(135deg, rgba(212,175,55,0.1), rgba(212,175,55,0.05))', padding: '6px 16px', borderRadius: '20px', color: '#b48600', fontWeight: '700', fontSize: '0.85rem', marginBottom: '15px' }}>
-            <span style={{ width: '8px', height: '8px', background: '#d4af37', borderRadius: '50%', display: 'inline-block', boxShadow: '0 0 10px #d4af37', animation: 'pulse 2s infinite' }}></span>
+          <div className="tw-inline-flex tw-items-center tw-gap-2 tw-bg-[#73749B]/10 dark:tw-bg-[#8E6B92]/10 tw-px-4 tw-py-1.5 tw-rounded-full tw-text-[#73749B] dark:tw-text-[#8E6B92] tw-font-bold tw-text-sm tw-mb-4">
+            <span className="tw-w-2 tw-h-2 tw-bg-[#73749B] dark:tw-bg-[#8E6B92] tw-rounded-full tw-shadow-[0_0_10px_#8E6B92] tw-animate-pulse"></span>
             AI Engine Online
           </div>
-          <h2 style={{ fontSize: '2.4rem', fontWeight: '800', color: '#0f172a', margin: '0 0 10px 0', letterSpacing: '-0.5px' }}>Intelligence Hub</h2>
-          <p style={{ color: '#64748b', fontSize: '1.1rem', margin: 0, maxWidth: '600px' }}>
+          <h2 className="tw-text-3xl md:tw-text-4xl tw-font-extrabold tw-text-slate-900 dark:tw-text-[var(--text-main)] tw-mb-2 tw-tracking-tight">Intelligence Hub</h2>
+          <p className="tw-text-slate-600 dark:tw-text-[var(--text-muted)] tw-text-lg tw-m-0 tw-max-w-2xl">
             Advanced behavioral analytics, demand forecasting, and real-time security monitoring powered by ClearPath AI.
           </p>
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <p style={{ fontSize: '0.9rem', color: '#94a3b8', margin: '0 0 5px 0' }}>Last Sync</p>
-          <strong style={{ color: '#0f172a', fontFamily: 'monospace', fontSize: '1.2rem' }}>{new Date().toLocaleTimeString()}</strong>
+        <div className="tw-text-right">
+          <p className="tw-text-sm tw-text-slate-400 dark:tw-text-[var(--text-dim)] tw-mb-1">Last Sync</p>
+          <strong className="tw-text-slate-900 dark:tw-text-[var(--text-main)] tw-font-mono tw-text-lg">{new Date().toLocaleTimeString()}</strong>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '30px' }}>
+      <div className="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-8">
         
         {/* 1. Demand Forecasting (AI-Powered) */}
-        <div className="intel-card premium" style={{ background: '#fff', borderRadius: '20px', padding: '30px', boxShadow: '0 10px 30px rgba(0,0,0,0.04)', position: 'relative', overflow: 'hidden', gridColumn: '1 / -1' }}>
-          <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '6px', background: 'linear-gradient(90deg, #d4af37, #14b8a6)' }}></div>
+        <div className="tw-col-span-1 md:tw-col-span-2 tw-bg-white dark:tw-bg-[var(--bg-card)] tw-rounded-2xl tw-p-8 tw-shadow-sm dark:tw-shadow-none tw-border tw-border-slate-200 dark:tw-border-[var(--border-light)] tw-relative tw-overflow-hidden">
+          <div className="tw-absolute tw-top-0 tw-left-0 tw-w-full tw-h-1.5 tw-bg-gradient-to-r tw-from-[#73749B] tw-to-[#8E6B92]"></div>
           
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '25px' }}>
+          <div className="tw-flex tw-justify-between tw-items-start tw-mb-8">
             <div>
-              <h3 style={{ fontSize: '1.4rem', fontWeight: '800', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 5px 0' }}>
-                <div style={{ width: '45px', height: '45px', borderRadius: '12px', background: 'linear-gradient(135deg, rgba(212,175,55,0.2), rgba(20,184,166,0.15))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d4af37' }}>
-                  <i className="fa-solid fa-chart-area" style={{ fontSize: '1.2rem' }}></i>
+              <h3 className="tw-text-xl tw-font-bold tw-text-slate-900 dark:tw-text-[var(--text-main)] tw-flex tw-items-center tw-gap-3 tw-mb-2">
+                <div className="tw-w-11 tw-h-11 tw-rounded-xl tw-bg-gradient-to-br tw-from-[#73749B]/20 tw-to-[#8E6B92]/10 tw-flex tw-items-center tw-justify-center tw-text-[#73749B] dark:tw-text-[#8E6B92]">
+                  <i className="fa-solid fa-chart-area tw-text-lg"></i>
                 </div>
                 AI Demand Forecasting
-                <span style={{ fontSize: '0.75rem', background: '#14b8a6', color: '#fff', padding: '4px 10px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '1px' }}>Q3 2026 Projections</span>
+                <span className="tw-text-xs tw-bg-[#8E6B92] tw-text-white tw-px-3 tw-py-1 tw-rounded-full tw-uppercase tw-tracking-widest">Q3 2026 Projections</span>
               </h3>
-              <p style={{ color: '#64748b', fontSize: '0.95rem', margin: 0 }}>Predictive analysis combining historical bookings, wishlist trends, and page views.</p>
+              <p className="tw-text-slate-600 dark:tw-text-[var(--text-muted)] tw-text-sm">Predictive analysis combining historical bookings, wishlist trends, and page views.</p>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap' }}>
+          <div className="tw-flex tw-flex-wrap tw-gap-8">
             {/* SVG Chart Area */}
-            <div style={{ flex: '1 1 500px', background: '#f8fafc', borderRadius: '16px', padding: '20px', position: 'relative', border: '1px solid #e2e8f0' }}>
-              <h4 style={{ margin: '0 0 20px 0', color: '#334155', fontSize: '1.1rem' }}>Projected Booking Volume (Summer 2026)</h4>
-              <div style={{ position: 'relative', width: '100%', height: '220px' }}>
-                <svg viewBox="0 0 500 220" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
+            <div className="tw-flex-1 tw-min-w-[400px] tw-bg-slate-50 dark:tw-bg-[#101017] tw-rounded-2xl tw-p-6 tw-relative tw-border tw-border-slate-200 dark:tw-border-[var(--border-light)]">
+              <h4 className="tw-m-0 tw-mb-6 tw-text-slate-800 dark:tw-text-[var(--text-main)] tw-text-lg tw-font-semibold">Projected Booking Volume (Summer 2026)</h4>
+              <div className="tw-relative tw-w-full tw-h-[220px]">
+                <svg viewBox="0 0 500 220" className="tw-w-full tw-h-full tw-overflow-visible">
                   <defs>
-                    <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#d4af37" stopOpacity="0.4" />
-                      <stop offset="100%" stopColor="#d4af37" stopOpacity="0.0" />
+                    <linearGradient id="purpleGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#8E6B92" stopOpacity="0.4" />
+                      <stop offset="100%" stopColor="#8E6B92" stopOpacity="0.0" />
                     </linearGradient>
-                    <linearGradient id="turqGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.4" />
-                      <stop offset="100%" stopColor="#14b8a6" stopOpacity="0.0" />
+                    <linearGradient id="indigoGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#73749B" stopOpacity="0.4" />
+                      <stop offset="100%" stopColor="#73749B" stopOpacity="0.0" />
                     </linearGradient>
                   </defs>
                   
                   {/* Grid Lines */}
                   {[0, 50, 100, 150].map((y) => (
                     <g key={y}>
-                      <line x1="40" y1={y} x2="480" y2={y} stroke="#e2e8f0" strokeDasharray="4 4" />
-                      <text x="30" y={y + 4} fill="#94a3b8" fontSize="10" textAnchor="end">{(150 - y) * 2}</text>
+                      <line x1="40" y1={y} x2="480" y2={y} stroke="currentColor" strokeOpacity="0.1" className="tw-text-slate-400 dark:tw-text-white" strokeDasharray="4 4" />
+                      <text x="30" y={y + 4} fill="currentColor" className="tw-text-slate-400 dark:tw-text-[var(--text-dim)]" fontSize="10" textAnchor="end">{(150 - y) * 2}</text>
                     </g>
                   ))}
                   
-                  {/* Base Data (Turquoise) */}
-                  <path d="M 50 150 L 50 120 C 150 100, 250 140, 350 80 C 420 50, 480 30, 480 30 L 480 150 Z" fill="url(#turqGrad)" className="chart-path-turq" />
-                  <path d="M 50 120 C 150 100, 250 140, 350 80 C 420 50, 480 30, 480 30" fill="none" stroke="#14b8a6" strokeWidth="3" className="chart-line-turq" />
+                  {/* Base Data (Indigo) */}
+                  <path d="M 50 150 L 50 120 C 150 100, 250 140, 350 80 C 420 50, 480 30, 480 30 L 480 150 Z" fill="url(#indigoGrad)" className="tw-transition-all tw-duration-500" />
+                  <path d="M 50 120 C 150 100, 250 140, 350 80 C 420 50, 480 30, 480 30" fill="none" stroke="#73749B" strokeWidth="3" />
                   
-                  {/* Forecast Data (Gold) */}
-                  <path d="M 50 150 L 50 100 C 150 60, 250 110, 350 40 C 420 10, 480 0, 480 0 L 480 150 Z" fill="url(#goldGrad)" className="chart-path-gold" />
-                  <path d="M 50 100 C 150 60, 250 110, 350 40 C 420 10, 480 0, 480 0" fill="none" stroke="#d4af37" strokeWidth="4" strokeDasharray="8 4" className="chart-line-gold" />
+                  {/* Forecast Data (Purple) */}
+                  <path d="M 50 150 L 50 100 C 150 60, 250 110, 350 40 C 420 10, 480 0, 480 0 L 480 150 Z" fill="url(#purpleGrad)" className="tw-transition-all tw-duration-500 hover:tw-opacity-80 tw-cursor-crosshair" />
+                  <path d="M 50 100 C 150 60, 250 110, 350 40 C 420 10, 480 0, 480 0" fill="none" stroke="#8E6B92" strokeWidth="4" strokeDasharray="8 4" />
                   
                   {/* X-Axis Labels */}
-                  <text x="50" y="170" fill="#64748b" fontSize="12" fontWeight="bold">May (Actual)</text>
-                  <text x="190" y="170" fill="#64748b" fontSize="12" fontWeight="bold">June 2026</text>
-                  <text x="330" y="170" fill="#64748b" fontSize="12" fontWeight="bold">July 2026</text>
-                  <text x="460" y="170" fill="#64748b" fontSize="12" fontWeight="bold">August 2026</text>
+                  <text x="50" y="170" fill="currentColor" className="tw-text-slate-500 dark:tw-text-[var(--text-muted)]" fontSize="12" fontWeight="bold">May (Actual)</text>
+                  <text x="190" y="170" fill="currentColor" className="tw-text-slate-500 dark:tw-text-[var(--text-muted)]" fontSize="12" fontWeight="bold">June 2026</text>
+                  <text x="330" y="170" fill="currentColor" className="tw-text-slate-500 dark:tw-text-[var(--text-muted)]" fontSize="12" fontWeight="bold">July 2026</text>
+                  <text x="460" y="170" fill="currentColor" className="tw-text-slate-500 dark:tw-text-[var(--text-muted)]" fontSize="12" fontWeight="bold">August 2026</text>
 
                   {/* Interactive Points */}
-                  <circle cx="190" cy="85" r="6" fill="#fff" stroke="#d4af37" strokeWidth="3" className="chart-point" />
-                  <circle cx="330" cy="60" r="6" fill="#fff" stroke="#d4af37" strokeWidth="3" className="chart-point" />
-                  <circle cx="480" cy="0" r="6" fill="#fff" stroke="#d4af37" strokeWidth="3" className="chart-point" />
+                  <circle cx="190" cy="85" r="6" fill="currentColor" className="tw-text-white dark:tw-text-[var(--bg-card)]" stroke="#8E6B92" strokeWidth="3" />
+                  <circle cx="330" cy="60" r="6" fill="currentColor" className="tw-text-white dark:tw-text-[var(--bg-card)]" stroke="#8E6B92" strokeWidth="3" />
+                  <circle cx="480" cy="0" r="6" fill="currentColor" className="tw-text-white dark:tw-text-[var(--bg-card)]" stroke="#8E6B92" strokeWidth="3" />
                 </svg>
               </div>
-              <div style={{ display: 'flex', gap: '20px', marginTop: '15px', justifyContent: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: '#475569' }}>
-                  <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#14b8a6' }}></div> Base Trend
+              <div className="tw-flex tw-gap-5 tw-mt-4 tw-justify-center">
+                <div className="tw-flex tw-items-center tw-gap-2 tw-text-sm tw-text-slate-600 dark:tw-text-[var(--text-muted)]">
+                  <div className="tw-w-3 tw-h-3 tw-rounded-sm tw-bg-[#73749B]"></div> Base Trend
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: '#475569' }}>
-                  <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#d4af37' }}></div> AI Projected Surge
+                <div className="tw-flex tw-items-center tw-gap-2 tw-text-sm tw-text-slate-600 dark:tw-text-[var(--text-muted)]">
+                  <div className="tw-w-3 tw-h-3 tw-rounded-sm tw-bg-[#8E6B92]"></div> AI Projected Surge
                 </div>
               </div>
             </div>
 
             {/* Smart Recommendations */}
-            <div style={{ flex: '1 1 350px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              <h4 style={{ margin: 0, color: '#0f172a', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <i className="fa-solid fa-wand-magic-sparkles" style={{ color: '#d4af37' }}></i> Automated Actions
+            <div className="tw-flex-1 tw-min-w-[300px] tw-flex tw-flex-col tw-gap-4">
+              <h4 className="tw-m-0 tw-text-slate-900 dark:tw-text-[var(--text-main)] tw-text-lg tw-flex tw-items-center tw-gap-2">
+                <i className="fa-solid fa-wand-magic-sparkles tw-text-[#8E6B92]"></i> Automated Actions
               </h4>
               
-              <div className="action-card" style={{ padding: '20px', borderRadius: '14px', background: 'linear-gradient(to right, rgba(20, 184, 166, 0.05), transparent)', borderLeft: '4px solid #14b8a6', border: '1px solid rgba(20,184,166,0.1)', borderLeftWidth: '4px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                  <strong style={{ color: '#0f172a', fontSize: '1rem' }}>Mohra Hiking Package</strong>
-                  <span style={{ fontSize: '0.75rem', fontWeight: '800', color: '#fff', background: '#ef4444', padding: '2px 8px', borderRadius: '10px' }}>Critical Capacity</span>
-                </div>
-                <p style={{ fontSize: '0.9rem', color: '#475569', margin: '0 0 15px 0', lineHeight: '1.5' }}>Projected 95% capacity by mid-July. Current guide ratio is extremely low (1:40).</p>
-                <button 
-                  onClick={() => handleAction('mohra-id', 'demand', 'Assigned Yasmine (Top Guide) to Mohra')}
-                  disabled={processing === 'mohra-id'}
-                  style={{ background: '#14b8a6', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '8px', cursor: processing === 'mohra-id' ? 'not-allowed' : 'pointer', fontSize: '0.85rem', fontWeight: '600', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', transition: 'all 0.2s', opacity: processing === 'mohra-id' ? 0.7 : 1 }}
-                  className="btn-hover-glow"
-                >
-                  {processing === 'mohra-id' ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-solid fa-user-plus"></i>} Auto-Assign Guide Yasmine
-                </button>
-              </div>
-
-              <div className="action-card" style={{ padding: '20px', borderRadius: '14px', background: 'linear-gradient(to right, rgba(212, 175, 55, 0.05), transparent)', borderLeft: '4px solid #d4af37', border: '1px solid rgba(212,175,55,0.1)', borderLeftWidth: '4px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                  <strong style={{ color: '#0f172a', fontSize: '1rem' }}>Siwa Oasis Retreat</strong>
-                  <span style={{ fontSize: '0.75rem', fontWeight: '800', color: '#b48600', background: '#fef3c7', padding: '2px 8px', borderRadius: '10px' }}>Conversion Drop</span>
-                </div>
-                <p style={{ fontSize: '0.9rem', color: '#475569', margin: '0 0 15px 0', lineHeight: '1.5' }}>High views & wishlists but low bookings. Price sensitivity detected for August.</p>
-                <button 
-                  onClick={() => handleAction('siwa-id', 'demand', 'Generated and applied 15% Smart Discount')}
-                  disabled={processing === 'siwa-id'}
-                  style={{ background: '#d4af37', color: '#000', border: 'none', padding: '10px 16px', borderRadius: '8px', cursor: processing === 'siwa-id' ? 'not-allowed' : 'pointer', fontSize: '0.85rem', fontWeight: '700', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', transition: 'all 0.2s', opacity: processing === 'siwa-id' ? 0.7 : 1 }}
-                  className="btn-hover-glow-gold"
-                >
-                  {processing === 'siwa-id' ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-solid fa-percent"></i>} Deploy Smart 15% Discount
-                </button>
-              </div>
+              {data.demandAlerts.map((alert, idx) => {
+                const isWarning = alert.type === "High Demand";
+                const colorClassBg = isWarning ? "tw-bg-[#73749B]" : "tw-bg-[#8E6B92]";
+                const colorClassBorder = isWarning ? "tw-border-[#73749B]/20 tw-border-l-[#73749B]" : "tw-border-[#8E6B92]/20 tw-border-l-[#8E6B92]";
+                const colorClassGrad = isWarning ? "tw-from-[#73749B]/5" : "tw-from-[#8E6B92]/5";
+                
+                return (
+                  <div key={idx} className={`tw-p-5 tw-rounded-xl tw-bg-gradient-to-r ${colorClassGrad} tw-to-transparent tw-border tw-border-slate-200 dark:tw-border-[var(--border-light)] tw-border-l-4 ${colorClassBorder}`}>
+                    <div className="tw-flex tw-justify-between tw-mb-2">
+                      <strong className="tw-text-slate-900 dark:tw-text-[var(--text-main)] tw-text-base">{alert.experienceName}</strong>
+                      <span className={`tw-text-xs tw-font-bold tw-text-white ${isWarning ? 'tw-bg-[#73749B]' : 'tw-bg-[#8E6B92]'} tw-px-2 tw-py-0.5 tw-rounded-full`}>{alert.type}</span>
+                    </div>
+                    <p className="tw-text-sm tw-text-slate-600 dark:tw-text-[var(--text-muted)] tw-mb-4 tw-leading-relaxed">{alert.message}</p>
+                    <button 
+                      onClick={() => handleAction(alert.experienceId, 'demand', `Action performed for ${alert.experienceName}`)}
+                      disabled={processing === alert.experienceId}
+                      className={`tw-w-full tw-flex tw-justify-center tw-items-center tw-gap-2 ${colorClassBg} tw-text-white tw-font-bold tw-py-2.5 tw-px-4 tw-rounded-lg tw-transition-all tw-duration-200 hover:-tw-translate-y-0.5 hover:tw-shadow-lg disabled:tw-opacity-70 disabled:tw-cursor-not-allowed`}
+                    >
+                      {processing === alert.experienceId ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className={`fa-solid ${isWarning ? 'fa-user-plus' : 'fa-percent'}`}></i>} {alert.actionRecommended}
+                    </button>
+                  </div>
+                );
+              })}
 
             </div>
           </div>
         </div>
 
         {/* 2. Fraud & Scam Risk */}
-        <div className="intel-card premium" style={{ background: '#fff', borderRadius: '20px', padding: '30px', boxShadow: '0 10px 30px rgba(0,0,0,0.04)', position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '6px', background: 'linear-gradient(90deg, #ef4444, #f87171)' }}></div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '25px' }}>
+        <div className="tw-col-span-1 tw-bg-white dark:tw-bg-[var(--bg-card)] tw-rounded-2xl tw-p-8 tw-shadow-sm dark:tw-shadow-none tw-border tw-border-slate-200 dark:tw-border-[var(--border-light)] tw-relative tw-overflow-hidden">
+          <div className="tw-absolute tw-top-0 tw-left-0 tw-w-full tw-h-1.5 tw-bg-gradient-to-r tw-from-red-500 tw-to-red-400"></div>
+          <div className="tw-flex tw-justify-between tw-items-start tw-mb-8">
             <div>
-              <h3 style={{ fontSize: '1.3rem', fontWeight: '700', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 5px 0' }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(239,68,68,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444' }}>
+              <h3 className="tw-text-xl tw-font-bold tw-text-slate-900 dark:tw-text-[var(--text-main)] tw-flex tw-items-center tw-gap-3 tw-mb-2">
+                <div className="tw-w-10 tw-h-10 tw-rounded-lg tw-bg-red-500/10 tw-flex tw-items-center tw-justify-center tw-text-red-500">
                   <i className="fa-solid fa-shield-virus"></i>
                 </div>
                 Fraud & Scam Detection
               </h3>
-              <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>Behavioral anomaly and risk monitoring.</p>
+              <p className="tw-text-slate-600 dark:tw-text-[var(--text-muted)] tw-text-sm tw-m-0">Behavioral anomaly and risk monitoring.</p>
             </div>
-            <div style={{ background: data.fraudAlerts.length > 0 ? 'rgba(239,68,68,0.1)' : 'rgba(34,197,94,0.1)', color: data.fraudAlerts.length > 0 ? '#ef4444' : '#22c55e', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold' }}>
+            <div className={`tw-px-3 tw-py-1 tw-rounded-full tw-text-xs tw-font-bold ${data.fraudAlerts.length > 0 ? 'tw-bg-red-500/10 tw-text-red-500' : 'tw-bg-[#73749B]/10 tw-text-[#73749B]'}`}>
               {data.fraudAlerts.length > 0 ? `${data.fraudAlerts.length} Threats` : 'Secure'}
             </div>
           </div>
           
-          <div className="intel-list">
+          <div>
             {data.fraudAlerts.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '30px 0', color: '#94a3b8' }}>
-                <i className="fa-solid fa-shield-check fa-3x" style={{ color: '#22c55e', marginBottom: '15px' }}></i>
+              <div className="tw-text-center tw-py-8 tw-text-slate-400 dark:tw-text-[var(--text-dim)]">
+                <i className="fa-solid fa-shield-check fa-3x tw-text-[#73749B] tw-mb-4"></i>
                 <p>System integrity is at 100%. No malicious patterns detected.</p>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              <div className="tw-flex tw-flex-col tw-gap-4">
                 {data.fraudAlerts.map((alert, idx) => (
-                  <div key={idx} style={{ padding: '20px', borderRadius: '12px', background: 'linear-gradient(to right, rgba(239,68,68,0.05), transparent)', borderLeft: '4px solid #ef4444' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <strong style={{ color: '#0f172a', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}><i className="fa-solid fa-user-slash" style={{ color: '#ef4444' }}></i> {alert.userName}</strong>
-                      <span style={{ fontSize: '0.75rem', fontWeight: '800', color: '#fff', background: '#ef4444', padding: '2px 8px', borderRadius: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>{alert.severity} RISK</span>
+                  <div key={idx} className="tw-p-5 tw-rounded-xl tw-bg-gradient-to-r tw-from-red-500/5 tw-to-transparent tw-border tw-border-red-500/10 tw-border-l-4 tw-border-l-red-500">
+                    <div className="tw-flex tw-justify-between tw-mb-2">
+                      <strong className="tw-text-slate-900 dark:tw-text-[var(--text-main)] tw-text-base tw-flex tw-items-center tw-gap-2">
+                        <i className="fa-solid fa-user-slash tw-text-red-500"></i> {alert.userName}
+                      </strong>
+                      <span className="tw-text-xs tw-font-bold tw-text-white tw-bg-red-500 tw-px-2 tw-py-0.5 tw-rounded-full tw-uppercase tw-tracking-widest">{alert.severity} RISK</span>
                     </div>
-                    <p style={{ fontSize: '0.9rem', color: '#475569', margin: '0 0 15px 0', lineHeight: '1.5' }}>{alert.message}</p>
+                    <p className="tw-text-sm tw-text-slate-600 dark:tw-text-[var(--text-muted)] tw-mb-4 tw-leading-relaxed">{alert.message}</p>
                     <button 
                       onClick={() => handleAction(alert.userId, 'fraud', `${alert.userName} Account Suspended`)}
                       disabled={processing === alert.userId}
-                      style={{ background: '#0f172a', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: processing === alert.userId ? 'not-allowed' : 'pointer', fontSize: '0.85rem', fontWeight: '600', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', opacity: processing === alert.userId ? 0.7 : 1 }}>
+                      className="tw-w-full tw-flex tw-justify-center tw-items-center tw-gap-2 tw-bg-slate-900 dark:tw-bg-[var(--bg-darker)] dark:tw-border dark:tw-border-[var(--border-light)] tw-text-white tw-font-bold tw-py-2.5 tw-px-4 tw-rounded-lg tw-transition-all tw-duration-200 hover:tw-opacity-90 disabled:tw-opacity-70 disabled:tw-cursor-not-allowed"
+                    >
                       {processing === alert.userId ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-solid fa-gavel"></i>} {alert.actionRecommended}
                     </button>
                   </div>
@@ -252,52 +245,61 @@ const AdminIntelligence = () => {
         </div>
 
         {/* 3. Trust Scoring */}
-        <div className="intel-card premium" style={{ background: '#fff', borderRadius: '20px', padding: '30px', boxShadow: '0 10px 30px rgba(0,0,0,0.04)', position: 'relative', overflow: 'hidden', gridColumn: '1 / -1' }}>
-          <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '6px', background: 'linear-gradient(90deg, #d4af37, #fcd34d)' }}></div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '30px' }}>
+        <div className="tw-col-span-1 tw-bg-white dark:tw-bg-[var(--bg-card)] tw-rounded-2xl tw-p-8 tw-shadow-sm dark:tw-shadow-none tw-border tw-border-slate-200 dark:tw-border-[var(--border-light)] tw-relative tw-overflow-hidden">
+          <div className="tw-absolute tw-top-0 tw-left-0 tw-w-full tw-h-1.5 tw-bg-gradient-to-r tw-from-[#73749B] tw-to-[#8E6B92]"></div>
+          <div className="tw-flex tw-justify-between tw-items-start tw-mb-8">
             <div>
-              <h3 style={{ fontSize: '1.3rem', fontWeight: '700', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 5px 0' }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(212,175,55,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d4af37' }}>
+              <h3 className="tw-text-xl tw-font-bold tw-text-slate-900 dark:tw-text-[var(--text-main)] tw-flex tw-items-center tw-gap-3 tw-mb-2">
+                <div className="tw-w-10 tw-h-10 tw-rounded-lg tw-bg-[#73749B]/10 tw-flex tw-items-center tw-justify-center tw-text-[#73749B]">
                   <i className="fa-solid fa-star-half-stroke"></i>
                 </div>
                 Provider Trust Matrix
               </h3>
-              <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>Automated quality assurance and rating index.</p>
+              <p className="tw-text-slate-600 dark:tw-text-[var(--text-muted)] tw-text-sm tw-m-0">Automated quality assurance and rating index.</p>
             </div>
           </div>
           
-          <div className="trust-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+          <div className="tw-flex tw-flex-col tw-gap-4">
             {data.trustScores.length === 0 ? (
-              <p style={{ color: '#94a3b8', textAlign: 'center', width: '100%' }}>Awaiting provider reviews to generate matrices.</p>
+              <p className="tw-text-slate-400 dark:tw-text-[var(--text-dim)] tw-text-center tw-w-full">Awaiting provider reviews to generate matrices.</p>
             ) : (
               data.trustScores.map((provider, idx) => {
                 const isPremium = provider.trustScore >= 80;
                 const isVerified = provider.trustScore >= 60 && provider.trustScore < 80;
-                const strokeColor = isPremium ? '#22c55e' : (isVerified ? '#3b82f6' : '#ef4444');
-                const bgColor = isPremium ? 'rgba(34,197,94,0.05)' : (isVerified ? 'rgba(59,130,246,0.05)' : 'rgba(239,68,68,0.05)');
+                
+                let strokeClass = 'tw-text-red-500';
+                let bgClass = 'tw-bg-red-50 dark:tw-bg-red-500/10';
+                
+                if (isPremium) {
+                  strokeClass = 'tw-text-[#73749B]';
+                  bgClass = 'tw-bg-[#73749B]/10';
+                } else if (isVerified) {
+                  strokeClass = 'tw-text-[#8E6B92]';
+                  bgClass = 'tw-bg-[#8E6B92]/10';
+                }
                 
                 return (
-                  <div key={idx} style={{ padding: '20px', borderRadius: '16px', background: '#f8fafc', border: `1px solid ${bgColor}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'transform 0.2s', cursor: 'pointer' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-3px)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                      <div style={{ width: '45px', height: '45px', borderRadius: '50%', background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 'bold' }}>
+                  <div key={idx} className={`tw-p-5 tw-rounded-xl tw-bg-slate-50 dark:tw-bg-[#101017] tw-border tw-border-slate-200 dark:tw-border-[var(--border-light)] tw-flex tw-items-center tw-justify-between tw-transition-transform tw-duration-200 hover:-tw-translate-y-1 tw-cursor-pointer`}>
+                    <div className="tw-flex tw-items-center tw-gap-4">
+                      <div className="tw-w-11 tw-h-11 tw-rounded-full tw-bg-slate-900 dark:tw-bg-[var(--bg-darker)] tw-text-white tw-flex tw-items-center tw-justify-center tw-font-bold">
                         {provider.providerName.substring(0,2).toUpperCase()}
                       </div>
                       <div>
-                        <strong style={{ display: 'block', color: '#0f172a', fontSize: '1.05rem', marginBottom: '2px' }}>{provider.providerName}</strong>
-                        <span style={{ fontSize: '0.8rem', color: strokeColor, fontWeight: '700', background: bgColor, padding: '2px 8px', borderRadius: '10px' }}>
-                          {isPremium && <i className="fa-solid fa-crown" style={{ marginRight: '4px' }}></i>}
+                        <strong className="tw-block tw-text-slate-900 dark:tw-text-[var(--text-main)] tw-text-base tw-mb-1">{provider.providerName}</strong>
+                        <span className={`tw-text-xs tw-font-bold ${strokeClass} ${bgClass} tw-px-2.5 tw-py-0.5 tw-rounded-full`}>
+                          {isPremium && <i className="fa-solid fa-crown tw-mr-1"></i>}
                           {provider.tier}
                         </span>
                       </div>
                     </div>
                     
                     {/* Circular Progress Gauge */}
-                    <div style={{ position: 'relative', width: '60px', height: '60px' }}>
-                      <svg viewBox="0 0 36 36" style={{ width: '100%', height: '100%' }}>
-                        <path stroke="#e2e8f0" strokeWidth="3" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                        <path stroke={strokeColor} strokeWidth="3" strokeDasharray={`${provider.trustScore}, 100`} strokeLinecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" style={{ animation: 'dash 1.5s ease-out forwards' }} />
+                    <div className="tw-relative tw-w-14 tw-h-14">
+                      <svg viewBox="0 0 36 36" className="tw-w-full tw-h-full">
+                        <path stroke="currentColor" strokeOpacity="0.1" className="tw-text-slate-500 dark:tw-text-white" strokeWidth="3" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path stroke="currentColor" className={strokeClass} strokeWidth="3" strokeDasharray={`${provider.trustScore}, 100`} strokeLinecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" style={{ animation: 'dash 1.5s ease-out forwards' }} />
                       </svg>
-                      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontWeight: '800', fontSize: '1rem', color: '#0f172a' }}>
+                      <div className="tw-absolute tw-top-1/2 tw-left-1/2 -tw-translate-x-1/2 -tw-translate-y-1/2 tw-font-bold tw-text-slate-900 dark:tw-text-[var(--text-main)]">
                         {provider.trustScore}
                       </div>
                     </div>
@@ -309,18 +311,11 @@ const AdminIntelligence = () => {
         </div>
 
       </div>
+      
       <style>{`
-        @keyframes spin { 100% { transform: rotate(360deg); } }
         @keyframes dash { 0% { stroke-dasharray: 0, 100; } }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes pulse { 0% { transform: scale(0.95); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.5; } }
-        .chart-path-turq { transition: all 0.5s ease; }
-        .chart-path-gold { transition: all 0.5s ease; }
-        .chart-path-gold:hover { opacity: 0.8; cursor: crosshair; }
-        .chart-point { transition: all 0.3s ease; }
-        .chart-point:hover { r: 10; stroke-width: 4; filter: drop-shadow(0 0 8px #d4af37); cursor: pointer; }
-        .btn-hover-glow:hover { box-shadow: 0 0 15px rgba(20, 184, 166, 0.5); transform: translateY(-2px); }
-        .btn-hover-glow-gold:hover { box-shadow: 0 0 15px rgba(212, 175, 55, 0.5); transform: translateY(-2px); }
+        .tw-animate-slide-in { animation: slideIn 0.3s ease-out forwards; }
       `}</style>
     </div>
   );

@@ -62,107 +62,149 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className={`forgot-wrapper ${lang === 'AR' ? 'lang-ar' : ''}`}>
-      <div className="mainpage">
-        <div className="forgotform">
-          <div className="forgotr d-flex justify-content-center align-items-center">
-            <div className="formholder">
-              
-              {phase === 'request' ? (
-                <form className="form" onSubmit={handleRequestOTP}>
-                  <p className="title">{lang === 'AR' ? 'إعادة تعيين كلمة المرور' : 'Reset Password'}</p>
-                  <p className="subtitle" style={{ textAlign: 'center', color: '#e2e8f0', margin: '0 0 15px 0', fontSize: '0.88rem', opacity: 0.8 }}>
-                    {lang === 'AR' ? 'أدخل عنوان بريدك الإلكتروني وسنرسل لك رمز OTP مكون من 6 أرقام لاستعادة حسابك.' : 'Enter your email address and we will send you a 6-digit OTP code to recover your account.'}
-                  </p>
-                  
-                  {error && <div className="alert alert-error-custom">{error}</div>}
-                  {success && <div className="alert alert-success-custom">{success}</div>}
-                  
-                  <label htmlFor="email">
-                    <input
-                      type="email"
-                      placeholder=""
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="input"
-                      id="email"
-                    />
-                    <span>{lang === 'AR' ? 'عنوان البريد الإلكتروني' : 'Email Address'}</span>
-                  </label>
+    <div className={`tw-h-screen tw-w-full tw-flex tw-flex-col tw-bg-[#0f1014] ${lang === 'AR' ? 'tw-text-right' : 'tw-text-left'} tw-relative tw-overflow-hidden`}>
+      
+      {/* Background Image & Overlay */}
+      <div className="tw-absolute tw-inset-0 tw-z-0">
+        <div 
+          className="tw-absolute tw-inset-0 tw-bg-cover tw-bg-center tw-bg-no-repeat"
+          style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1539650116574-8efeb43e2750?q=80&w=1920&auto=format&fit=crop")' }}
+        ></div>
+        <div className="tw-absolute tw-inset-0 tw-bg-black/85"></div>
+      </div>
 
-                  <button className="submit" type="submit" disabled={isLoading}>
-                    {isLoading ? (lang === 'AR' ? 'جاري الإرسال...' : 'Sending OTP...') : (lang === 'AR' ? 'إرسال رمز إعادة التعيين' : 'Send Reset Code')}
-                  </button>
-                  
-                  <p className="signin">
-                    {lang === 'AR' ? 'هل تتذكر كلمة المرور؟ ' : 'Remember your password? '} 
-                    <Link className="loginBtn btn btn-primary" to="/login">{lang === 'AR' ? 'تسجيل الدخول' : 'Log In'}</Link>
-                  </p>
-                </form>
-              ) : (
-                <form className="form" onSubmit={handleResetPassword}>
-                  <p className="title">{lang === 'AR' ? 'كلمة مرور جديدة' : 'New Password'}</p>
-                  <p className="subtitle" style={{ textAlign: 'center', color: '#e2e8f0', margin: '0 0 15px 0', fontSize: '0.88rem', opacity: 0.8 }}>
-                    {lang === 'AR' ? 'يرجى إدخال رمز التحقق المكون من 6 أرقام المرسل إلى بريدك الإلكتروني وتحديد كلمة المرور الجديدة.' : 'Please enter the 6-digit OTP code sent to your inbox and define your new login credentials.'}
-                  </p>
-                  
-                  {error && <div className="alert alert-error-custom">{error}</div>}
-                  {success && <div className="alert alert-success-custom">{success}</div>}
-                  
-                  <label htmlFor="otp">
-                    <input
-                      type="text"
-                      placeholder=""
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                      required
-                      className="input"
-                      id="otp"
-                      autoComplete="off"
-                    />
-                    <span>{lang === 'AR' ? 'رمز التحقق المكون من 6 أرقام' : '6-Digit Verification Code'}</span>
-                  </label>
+      {/* Return Link (Top Corner) */}
+      <div className={`tw-absolute tw-top-8 ${lang === 'AR' ? 'tw-left-8' : 'tw-right-8'} tw-z-20`}>
+        <button onClick={() => navigate('/login')} className="tw-text-[#dcae44] hover:tw-text-white tw-transition-colors tw-font-bold tw-text-xs tw-tracking-[0.2em] tw-uppercase tw-flex tw-items-center tw-gap-2">
+          {lang === 'AR' ? (
+            <><i className="fa-solid fa-arrow-left"></i> العودة</>
+          ) : (
+            <>RETURN <i className="fa-solid fa-arrow-right"></i></>
+          )}
+        </button>
+      </div>
 
-                  <label htmlFor="newPassword">
-                    <input
-                      type="password"
-                      placeholder=""
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      required
-                      className="input"
-                      id="newPassword"
-                    />
-                    <span>{lang === 'AR' ? 'كلمة المرور الجديدة' : 'New Password'}</span>
-                  </label>
-
-                  <label htmlFor="confirmPassword">
-                    <input
-                      type="password"
-                      placeholder=""
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      required
-                      className="input"
-                      id="confirmPassword"
-                    />
-                    <span>{lang === 'AR' ? 'تأكيد كلمة المرور الجديدة' : 'Confirm New Password'}</span>
-                  </label>
-
-                  <button className="submit" type="submit" disabled={isLoading}>
-                    {isLoading ? (lang === 'AR' ? 'جاري تعيين كلمة المرور...' : 'Resetting Password...') : (lang === 'AR' ? 'حفظ البيانات' : 'Save Credentials')}
-                  </button>
-                  
-                  <p className="signin">
-                    {lang === 'AR' ? 'الرجوع إلى ' : 'Go back to '} 
-                    <Link className="loginBtn btn btn-primary" to="/login">{lang === 'AR' ? 'تسجيل الدخول' : 'Login'}</Link>
-                  </p>
-                </form>
-              )}
-
-            </div>
+      {/* Content */}
+      <div className="tw-relative tw-z-10 tw-w-full tw-h-full tw-flex tw-flex-col tw-justify-center tw-items-center tw-px-6 tw-py-12 tw-overflow-y-auto">
+        <div className="tw-w-full tw-max-w-md tw-flex tw-flex-col">
+          
+          <div className="tw-mb-12 tw-text-center">
+            <h1 className="tw-text-3xl md:tw-text-4xl tw-font-serif tw-font-bold tw-text-white tw-tracking-wider tw-mb-4">
+              {phase === 'request' 
+                ? (lang === 'AR' ? 'استعادة الحساب' : 'FORGOT PASSWORD') 
+                : (lang === 'AR' ? 'كلمة مرور جديدة' : 'RESET PASSWORD')}
+            </h1>
+            <p className="tw-text-slate-400 tw-text-sm tw-font-light tw-leading-relaxed">
+              {phase === 'request'
+                ? (lang === 'AR' ? 'أدخل بريدك الإلكتروني وسنرسل لك رمز استعادة الحساب.' : 'Enter your email address and we will send you a 6-digit recovery code.')
+                : (lang === 'AR' ? 'أدخل الرمز المكون من 6 أرقام وقم بتعيين كلمة مرور جديدة.' : 'Please enter the 6-digit code sent to your inbox and define your new password.')}
+            </p>
           </div>
+
+          {error && (
+            <div className="tw-w-full tw-bg-rose-950/30 tw-border tw-border-rose-900 tw-rounded-sm tw-p-4 tw-mb-8 tw-text-center">
+              <p className="tw-text-rose-500 tw-text-sm tw-font-medium">{error}</p>
+            </div>
+          )}
+          
+          {success && (
+            <div className="tw-w-full tw-bg-[#0a1f14] tw-border tw-border-[#1b3a26] tw-rounded-sm tw-p-4 tw-mb-8 tw-text-center">
+              <p className="tw-text-[#2ecc71] tw-text-sm tw-font-medium">{success}</p>
+            </div>
+          )}
+
+          {phase === 'request' ? (
+            <form onSubmit={handleRequestOTP} className="tw-flex tw-flex-col tw-gap-8">
+              <div className="tw-flex tw-flex-col">
+                <label className="tw-text-[#dcae44] tw-text-[11px] tw-font-bold tw-tracking-[0.15em] tw-uppercase tw-mb-3">
+                  {lang === 'AR' ? 'البريد الإلكتروني' : 'EMAIL ADDRESS'}
+                </label>
+                <div className="tw-relative tw-flex tw-items-center">
+                  <i className={`fa-regular fa-envelope tw-absolute tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className={`tw-w-full tw-bg-transparent tw-border-0 tw-border-b tw-border-slate-800 tw-text-white tw-py-3 focus:tw-outline-none focus:tw-ring-0 focus:tw-border-[#dcae44] tw-transition-colors tw-text-base ${lang === 'AR' ? 'tw-pr-10' : 'tw-pl-10'}`}
+                    placeholder="name@example.com"
+                  />
+                </div>
+              </div>
+
+              <button 
+                type="submit" 
+                disabled={isLoading}
+                className="tw-w-full tw-bg-[#dcae44] hover:tw-bg-[#e5c35b] tw-text-black tw-font-bold tw-tracking-[0.15em] tw-uppercase tw-py-4 tw-rounded-sm tw-mt-4 tw-transition-all hover:tw-shadow-[0_0_15px_rgba(212,175,55,0.3)] disabled:tw-opacity-50"
+              >
+                {isLoading ? (lang === 'AR' ? 'جاري الإرسال...' : 'SENDING...') : (lang === 'AR' ? 'إرسال الرمز' : 'SEND RECOVERY CODE')}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleResetPassword} className="tw-flex tw-flex-col tw-gap-8">
+              <div className="tw-flex tw-flex-col">
+                <label className="tw-text-[#dcae44] tw-text-[11px] tw-font-bold tw-tracking-[0.15em] tw-uppercase tw-mb-3">
+                  {lang === 'AR' ? 'رمز التحقق (6 أرقام)' : '6-DIGIT CODE'}
+                </label>
+                <div className="tw-relative tw-flex tw-items-center">
+                  <i className={`fa-solid fa-key tw-absolute tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
+                  <input
+                    type="text"
+                    required
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    maxLength="6"
+                    autoComplete="off"
+                    className={`tw-w-full tw-bg-transparent tw-border-0 tw-border-b tw-border-slate-800 tw-text-white tw-py-3 focus:tw-outline-none focus:tw-ring-0 focus:tw-border-[#dcae44] tw-transition-colors tw-text-xl tw-tracking-[0.3em] tw-font-semibold ${lang === 'AR' ? 'tw-pr-10' : 'tw-pl-10'}`}
+                    placeholder="••••••"
+                  />
+                </div>
+              </div>
+
+              <div className="tw-flex tw-flex-col">
+                <label className="tw-text-[#dcae44] tw-text-[11px] tw-font-bold tw-tracking-[0.15em] tw-uppercase tw-mb-3">
+                  {lang === 'AR' ? 'كلمة المرور الجديدة' : 'NEW PASSWORD'}
+                </label>
+                <div className="tw-relative tw-flex tw-items-center">
+                  <i className={`fa-solid fa-lock tw-absolute tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
+                  <input
+                    type="password"
+                    required
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className={`tw-w-full tw-bg-transparent tw-border-0 tw-border-b tw-border-slate-800 tw-text-white tw-py-3 focus:tw-outline-none focus:tw-ring-0 focus:tw-border-[#dcae44] tw-transition-colors tw-text-base tw-tracking-[0.2em] ${lang === 'AR' ? 'tw-pr-10' : 'tw-pl-10'}`}
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
+
+              <div className="tw-flex tw-flex-col">
+                <label className="tw-text-[#dcae44] tw-text-[11px] tw-font-bold tw-tracking-[0.15em] tw-uppercase tw-mb-3">
+                  {lang === 'AR' ? 'تأكيد كلمة المرور' : 'CONFIRM PASSWORD'}
+                </label>
+                <div className="tw-relative tw-flex tw-items-center">
+                  <i className={`fa-solid fa-lock tw-absolute tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
+                  <input
+                    type="password"
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className={`tw-w-full tw-bg-transparent tw-border-0 tw-border-b tw-border-slate-800 tw-text-white tw-py-3 focus:tw-outline-none focus:tw-ring-0 focus:tw-border-[#dcae44] tw-transition-colors tw-text-base tw-tracking-[0.2em] ${lang === 'AR' ? 'tw-pr-10' : 'tw-pl-10'}`}
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
+
+              <button 
+                type="submit" 
+                disabled={isLoading}
+                className="tw-w-full tw-bg-[#dcae44] hover:tw-bg-[#e5c35b] tw-text-black tw-font-bold tw-tracking-[0.15em] tw-uppercase tw-py-4 tw-rounded-sm tw-mt-4 tw-transition-all hover:tw-shadow-[0_0_15px_rgba(212,175,55,0.3)] disabled:tw-opacity-50"
+              >
+                {isLoading ? (lang === 'AR' ? 'جاري الحفظ...' : 'SAVING...') : (lang === 'AR' ? 'حفظ البيانات' : 'RESET PASSWORD')}
+              </button>
+            </form>
+          )}
+
         </div>
       </div>
     </div>
