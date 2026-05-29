@@ -52,21 +52,20 @@ const Payment = () => {
   };
 
   const handleApplyPromo = async () => {
-    if (!promoCode) return;
+    if (!promoCode || !bookingId) return;
     try {
-      if (promoCode.toUpperCase().startsWith('LUXURY')) {
-        const pct = parseInt(promoCode.substring(6, 8));
-        if (!isNaN(pct)) {
-          setDiscountPercent(pct);
-          alert(`Promo code applied! ${pct}% discount.`);
-        } else {
-          alert('Invalid promo code.');
-        }
+      const res = await applyCoupon(bookingId, promoCode.trim().toUpperCase());
+      if (res?.discount || res?.discountPercent || res?.data?.discountPercent) {
+        const pct = res.discountPercent || res.data?.discountPercent || res.discount || 0;
+        setDiscountPercent(pct);
+        alert(`✅ Promo code applied! ${pct}% discount.`);
       } else {
-        alert('Invalid promo code.');
+        alert('✅ Coupon applied! Refreshing booking...');
+        fetchBookingInfo(); // Refresh booking with updated price from server
       }
     } catch (err) {
       console.error(err);
+      alert(lang === 'AR' ? 'كود الخصم غير صحيح أو منتهي الصلاحية.' : 'Invalid or expired promo code.');
     }
   };
 

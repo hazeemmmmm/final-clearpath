@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-import { addToWishlist, getTrips, getDestinations } from '../../utils/api';
+import { addToWishlist, getTrips, getDestinations, trackInteraction } from '../../utils/api';
 import { LanguageContext } from '../../context/LanguageContext';
 import './Trips.css';
 
@@ -188,7 +188,10 @@ const Trips = () => {
     fetchAll();
   }, []);
 
-  const handleCardClick = (id) => navigate(`/package-details/${id}`);
+  const handleCardClick = (id) => {
+    trackInteraction({ experienceId: id, action: 'click', role: 'user', source: 'trips_page' }).catch(() => {});
+    navigate(`/package-details/${id}`);
+  };
 
   const handleWishlistToggle = async (e, id) => {
     e.stopPropagation();

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar';
 import {
   createExperience,
@@ -18,6 +18,7 @@ import {
 import AdminIntelligence from './AdminIntelligence';
 import PublishPackageModal from './PublishPackageModal';
 import EditPackageModal from './EditPackageModal';
+import PackingGuidesAdmin from './PackingGuidesAdmin';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -631,6 +632,10 @@ const AdminDashboard = () => {
             <li className={activeTab === 'reviews' ? 'active' : ''} onClick={() => setActiveTab('reviews')}>
               <i className="fa-solid fa-star"></i>
               <span>Customer Reviews</span>
+            </li>
+            <li className={activeTab === 'packing-guides' ? 'active' : ''} onClick={() => setActiveTab('packing-guides')}>
+              <i className="fa-solid fa-suitcase-rolling"></i>
+              <span>Packing Guides</span>
             </li>
           </ul>
 
@@ -1701,6 +1706,11 @@ const AdminDashboard = () => {
                     );
                   })()}
                 </div>
+              )}
+
+              {/* TAB: PACKING GUIDES */}
+              {activeTab === 'packing-guides' && (
+                <PackingGuidesAdmin />
               )}
 
             </div>

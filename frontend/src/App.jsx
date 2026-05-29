@@ -15,6 +15,7 @@ import Payment from './pages/Payment/Payment'
 import PaymentSuccess from './pages/Payment/PaymentSuccess'
 import PaymentCancel from './pages/Payment/PaymentCancel'
 import AdminDashboard from './pages/Admin/AdminDashboard'
+import PackingGuidesAdmin from './pages/Admin/PackingGuidesAdmin'
 import SupervisorDashboard from './pages/Supervisor/SupervisorDashboard'
 import Destinations from './pages/Destinations/Destinations'
 import Experiences from './pages/Experiences/Experiences'
@@ -65,7 +66,8 @@ function App() {
         <Route path="/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
         <Route path="/payment/success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
         <Route path="/payment/cancel" element={<ProtectedRoute><PaymentCancel /></ProtectedRoute>} />
-        <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/admin/packing-guides" element={<ProtectedRoute roles={['admin']}><PackingGuidesAdmin /></ProtectedRoute>} />
         <Route path="/supervisor" element={<ProtectedRoute roles={['supervisor']}><SupervisorDashboard /></ProtectedRoute>} />
 
         {/* Auth Routes */}

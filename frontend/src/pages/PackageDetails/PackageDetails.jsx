@@ -184,6 +184,13 @@ const PackageDetails = () => {
       }
       if (pkg) {
         setActiveImage(pkg.image || (pkg.images && pkg.images[0]) || 'https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=1200&q=80');
+        // Track interaction — fire-and-forget, don't block UI
+        trackInteraction({
+          experienceId: pkg._id || id,
+          action: 'view',
+          role: 'user',
+          source: 'package_details'
+        }).catch(() => {});
       }
       
       try {
@@ -778,6 +785,67 @@ const PackageDetails = () => {
                     </ul>
                   </div>
                 </div>
+
+                {/* 🎒 Smart Packing Guide Integration */}
+                {packingGuide && (packingGuide.itemsToBring?.length > 0 || packingGuide.itemsNotToBring?.length > 0) && (
+                  <div className="packing-guide-section" style={{ marginBottom: '40px', background: 'var(--card-bg)', border: '1px solid var(--border-light)', borderRadius: '16px', overflow: 'hidden', boxShadow: 'var(--box-shadow-soft)' }}>
+                    <div style={{ background: 'linear-gradient(90deg, #1e293b, #0f172a)', padding: '20px 25px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                      <div style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#f59e0b', width: '45px', height: '45px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem' }}>
+                        <i className="fa-solid fa-suitcase-rolling"></i>
+                      </div>
+                      <div>
+                        <h3 style={{ color: '#fff', margin: '0 0 5px 0', fontSize: '1.25rem', fontWeight: '700' }}>{lang === 'AR' ? 'دليل التحضير للرحلة' : 'Smart Packing Guide'}</h3>
+                        <p style={{ color: '#94a3b8', margin: 0, fontSize: '0.9rem' }}>{lang === 'AR' ? 'ما يجب إحضاره وما يفضل تركه' : 'What to bring and what to leave behind'}</p>
+                      </div>
+                    </div>
+                    
+                    <div style={{ padding: '25px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
+                      {/* What to Bring */}
+                      {packingGuide.itemsToBring?.length > 0 && (
+                        <div>
+                          <h4 style={{ color: '#22c55e', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '15px', fontSize: '1.05rem' }}>
+                            <i className="fa-solid fa-check-circle"></i> {lang === 'AR' ? 'يجب إحضاره' : 'Essential to Bring'}
+                          </h4>
+                          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            {packingGuide.itemsToBring.map((item, idx) => (
+                              <li key={idx} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', background: 'var(--bg-main)', padding: '10px 15px', borderRadius: '8px', border: '1px solid var(--border-light)', cursor: 'pointer', transition: 'all 0.2s' }} onClick={() => handleTogglePackingItem(`bring-${idx}`)}>
+                                <div style={{ color: checkedPackingItems[`bring-${idx}`] ? '#22c55e' : '#cbd5e1', fontSize: '1.1rem', transition: 'color 0.2s' }}>
+                                  <i className={`fa-solid ${checkedPackingItems[`bring-${idx}`] ? 'fa-square-check' : 'fa-square'}`}></i>
+                                </div>
+                                <span style={{ color: checkedPackingItems[`bring-${idx}`] ? '#94a3b8' : 'var(--text-dark)', textDecoration: checkedPackingItems[`bring-${idx}`] ? 'line-through' : 'none', fontSize: '0.95rem', fontWeight: '500' }}>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {/* What NOT to Bring */}
+                      {packingGuide.itemsNotToBring?.length > 0 && (
+                        <div>
+                          <h4 style={{ color: '#ef4444', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '15px', fontSize: '1.05rem' }}>
+                            <i className="fa-solid fa-ban"></i> {lang === 'AR' ? 'ممنوع إحضاره' : 'Leave Behind'}
+                          </h4>
+                          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            {packingGuide.itemsNotToBring.map((item, idx) => (
+                              <li key={idx} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', background: '#fef2f2', padding: '10px 15px', borderRadius: '8px', border: '1px solid #fee2e2' }}>
+                                <div style={{ color: '#ef4444', fontSize: '1rem', marginTop: '2px' }}>
+                                  <i className="fa-solid fa-xmark"></i>
+                                </div>
+                                <span style={{ color: '#7f1d1d', fontSize: '0.95rem', fontWeight: '500' }}>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                    {packingGuide.tips && (
+                      <div style={{ padding: '15px 25px', background: '#fef3c7', borderTop: '1px solid #fde68a', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                        <i className="fa-solid fa-lightbulb" style={{ color: '#d97706', fontSize: '1.1rem', marginTop: '3px' }}></i>
+                        <p style={{ margin: 0, color: '#92400e', fontSize: '0.9rem', lineHeight: '1.5' }}><strong>Pro Tip:</strong> {packingGuide.tips}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Itinerary Section */}
                 <div className="itinerary-section">

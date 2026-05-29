@@ -3,12 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import { LanguageContext } from '../../context/LanguageContext';
-import { getTrips, getFilterOptions } from '../../utils/api';
+import { getTrips, getFilterOptions, trackInteraction } from '../../utils/api';
 
 const ExperienceCard = ({ pkg, lang, navigate }) => {
   return (
     <div 
-      onClick={() => navigate(`/package-details/${pkg._id}`)}
+      onClick={() => {
+        trackInteraction({ experienceId: pkg._id, action: 'click', role: 'user', source: 'home' }).catch(() => {});
+        navigate(`/package-details/${pkg._id}`);
+      }}
       className="tw-bg-white dark:tw-bg-[#15171a] tw-border tw-border-slate-100 dark:tw-border-none tw-shadow-sm dark:tw-shadow-none tw-rounded-sm tw-overflow-hidden tw-cursor-pointer tw-flex-shrink-0 tw-w-full md:tw-w-[350px] tw-snap-start tw-flex tw-flex-col hover:tw-shadow-xl hover:-tw-translate-y-1 tw-transition-all tw-duration-300 group"
     >
       <div className="tw-relative tw-h-56 tw-w-full tw-overflow-hidden">

@@ -86,7 +86,7 @@ export const getChatDetails = async (chatId) =>
 
 
 export const applyCoupon = async (bookingId, code) =>
-  apiCall(`${BASE_URL}/bookings/${bookingId}/apply-coupon`, {
+  apiCall(`${BASE_URL}/booking/${bookingId}/apply-coupon`, {
     method: 'POST',
     headers: getHeaders(true),
     body: JSON.stringify({ code }),
