@@ -45,3 +45,12 @@ export const deleteReview = async (reviewId) => {
   });
 };
 
+export const updateReview = async (reviewId, data) => {
+  return apiCall(`${BASE_URL}/review/${reviewId}`, {
+    method: 'PATCH',
+    headers: getHeaders(true),
+    body: JSON.stringify(data),
+  });
+};
+
+

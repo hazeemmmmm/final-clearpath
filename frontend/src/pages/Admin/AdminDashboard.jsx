@@ -19,6 +19,8 @@ import AdminIntelligence from './AdminIntelligence';
 import PublishPackageModal from './PublishPackageModal';
 import EditPackageModal from './EditPackageModal';
 import PackingGuidesAdmin from './PackingGuidesAdmin';
+import DestinationsAdmin from './DestinationsAdmin';
+import ProvidersAdmin from './ProvidersAdmin';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -75,7 +77,11 @@ const AdminDashboard = () => {
     image: '',
     safari_image: '',
     hotel_image: '',
-    dining_image: ''
+    dining_image: '',
+    included: [],
+    excluded: [],
+    priceBreakdown: [],
+    addons: []
   });
 
   // Mock booking items for preview if database bookings list is empty, ensuring a "real-life look"
@@ -386,11 +392,12 @@ const AdminDashboard = () => {
 
   const handleToggleFeatured = async (id, currentStatus) => {
     try {
+      const token = localStorage.getItem('clearpath_access_token') || localStorage.getItem('token');
       const response = await fetch(`http://localhost:3000/experience/${id}/featured`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'token': localStorage.getItem('token') || localStorage.getItem('clearpath_access_token')
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ isFeatured: !currentStatus })
       });
@@ -636,6 +643,14 @@ const AdminDashboard = () => {
             <li className={activeTab === 'packing-guides' ? 'active' : ''} onClick={() => setActiveTab('packing-guides')}>
               <i className="fa-solid fa-suitcase-rolling"></i>
               <span>Packing Guides</span>
+            </li>
+            <li className={activeTab === 'destinations' ? 'active' : ''} onClick={() => setActiveTab('destinations')}>
+              <i className="fa-solid fa-map-location-dot"></i>
+              <span>Destinations</span>
+            </li>
+            <li className={activeTab === 'providers' ? 'active' : ''} onClick={() => setActiveTab('providers')}>
+              <i className="fa-solid fa-handshake"></i>
+              <span>Providers</span>
             </li>
           </ul>
 
@@ -1711,6 +1726,16 @@ const AdminDashboard = () => {
               {/* TAB: PACKING GUIDES */}
               {activeTab === 'packing-guides' && (
                 <PackingGuidesAdmin />
+              )}
+
+              {/* TAB: DESTINATIONS */}
+              {activeTab === 'destinations' && (
+                <DestinationsAdmin />
+              )}
+
+              {/* TAB: PROVIDERS */}
+              {activeTab === 'providers' && (
+                <ProvidersAdmin />
               )}
 
             </div>

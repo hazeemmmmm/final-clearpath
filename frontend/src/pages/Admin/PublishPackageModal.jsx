@@ -376,6 +376,71 @@ const PublishPackageModal = ({
               </button>
             </div>
 
+            {/* Included / Excluded / Price Breakdown */}
+            <div className="ppm-section-card">
+              <h3 className="ppm-section-title"><i className="fa-solid fa-list-check"></i> Included &amp; Excluded</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px' }}>
+                <div className="ppm-input-group">
+                  <label style={{ color: '#22c55e' }}>✅ Included (one per line)</label>
+                  <textarea
+                    className="ppm-input"
+                    rows="4"
+                    placeholder={"All transfers\nAll Meals\nPark Permits"}
+                    value={(formData.included || []).join('\n')}
+                    onChange={e => setFormData(prev => ({ ...prev, included: e.target.value.split('\n').filter(s => s.trim()) }))}
+                    style={{ resize: 'vertical', background: 'rgba(34,197,94,0.05)', borderColor: 'rgba(34,197,94,0.3)' }}
+                  />
+                </div>
+                <div className="ppm-input-group">
+                  <label style={{ color: '#ef4444' }}>❌ Excluded (one per line)</label>
+                  <textarea
+                    className="ppm-input"
+                    rows="4"
+                    placeholder={"Personal Expenses\nTipping\nFlights"}
+                    value={(formData.excluded || []).join('\n')}
+                    onChange={e => setFormData(prev => ({ ...prev, excluded: e.target.value.split('\n').filter(s => s.trim()) }))}
+                    style={{ resize: 'vertical', background: 'rgba(239,68,68,0.05)', borderColor: 'rgba(239,68,68,0.3)' }}
+                  />
+                </div>
+              </div>
+
+              <h3 className="ppm-section-title" style={{ marginTop: '10px' }}><i className="fa-solid fa-coins"></i> Price Breakdown Items</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '10px' }}>
+                {(formData.priceBreakdown || []).map((item, idx) => (
+                  <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 120px 36px', gap: '10px' }}>
+                    <input
+                      type="text" className="ppm-input"
+                      value={item.label}
+                      onChange={e => {
+                        const updated = [...(formData.priceBreakdown || [])];
+                        updated[idx] = { ...updated[idx], label: e.target.value };
+                        setFormData(prev => ({ ...prev, priceBreakdown: updated }));
+                      }}
+                      placeholder="e.g. Hotel (per person)"
+                    />
+                    <input
+                      type="number" className="ppm-input"
+                      value={item.amount}
+                      onChange={e => {
+                        const updated = [...(formData.priceBreakdown || [])];
+                        updated[idx] = { ...updated[idx], amount: e.target.value };
+                        setFormData(prev => ({ ...prev, priceBreakdown: updated }));
+                      }}
+                      placeholder="Amount"
+                    />
+                    <button type="button" onClick={() => {
+                      setFormData(prev => ({ ...prev, priceBreakdown: (prev.priceBreakdown || []).filter((_, i) => i !== idx) }));
+                    }} style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
+                      <i className="fa-solid fa-trash"></i>
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button type="button" className="ppm-btn-outline" onClick={() => setFormData(prev => ({ ...prev, priceBreakdown: [...(prev.priceBreakdown || []), { label: '', amount: 0 }] }))} style={{ borderStyle: 'dashed' }}>
+                <i className="fa-solid fa-plus"></i> Add Price Line
+              </button>
+            </div>
+
           </div>
 
         </div>

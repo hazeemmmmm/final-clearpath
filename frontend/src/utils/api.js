@@ -6,7 +6,7 @@ import { getAllProviders as fetchAllProviders } from '../../js/api/providerapi.j
 import { getWishlist as fetchWishlist, addToWishlist as addWishlist, removeFromWishlist as removeWishlist } from '../../js/api/wishlistapi.js';
 import { BASE_URL, getHeaders, apiCall } from '../../js/api/config.js';
 import { createOrder, captureOrder } from '../../js/api/paymentapi.js';
-import { getAllUsers as fetchAllUsers, adminDeleteUser as removeUser, updateProfile as fetchUpdateProfile, changePassword as fetchChangePassword } from '../../js/api/userApi.js';
+import { getAllUsers as fetchAllUsers, adminDeleteUser as removeUser, updateProfile as fetchUpdateProfile, changePassword as fetchChangePassword, deleteAccount as fetchDeleteAccount } from '../../js/api/userApi.js';
 import { getUserBookings as fetchUserBookings, cancelBooking as fetchCancelBooking } from '../../js/api/bookingapi.js';
 import { 
   createReview as addReview, 
@@ -14,7 +14,8 @@ import {
   getExperienceStats as fetchStats, 
   getMyReviews as fetchMyReviews, 
   getAllReviews as fetchAllReviews,
-  deleteReview as removeReview
+  deleteReview as removeReview,
+  updateReview as patchReview
 } from '../../js/api/reviewapi.js';
 import {
   getPackingGuideForExperience as fetchPackingGuide,
@@ -75,6 +76,7 @@ export const getExperienceStats = async (experienceId) => fetchStats(experienceI
 export const getMyReviews = async () => fetchMyReviews();
 export const getAllReviews = async (query) => fetchAllReviews(query);
 export const deleteReview = async (id) => removeReview(id);
+export const updateReview = async (id, data) => patchReview(id, data);
 
 // Chatbot API Integration
 export const getChatHistory = async () =>
@@ -188,8 +190,33 @@ export const getBookingDetails = async (bookingId) =>
 
 export const updateProfile = async (updateData) => fetchUpdateProfile(updateData);
 export const changePassword = async (passwordData) => fetchChangePassword(passwordData);
+export const deleteAccount = async () => fetchDeleteAccount();
 export const getUserBookings = async () => fetchUserBookings();
 export const cancelBooking = async (bookingId) => fetchCancelBooking(bookingId);
+
+// Destinations & Providers Admin CRUD
+export const createDestination = async (data) =>
+  apiCall(`${BASE_URL}/destination`, { method: 'POST', headers: getHeaders(true), body: JSON.stringify(data) });
+export const updateDestination = async (id, data) =>
+  apiCall(`${BASE_URL}/destination/${id}`, { method: 'PATCH', headers: getHeaders(true), body: JSON.stringify(data) });
+export const deleteDestination = async (id) =>
+  apiCall(`${BASE_URL}/destination/${id}`, { method: 'DELETE', headers: getHeaders(true) });
+export const createProvider = async (data) =>
+  apiCall(`${BASE_URL}/provider`, { method: 'POST', headers: getHeaders(true), body: JSON.stringify(data) });
+export const updateProvider = async (id, data) =>
+  apiCall(`${BASE_URL}/provider/${id}`, { method: 'PATCH', headers: getHeaders(true), body: JSON.stringify(data) });
+export const deleteProvider = async (id) =>
+  apiCall(`${BASE_URL}/provider/${id}`, { method: 'DELETE', headers: getHeaders(true) });
+
+// My Custom Trips
+export const getMyCustomTrips = async () =>
+  apiCall(`${BASE_URL}/customTrip/my`, { method: 'GET', headers: getHeaders(true) });
+export const combineDestination = async (customTripId, targetPackageId) =>
+  apiCall(`${BASE_URL}/customTrip/${customTripId}/combine`, {
+    method: 'POST',
+    headers: getHeaders(true),
+    body: JSON.stringify({ targetPackageId })
+  });
 
 export const adminCreateSupervisor = async (supervisorData) =>
   apiCall(`${BASE_URL}/user/admin/create-supervisor`, {

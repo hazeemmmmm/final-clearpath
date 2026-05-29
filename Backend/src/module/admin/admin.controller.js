@@ -71,7 +71,7 @@ export const getIntelligenceDashboard = async (req, res, next) => {
     }
 
     // 2. Fraud & Scam Risk Detection (Rule-Based)
-    const users = await User.find({ role: "User" }).lean();
+    const users = await User.find({ role: "user" }).lean();
     
     // Check for users with multiple cancelled bookings (potential spam/fraud)
     for (const user of users) {

@@ -28,7 +28,8 @@ import {
   addToWishlist,
   removeFromWishlist,
   getPackingGuideForExperience,
-  trackInteraction
+  trackInteraction,
+  combineDestination
 } from '../../utils/api';
 import './PackageDetailsNew.css';
 
@@ -766,10 +767,18 @@ const PackageDetails = () => {
                       <i className="fa-solid fa-circle-check"></i> {lang === 'AR' ? 'يشمل (Zero Hidden Fees)' : 'Included (Zero Hidden Fees)'}
                     </h3>
                     <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', color: '#e2e8f0' }}>
-                      <li><i className="fa-solid fa-check" style={{ color: '#22c55e', marginRight: '8px' }}></i> All transfers (4x4 & A/C Vehicles)</li>
-                      <li><i className="fa-solid fa-check" style={{ color: '#22c55e', marginRight: '8px' }}></i> All Meals (Breakfast, Lunch, Dinner)</li>
-                      <li><i className="fa-solid fa-check" style={{ color: '#22c55e', marginRight: '8px' }}></i> National Park & Security Permits</li>
-                      <li><i className="fa-solid fa-check" style={{ color: '#22c55e', marginRight: '8px' }}></i> Professional Camping Gear</li>
+                      {packageData.included && packageData.included.length > 0 ? (
+                        packageData.included.map((item, idx) => (
+                          <li key={idx}><i className="fa-solid fa-check" style={{ color: '#22c55e', marginRight: '8px' }}></i> {item}</li>
+                        ))
+                      ) : (
+                        <>
+                          <li><i className="fa-solid fa-check" style={{ color: '#22c55e', marginRight: '8px' }}></i> All transfers (4x4 & A/C Vehicles)</li>
+                          <li><i className="fa-solid fa-check" style={{ color: '#22c55e', marginRight: '8px' }}></i> All Meals (Breakfast, Lunch, Dinner)</li>
+                          <li><i className="fa-solid fa-check" style={{ color: '#22c55e', marginRight: '8px' }}></i> National Park & Security Permits</li>
+                          <li><i className="fa-solid fa-check" style={{ color: '#22c55e', marginRight: '8px' }}></i> Professional Camping Gear</li>
+                        </>
+                      )}
                     </ul>
                   </div>
 
@@ -779,9 +788,17 @@ const PackageDetails = () => {
                       <i className="fa-solid fa-circle-xmark"></i> {lang === 'AR' ? 'لا يشمل' : 'Excluded'}
                     </h3>
                     <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', color: '#e2e8f0' }}>
-                      <li><i className="fa-solid fa-xmark" style={{ color: '#ef4444', marginRight: '8px' }}></i> Personal Expenses & Souvenirs</li>
-                      <li><i className="fa-solid fa-xmark" style={{ color: '#ef4444', marginRight: '8px' }}></i> Tipping (Gratuities)</li>
-                      <li><i className="fa-solid fa-xmark" style={{ color: '#ef4444', marginRight: '8px' }}></i> Flights or Visas</li>
+                      {packageData.excluded && packageData.excluded.length > 0 ? (
+                        packageData.excluded.map((item, idx) => (
+                          <li key={idx}><i className="fa-solid fa-xmark" style={{ color: '#ef4444', marginRight: '8px' }}></i> {item}</li>
+                        ))
+                      ) : (
+                        <>
+                          <li><i className="fa-solid fa-xmark" style={{ color: '#ef4444', marginRight: '8px' }}></i> Personal Expenses & Souvenirs</li>
+                          <li><i className="fa-solid fa-xmark" style={{ color: '#ef4444', marginRight: '8px' }}></i> Tipping (Gratuities)</li>
+                          <li><i className="fa-solid fa-xmark" style={{ color: '#ef4444', marginRight: '8px' }}></i> Flights or Visas</li>
+                        </>
+                      )}
                     </ul>
                   </div>
                 </div>
@@ -1355,7 +1372,23 @@ const PackageDetails = () => {
                                       : `You are just hours away from "${suggestedPackages[0].name}"! Want to combine it to your current itinerary and save travel time?`}
                                   </p>
                                 </div>
-                                <button style={{
+                                <button 
+                                  onClick={async () => {
+                                    if (!isCustomizing || !customTrip?._id) {
+                                      alert(lang === 'AR' ? 'يرجى بدء تخصيص الرحلة أولاً.' : 'Please start customizing the trip first.');
+                                      return;
+                                    }
+                                    try {
+                                      const res = await combineDestination(customTrip._id, suggestedPackages[0]._id);
+                                      if (res && res.data) {
+                                        setCustomTrip(res.data);
+                                        alert(lang === 'AR' ? 'تم دمج الوجهة بنجاح!' : 'Destination combined successfully!');
+                                      }
+                                    } catch (err) {
+                                      alert(lang === 'AR' ? 'فشل دمج الوجهة.' : 'Failed to combine destination.');
+                                    }
+                                  }}
+                                  style={{
                                   background: 'transparent',
                                   border: '1px solid #22c55e',
                                   color: '#22c55e',
@@ -1860,22 +1893,33 @@ const PackageDetails = () => {
                           
                           {showBreakdown && (
                             <div style={{ marginTop: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '12px', fontSize: '0.85rem', color: '#cbd5e1' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                                <span>{lang === 'AR' ? 'رسوم وتصاريح:' : 'Fees / Permits:'}</span>
-                                <span>{formatPrice(totalPrice * 0.15)}</span>
-                              </div>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                                <span>{lang === 'AR' ? 'النقل (سيارة مكيفة):' : 'Transportation:'}</span>
-                                <span>{formatPrice(totalPrice * 0.25)}</span>
-                              </div>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                                <span>{lang === 'AR' ? 'وجبات ومشروبات:' : 'Meals & Drinks:'}</span>
-                                <span>{formatPrice(totalPrice * 0.15)}</span>
-                              </div>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                                <span>{lang === 'AR' ? 'أنشطة وتجارب:' : 'Activities & Experiences:'}</span>
-                                <span>{formatPrice(totalPrice * 0.45)}</span>
-                              </div>
+                              {packageData.priceBreakdown && packageData.priceBreakdown.length > 0 ? (
+                                packageData.priceBreakdown.map((item, idx) => (
+                                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                    <span>{item.label}</span>
+                                    <span>{formatPrice(item.amount * guestCount)}</span>
+                                  </div>
+                                ))
+                              ) : (
+                                <>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                    <span>{lang === 'AR' ? 'رسوم وتصاريح:' : 'Fees / Permits:'}</span>
+                                    <span>{formatPrice(totalPrice * 0.15)}</span>
+                                  </div>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                    <span>{lang === 'AR' ? 'النقل (سيارة مكيفة):' : 'Transportation:'}</span>
+                                    <span>{formatPrice(totalPrice * 0.25)}</span>
+                                  </div>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                    <span>{lang === 'AR' ? 'وجبات ومشروبات:' : 'Meals & Drinks:'}</span>
+                                    <span>{formatPrice(totalPrice * 0.15)}</span>
+                                  </div>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                    <span>{lang === 'AR' ? 'أنشطة وتجارب:' : 'Activities & Experiences:'}</span>
+                                    <span>{formatPrice(totalPrice * 0.45)}</span>
+                                  </div>
+                                </>
+                              )}
                               {aiDiscountApplied && (
                                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981', fontWeight: 'bold', marginTop: '5px', paddingTop: '5px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
                                   <span>{lang === 'AR' ? 'خصم (10%):' : 'Discount (10%):'}</span>

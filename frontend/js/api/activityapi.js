@@ -24,7 +24,7 @@ export const createActivity = async (activityData) => {
 };
 
 export const updateActivity = async (id, updateData) => {
-  return apiCall(`${BASE_URL}/activity/${id}`, {
+  return apiCall(`${BASE_URL}/activity/${id}/update`, {
     method: 'PATCH',
     headers: getHeaders(true),
     body: JSON.stringify(updateData),
@@ -32,7 +32,7 @@ export const updateActivity = async (id, updateData) => {
 };
 
 export const deleteActivity = async (id) => {
-  return apiCall(`${BASE_URL}/activity/${id}`, {
+  return apiCall(`${BASE_URL}/activity/${id}/delete`, {
     method: 'DELETE',
     headers: getHeaders(true),
   });
