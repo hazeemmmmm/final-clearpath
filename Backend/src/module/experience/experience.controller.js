@@ -148,6 +148,30 @@ class ExperienceController {
       next(err);
     }
   };
+
+  // 🧠 Optimize Price (AI Rule-based)
+  optimizePrice = async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { month } = req.query;
+      const data = await ExperienceService.optimizePrice(id, month);
+      res.status(200).json({ success: true, data });
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  // 🧠 Apply Optimized Price
+  applyOptimizedPrice = async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { price } = req.body;
+      const data = await ExperienceService.applyOptimizedPrice(id, price);
+      res.status(200).json({ success: true, message: "Optimized price applied successfully", data });
+    } catch (err) {
+      next(err);
+    }
+  };
 }
 
 export default new ExperienceController();

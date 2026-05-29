@@ -14,7 +14,11 @@ const EditPackageModal = ({ experience, onClose, onUpdate, activitiesList, provi
     image: '',
     images: [],
     addons: [],
-    itinerary: []
+    itinerary: [],
+    included: [],
+    excluded: [],
+    priceBreakdown: [],
+    airportPickup: false
   });
   
   const [loading, setLoading] = useState(false);
@@ -34,7 +38,11 @@ const EditPackageModal = ({ experience, onClose, onUpdate, activitiesList, provi
         image: experience.image || '',
         images: experience.images || [],
         addons: experience.addons || [],
-        itinerary: experience.itinerary || []
+        itinerary: experience.itinerary || [],
+        included: experience.included || [],
+        excluded: experience.excluded || [],
+        priceBreakdown: experience.priceBreakdown || [],
+        airportPickup: !!experience.airportPickup
       });
     }
   }, [experience]);
@@ -223,6 +231,8 @@ const EditPackageModal = ({ experience, onClose, onUpdate, activitiesList, provi
                 
                 <textarea value={day.description} onChange={(e) => handleDayChange(dIdx, 'description', e.target.value)} placeholder="Day Description..." style={{ width: '100%', padding: '8px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', marginBottom: '10px', minHeight: '60px' }}></textarea>
 
+                <input type="text" value={day.culturalGuide || ''} onChange={(e) => handleDayChange(dIdx, 'culturalGuide', e.target.value)} placeholder="📜 Cultural Guide Commentary for this day (e.g. Egyptologist pyramids context)" style={{ width: '100%', padding: '8px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(212,175,55,0.3)', color: '#d4af37', borderRadius: '6px', marginBottom: '15px' }} />
+
                 {/* Activities within Day */}
                 <div style={{ marginLeft: '20px', paddingLeft: '10px', borderLeft: '1px dashed rgba(255,255,255,0.2)' }}>
                   {day.activities.map((act, aIdx) => (
@@ -269,6 +279,77 @@ const EditPackageModal = ({ experience, onClose, onUpdate, activitiesList, provi
               </div>
             ))}
             {formData.addons.length === 0 && <p style={{ color: '#888', fontStyle: 'italic' }}>No extensions available.</p>}
+          </div>
+
+          {/* Airport Pickup Toggle */}
+          <div style={{ borderTop: '1px solid rgba(212,175,55,0.2)', paddingTop: '20px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#fff', cursor: 'pointer', fontWeight: 'bold' }}>
+              <input type="checkbox" checked={formData.airportPickup} onChange={(e) => setFormData(prev => ({ ...prev, airportPickup: e.target.checked }))} style={{ width: '20px', height: '20px', accentColor: '#d4af37' }} />
+              ✈️ Includes Airport Pickup & Transfers / يشمل الاستقبال والتوصيل من المطار
+            </label>
+          </div>
+
+          {/* Included / Excluded */}
+          <div style={{ borderTop: '1px solid rgba(212,175,55,0.2)', paddingTop: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+            <div>
+              <label style={{ display: 'block', color: '#22c55e', fontWeight: 'bold', marginBottom: '5px' }}>✅ Included Services (one per line)</label>
+              <textarea
+                rows="4"
+                placeholder="All Transfers&#10;Meals&#10;Entry Tickets"
+                value={(formData.included || []).join('\n')}
+                onChange={e => setFormData(prev => ({ ...prev, included: e.target.value.split('\n').filter(s => s.trim()) }))}
+                style={{ width: '100%', padding: '10px', background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.3)', color: '#fff', borderRadius: '6px', resize: 'vertical' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', color: '#ef4444', fontWeight: 'bold', marginBottom: '5px' }}>❌ Excluded (one per line)</label>
+              <textarea
+                rows="4"
+                placeholder="Tipping&#10;Drinks&#10;Personal Expenses"
+                value={(formData.excluded || []).join('\n')}
+                onChange={e => setFormData(prev => ({ ...prev, excluded: e.target.value.split('\n').filter(s => s.trim()) }))}
+                style={{ width: '100%', padding: '10px', background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.3)', color: '#fff', borderRadius: '6px', resize: 'vertical' }}
+              />
+            </div>
+          </div>
+
+          {/* Price Breakdown */}
+          <div style={{ borderTop: '1px solid rgba(212,175,55,0.2)', paddingTop: '20px' }}>
+            <h3 style={{ color: '#d4af37', display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
+              <span><i className="fa-solid fa-coins"></i> Price Breakdown Items</span>
+              <button type="button" onClick={() => setFormData(prev => ({ ...prev, priceBreakdown: [...(prev.priceBreakdown || []), { label: '', amount: 0 }] }))} style={{ background: 'var(--brand-accent, #d4af37)', color: '#000', border: 'none', padding: '5px 15px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>+ Add Price Line</button>
+            </h3>
+            
+            {(formData.priceBreakdown || []).map((item, idx) => (
+              <div key={idx} style={{ display: 'flex', gap: '10px', marginBottom: '10px', alignItems: 'center' }}>
+                <input
+                  type="text"
+                  placeholder="e.g. Luxury Nile Cruise (per person)"
+                  value={item.label}
+                  onChange={e => {
+                    const updated = [...formData.priceBreakdown];
+                    updated[idx].label = e.target.value;
+                    setFormData(prev => ({ ...prev, priceBreakdown: updated }));
+                  }}
+                  style={{ flex: 3, padding: '8px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px' }}
+                  required
+                />
+                <input
+                  type="number"
+                  placeholder="Amount ($)"
+                  value={item.amount}
+                  onChange={e => {
+                    const updated = [...formData.priceBreakdown];
+                    updated[idx].amount = Number(e.target.value);
+                    setFormData(prev => ({ ...prev, priceBreakdown: updated }));
+                  }}
+                  style={{ flex: 1.5, padding: '8px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px' }}
+                  required
+                />
+                <button type="button" onClick={() => setFormData(prev => ({ ...prev, priceBreakdown: prev.priceBreakdown.filter((_, i) => i !== idx) }))} style={{ background: '#ff4d4f', border: 'none', color: '#fff', cursor: 'pointer', padding: '8px 12px', borderRadius: '4px' }}>✕</button>
+              </div>
+            ))}
+            {(formData.priceBreakdown || []).length === 0 && <p style={{ color: '#888', fontStyle: 'italic' }}>No price breakdown items defined.</p>}
           </div>
 
           <div style={{ display: 'flex', gap: '15px', justifyContent: 'flex-end', marginTop: '20px' }}>

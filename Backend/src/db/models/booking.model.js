@@ -30,6 +30,15 @@ const bookingSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Payment",
   },
+  parentBooking: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Booking",
+    required: false
+  },
+  sequentialBookings: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Booking"
+  }],
   cancellationInfo: {
     canceledAt: { type: Date },
     feePercent: { type: Number },

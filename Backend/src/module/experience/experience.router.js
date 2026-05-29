@@ -78,4 +78,19 @@ router.patch(
   experienceController.toggleFeatured
 );
 
+// 🧠 AI pricing optimization (Admin)
+router.get(
+  "/:id/optimize-price",
+  authMiddleware,
+  allowTo("admin"),
+  experienceController.optimizePrice
+);
+
+router.patch(
+  "/:id/apply-optimized-price",
+  authMiddleware,
+  allowTo("admin"),
+  experienceController.applyOptimizedPrice
+);
+
 export default router;

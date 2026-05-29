@@ -7,6 +7,12 @@ import * as paymentService from '../payment/payment.service.js';
 export const createNewBooking = async (userId, data) => {
     const { customTrip, experienceId, travel_date, numberOfGuests } = data;
 
+    const User = (await import('../../db/models/user.model.js')).User;
+    const userDoc = await User.findById(userId);
+    if (userDoc && userDoc.isFlagged) {
+        throw new Error("Your account has been restricted due to unusual activity flags. Please contact support. / تم تقييد حسابك بسبب أنشطة مشبوهة، يرجى التواصل مع الدعم.");
+    }
+
     let bookingData = { user: userId, status: 'Pending' };
     
     let basePrice = 0;
@@ -113,7 +119,18 @@ export const createNewBooking = async (userId, data) => {
     bookingData.riskScore = Math.min(riskScore, 100);
     bookingData.fraudAlert = fraudAlert;
 
+    if (data.parentBookingId) {
+        bookingData.parentBooking = data.parentBookingId;
+    }
+
     const booking = await Booking.create(bookingData);
+
+    if (data.parentBookingId) {
+        await Booking.findByIdAndUpdate(data.parentBookingId, {
+            $push: { sequentialBookings: booking._id }
+        });
+    }
+
     return booking;
 };
 

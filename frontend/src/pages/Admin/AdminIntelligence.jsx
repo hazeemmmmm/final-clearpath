@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { getIntelligenceDashboard } from '../../utils/api'; 
+import { getIntelligenceDashboard, flagUser, unflagUser, getPriceOptimization, applyPriceOptimization } from '../../utils/api'; 
 
 const AdminIntelligence = () => {
   const [data, setData] = useState({ demandAlerts: [], fraudAlerts: [], trustScores: [] });
+  const [isDemo, setIsDemo] = useState(false);
+  const [optModal, setOptModal] = useState({
+    isOpen: false,
+    experienceId: null,
+    experienceName: '',
+    loading: false,
+    result: null
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [toast, setToast] = useState(null);
@@ -11,7 +19,8 @@ const AdminIntelligence = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await getIntelligenceDashboard();
+        setLoading(true);
+        const res = await getIntelligenceDashboard(isDemo);
         if (res && res.success) {
           setData(res.data);
         }
@@ -22,22 +31,109 @@ const AdminIntelligence = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [isDemo]);
 
-  const handleAction = (id, actionType, message) => {
-    setProcessing(id);
-    setTimeout(() => {
-      setProcessing(null);
-      setToast(`Success: ${message}`);
-      
-      if (actionType === 'demand') {
-        setData(prev => ({ ...prev, demandAlerts: prev.demandAlerts.filter(a => a.experienceId !== id) }));
-      } else if (actionType === 'fraud') {
-        setData(prev => ({ ...prev, fraudAlerts: prev.fraudAlerts.filter(a => a.userId !== id) }));
+  const handleOpenOptimize = async (experienceId, experienceName) => {
+    if (experienceId.toString().startsWith('demo-')) {
+      setOptModal({
+        isOpen: true,
+        experienceId,
+        experienceName,
+        loading: false,
+        result: {
+          currentPrice: 3200,
+          recommendedPrice: 2720,
+          costBasis: 2400,
+          seasonName: "Off-Peak Season / موسم ركود",
+          seasonalityFactor: -0.10,
+          capacityFactor: -0.05,
+          competitorFactor: 0.04,
+          reasoningAR: `تم احتساب السعر المقترح بقيمة $2720 (تخفيض ذكي بنسبة 15% تقريباً) بناءً على: موسم الحجز (موسم ركود بنسبة -10%)، سعة الرحلة (سعة كبار الأفراد بنسبة -5%) وهامش منافسين تنافسي (+4%). يهدف التخفيض لتنشيط المبيعات ورفع نسبة التحويل.`,
+          reasoningEN: `Recommended price of $2720 (approx 15% off) calculated based on: Booking Season (Off-Peak -10%), Capacity factor (high capacity -5%), and Competitor benchmark margin (+4%). Focuses on boosting conversion rates.`
+        }
+      });
+      return;
+    }
+
+    setOptModal({
+      isOpen: true,
+      experienceId,
+      experienceName,
+      loading: true,
+      result: null
+    });
+
+    try {
+      const res = await getPriceOptimization(experienceId);
+      if (res && res.success) {
+        setOptModal(prev => ({ ...prev, loading: false, result: res.data }));
+      } else {
+        setOptModal(prev => ({ ...prev, loading: false }));
+        alert("Failed to load pricing recommendation.");
       }
-      
+    } catch (err) {
+      console.error(err);
+      setOptModal(prev => ({ ...prev, loading: false }));
+      alert(err.message || "Failed to load pricing recommendation.");
+    }
+  };
+
+  const handleApplyOptimize = async () => {
+    if (!optModal.result || !optModal.experienceId) return;
+    
+    if (optModal.experienceId.toString().startsWith('demo-')) {
+      setToast(`Applied optimized price of $${optModal.result.recommendedPrice} for simulated package.`);
+      setOptModal(prev => ({ ...prev, isOpen: false }));
       setTimeout(() => setToast(null), 3000);
-    }, 1200);
+      return;
+    }
+
+    try {
+      const res = await applyPriceOptimization(optModal.experienceId, optModal.result.recommendedPrice);
+      if (res && res.success) {
+        setToast(`✅ Applied optimized price of $${optModal.result.recommendedPrice} successfully!`);
+        setOptModal(prev => ({ ...prev, isOpen: false }));
+        const refresh = await getIntelligenceDashboard(isDemo);
+        if (refresh && refresh.success) setData(refresh.data);
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to apply pricing.");
+    } finally {
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
+  const handleAction = async (id, actionType, message, isFlagged = false) => {
+    setProcessing(id);
+    try {
+      if (actionType === 'fraud') {
+        let res;
+        if (isFlagged) {
+          res = await unflagUser(id);
+        } else {
+          res = await flagUser(id);
+        }
+        
+        if (res && res.success) {
+          setToast(`Success: ${message}`);
+          const refresh = await getIntelligenceDashboard(isDemo);
+          if (refresh && refresh.success) setData(refresh.data);
+        }
+      } else {
+        // Standard local dismissal for demand
+        setToast(`Success: ${message}`);
+        if (actionType === 'demand') {
+          setData(prev => ({ ...prev, demandAlerts: prev.demandAlerts.filter(a => a.experienceId !== id) }));
+        }
+      }
+    } catch (err) {
+      console.error("Moderation action failed:", err);
+      setToast(`Error: ${err.message || 'Action failed'}`);
+    } finally {
+      setProcessing(null);
+      setTimeout(() => setToast(null), 3000);
+    }
   };
 
   if (loading) {
@@ -147,7 +243,13 @@ const AdminIntelligence = () => {
             <span className="intel-subtitle">STRATEGIC PREDICTIVE ANALYSIS</span>
           </div>
         </div>
-        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.3)', padding: '8px 16px', borderRadius: '25px', cursor: 'pointer', transition: 'all 0.3s' }} onClick={() => setIsDemo(!isDemo)}>
+          <i className={`fa-solid ${isDemo ? 'fa-toggle-on' : 'fa-toggle-off'}`} style={{ color: '#d4af37', fontSize: '1.6rem' }}></i>
+          <span style={{ color: '#fff', fontSize: '0.85rem', fontWeight: 'bold' }}>
+            {isDemo ? 'Academic Demo Mode: Active / وضع العرض الأكاديمي: نشط' : 'Presentation Mode / وضع العرض الأكاديمي'}
+          </span>
+        </div>
+
         <div className="intel-header-right">
           <div className="intel-icon-btn">
             <i className="fa-regular fa-bell"></i>
@@ -267,16 +369,16 @@ const AdminIntelligence = () => {
                     </button>
                   ) : (
                     <button 
-                      onClick={() => handleAction(alert.experienceId, 'demand', `Action performed for ${alert.experienceName}`)}
+                      onClick={() => handleOpenOptimize(alert.experienceId, alert.experienceName)}
                       disabled={processing === alert.experienceId}
                       className="intel-btn-outline"
                     >
                       {processing === alert.experienceId ? (
                         <i className="fa-solid fa-circle-notch fa-spin"></i>
                       ) : (
-                        <span className="intel-btn-symbol">%</span>
+                        <i className="fa-solid fa-wand-magic-sparkles" style={{ color: '#d4af37' }}></i>
                       )}
-                      <span>{alert.actionRecommended}</span>
+                      <span>Run AI Price Optimizer / محرك التسعير</span>
                     </button>
                   )}
                 </div>
@@ -302,25 +404,28 @@ const AdminIntelligence = () => {
 
           <div className="intel-threats-list">
             {data.fraudAlerts.map((alert, idx) => (
-              <div key={idx} className="intel-threat-item">
+              <div key={idx} className="intel-threat-item" style={{ borderLeftColor: alert.isFlagged ? '#22c55e' : '#ef4444' }}>
                 <div className="intel-threat-header-row">
                   <span className="intel-threat-name">
                     <i className="fa-solid fa-user-slash"></i> {alert.userName.replace(" (Simulated Alert)", "")}
                   </span>
-                  <span className="intel-risk-badge">HIGH RISK</span>
+                  <span className="intel-risk-badge" style={{ background: alert.isFlagged ? '#22c55e' : '#ef4444' }}>
+                    {alert.isFlagged ? "FLAGGED / مجمّد" : "HIGH RISK / خطر عالي"}
+                  </span>
                 </div>
                 <p className="intel-threat-desc">{alert.message}</p>
                 <button 
-                  onClick={() => handleAction(alert.userId, 'fraud', `${alert.userName} Account Suspended`)}
+                  onClick={() => handleAction(alert.userId, 'fraud', alert.isFlagged ? `${alert.userName} Restrictions Lifted` : `${alert.userName} Account Flagged`, alert.isFlagged)}
                   disabled={processing === alert.userId}
                   className="intel-btn-dark"
+                  style={{ borderColor: alert.isFlagged ? '#22c55e' : '', color: alert.isFlagged ? '#22c55e' : '' }}
                 >
                   {processing === alert.userId ? (
                     <i className="fa-solid fa-circle-notch fa-spin"></i>
                   ) : (
-                    <i className="fa-solid fa-gavel"></i>
+                    <i className={alert.isFlagged ? "fa-solid fa-user-check" : "fa-solid fa-gavel"}></i>
                   )}
-                  <span>{alert.actionRecommended}</span>
+                  <span style={{ marginLeft: '5px' }}>{alert.isFlagged ? "Unflag Account / إلغاء التقييد" : "Flag Account / تقييد الحساب"}</span>
                 </button>
               </div>
             ))}
@@ -383,6 +488,93 @@ const AdminIntelligence = () => {
         </div>
 
       </div>
+
+      {/* 🧠 AI Pricing Optimization Modal */}
+      {optModal.isOpen && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 10000, display: 'flex', justifyContent: 'center', alignItems: 'center', fontFamily: 'Poppins, sans-serif' }} onClick={() => setOptModal(prev => ({ ...prev, isOpen: false }))}>
+          <div style={{ background: '#111115', border: '2px solid #d5b266', borderRadius: '16px', padding: '30px', width: '550px', maxWidth: '90%', display: 'flex', flexDirection: 'column', gap: '20px', position: 'relative', boxShadow: '0 20px 50px rgba(213, 178, 102, 0.15)' }} onClick={e => e.stopPropagation()}>
+            
+            <button onClick={() => setOptModal(prev => ({ ...prev, isOpen: false }))} style={{ position: 'absolute', top: '15px', right: '15px', background: 'none', border: 'none', color: '#888', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', borderBottom: '1px solid #1d1d25', paddingBottom: '15px' }}>
+              <i className="fa-solid fa-wand-magic-sparkles" style={{ color: '#d5b266', fontSize: '1.6rem' }}></i>
+              <div>
+                <h3 style={{ margin: 0, color: '#fff', fontSize: '1.25rem' }}>AI Price Optimization Engine</h3>
+                <span style={{ color: '#d5b266', fontSize: '0.8rem', fontWeight: 'bold' }}>REAL-TIME COST &amp; DEMAND ANALYSIS</span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <strong style={{ color: '#a1a1aa', fontSize: '0.9rem' }}>EXPERIENCE PACKAGE:</strong>
+              <span style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 'bold' }}>{optModal.experienceName}</span>
+            </div>
+
+            {optModal.loading ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 0', gap: '15px' }}>
+                <i className="fa-solid fa-brain fa-spin fa-2x" style={{ color: '#d5b266' }}></i>
+                <span style={{ color: '#a1a1aa' }}>Running rule-based demand calculations...</span>
+              </div>
+            ) : optModal.result ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                
+                {/* Price Comparisons */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                  <div style={{ background: '#16161c', padding: '15px', borderRadius: '10px', border: '1px solid #1d1d25' }}>
+                    <span style={{ display: 'block', color: '#71717a', fontSize: '0.8rem', marginBottom: '5px' }}>CURRENT BASE PRICE</span>
+                    <strong style={{ fontSize: '1.4rem', color: '#ef4444' }}>${optModal.result.currentPrice}</strong>
+                  </div>
+                  <div style={{ background: 'rgba(213,178,102,0.06)', padding: '15px', borderRadius: '10px', border: '1px solid #d5b266' }}>
+                    <span style={{ display: 'block', color: '#d5b266', fontSize: '0.8rem', marginBottom: '5px' }}>RECOMMENDED PRICE</span>
+                    <strong style={{ fontSize: '1.4rem', color: '#22c55e' }}>${optModal.result.recommendedPrice}</strong>
+                  </div>
+                </div>
+
+                {/* Factors Details */}
+                <div style={{ background: '#16161c', padding: '15px', borderRadius: '10px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.85rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#71717a' }}>Cost Basis (Base + Activities):</span>
+                    <strong style={{ color: '#fff' }}>${optModal.result.costBasis}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#71717a' }}>Season factor ({optModal.result.seasonName}):</span>
+                    <strong style={{ color: optModal.result.seasonalityFactor >= 0 ? '#22c55e' : '#ef4444' }}>
+                      {optModal.result.seasonalityFactor >= 0 ? '+' : ''}{Math.round(optModal.result.seasonalityFactor * 100)}%
+                    </strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#71717a' }}>Capacity size markup:</span>
+                    <strong style={{ color: optModal.result.capacityFactor >= 0 ? '#22c55e' : '#ef4444' }}>
+                      {optModal.result.capacityFactor >= 0 ? '+' : ''}{Math.round(optModal.result.capacityFactor * 100)}%
+                    </strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#71717a' }}>Competitor benchmark margin:</span>
+                    <strong style={{ color: '#22c55e' }}>+{Math.round(optModal.result.competitorFactor * 100)}%</strong>
+                  </div>
+                </div>
+
+                {/* Reasoning boxes */}
+                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '15px', borderRadius: '10px', border: '1px solid #1d1d25', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.85rem', lineHeight: '1.5' }}>
+                  <p style={{ margin: 0, color: '#d5b266', fontStyle: 'italic' }}>{optModal.result.reasoningAR}</p>
+                  <div style={{ height: '1px', background: '#1d1d25' }}></div>
+                  <p style={{ margin: 0, color: '#a1a1aa' }}>{optModal.result.reasoningEN}</p>
+                </div>
+
+                <div style={{ display: 'flex', gap: '15px', marginTop: '10px' }}>
+                  <button onClick={() => setOptModal(prev => ({ ...prev, isOpen: false }))} style={{ flex: 1, padding: '12px', background: 'transparent', color: '#fff', border: '1px solid #1d1d25', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>Cancel / إلغاء</button>
+                  <button onClick={handleApplyOptimize} style={{ flex: 2, padding: '12px', background: '#d5b266', color: '#000', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                    <i className="fa-solid fa-check"></i> Apply Optimal Price / تطبيق السعر المقترح
+                  </button>
+                </div>
+
+              </div>
+            ) : (
+              <span style={{ color: '#ef4444' }}>Error: Pricing recommendations could not be fetched.</span>
+            )}
+
+          </div>
+        </div>
+      )}
 
       {/* Styled Isolation Block */}
       <style>{`

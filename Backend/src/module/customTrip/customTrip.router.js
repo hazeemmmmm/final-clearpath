@@ -83,4 +83,11 @@ router.patch(
   controller.removeExtraActivity
 );
 
+// Combine Destinations
+router.post(
+  "/:id/combine",
+  authMiddleware,
+  controller.combine
+);
+
 export default router;

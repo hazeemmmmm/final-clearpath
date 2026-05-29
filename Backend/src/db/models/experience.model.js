@@ -47,6 +47,12 @@ const itineraryDaySchema = new mongoose.Schema(
       trim: true,
     },
 
+    culturalGuide: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
     activities: [activityItemSchema],
   },
   { _id: false }
@@ -126,6 +132,25 @@ const experienceSchema = new mongoose.Schema(
     images: {
       type: [String],
       default: [],
+    },
+
+    included: {
+      type: [String],
+      default: [],
+    },
+    excluded: {
+      type: [String],
+      default: [],
+    },
+    priceBreakdown: [
+      {
+        label: { type: String, required: true },
+        amount: { type: Number, required: true },
+      }
+    ],
+    airportPickup: {
+      type: Boolean,
+      default: false,
     },
 
     itinerary: [itineraryDaySchema],

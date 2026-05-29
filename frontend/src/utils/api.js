@@ -239,5 +239,31 @@ export const trackInteraction = async (data) =>
     headers: getHeaders(true),
     body: JSON.stringify(data)
   });
-export const getIntelligenceDashboard = async () =>
-  apiCall(`${BASE_URL}/admin/intelligence`, { method: 'GET', headers: getHeaders(true) });
+export const getIntelligenceDashboard = async (isDemo = false) =>
+  apiCall(`${BASE_URL}/admin/intelligence?demo=${isDemo}`, { method: 'GET', headers: getHeaders(true) });
+
+export const flagUser = async (userId) =>
+  apiCall(`${BASE_URL}/admin/flag-user/${userId}`, {
+    method: 'PATCH',
+    headers: getHeaders(true),
+    body: JSON.stringify({ reason: "Restricted due to anomalous high cancellation rate / تم تقييد الحساب بسبب معدل إلغاء مرتفع وغير طبيعي." })
+  });
+
+export const unflagUser = async (userId) =>
+  apiCall(`${BASE_URL}/admin/unflag-user/${userId}`, {
+    method: 'PATCH',
+    headers: getHeaders(true)
+  });
+
+export const getPriceOptimization = async (id, month = '') =>
+  apiCall(`${BASE_URL}/experience/${id}/optimize-price?month=${month}`, {
+    method: 'GET',
+    headers: getHeaders(true)
+  });
+
+export const applyPriceOptimization = async (id, price) =>
+  apiCall(`${BASE_URL}/experience/${id}/apply-optimized-price`, {
+    method: 'PATCH',
+    headers: getHeaders(true),
+    body: JSON.stringify({ price })
+  });

@@ -69,6 +69,16 @@ export const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
+
+    isFlagged: {
+      type: Boolean,
+      default: false,
+    },
+
+    flaggedReason: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,

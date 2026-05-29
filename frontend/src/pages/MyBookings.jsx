@@ -195,8 +195,15 @@ const MyBookings = () => {
                   <div className="md:tw-w-2/3 tw-p-6 md:tw-p-8 tw-flex tw-flex-col">
                     {/* Header Row */}
                     <div className="tw-flex tw-flex-col sm:tw-flex-row sm:tw-justify-between sm:tw-items-center tw-mb-4 tw-gap-3">
-                      <div className={`tw-inline-flex tw-items-center tw-px-3 tw-py-1 tw-rounded-full tw-border ${statusClasses} tw-text-[10px] tw-font-semibold tw-tracking-widest tw-uppercase tw-w-fit`}>
-                        {statusText}
+                      <div className="tw-flex tw-gap-2 tw-flex-wrap">
+                        <div className={`tw-inline-flex tw-items-center tw-px-3 tw-py-1 tw-rounded-full tw-border ${statusClasses} tw-text-[10px] tw-font-semibold tw-tracking-widest tw-uppercase tw-w-fit`}>
+                          {statusText}
+                        </div>
+                        {booking.parentBooking && (
+                          <div className="tw-inline-flex tw-items-center tw-px-3 tw-py-1 tw-rounded-full tw-border tw-border-amber-500/30 tw-text-amber-500 tw-bg-amber-500/5 tw-text-[10px] tw-font-semibold tw-tracking-widest tw-uppercase tw-w-fit" title="Chained/sequential package booking">
+                            ⛓️ {lang === 'AR' ? 'حجز متسلسل' : 'CHAINED'}
+                          </div>
+                        )}
                       </div>
                       <div className="tw-text-slate-500 dark:tw-text-[#666666] tw-text-xs tw-font-medium">
                         Booking ID: <span className="tw-font-mono">{booking._id.substring(0,8).toUpperCase()}</span>

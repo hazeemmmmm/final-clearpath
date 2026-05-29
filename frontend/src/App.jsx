@@ -68,7 +68,7 @@ function App() {
         <Route path="/payment/cancel" element={<ProtectedRoute><PaymentCancel /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
         <Route path="/admin/packing-guides" element={<ProtectedRoute roles={['admin']}><PackingGuidesAdmin /></ProtectedRoute>} />
-        <Route path="/supervisor" element={<ProtectedRoute roles={['supervisor']}><SupervisorDashboard /></ProtectedRoute>} />
+        <Route path="/supervisor" element={<ProtectedRoute roles={['supervisor', 'provider']}><SupervisorDashboard /></ProtectedRoute>} />
 
         {/* Auth Routes */}
         <Route path="/login" element={isAuthenticated ? <Navigate to="/" replace /> : <Login />} />

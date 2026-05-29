@@ -172,6 +172,21 @@ class CustomTripController {
       next(err);
     }
   };
+
+  // Combine Destination
+  combine = async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { targetPackageId } = req.body;
+      const data = await CustomTripService.combine(req.user._id, id, targetPackageId);
+      res.status(200).json({
+        message: "Destinations combined successfully",
+        data,
+      });
+    } catch (err) {
+      next(err);
+    }
+  };
 }
 
 export default new CustomTripController();

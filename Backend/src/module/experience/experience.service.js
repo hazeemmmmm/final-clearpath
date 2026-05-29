@@ -283,6 +283,14 @@ class ExperienceService {
     
     // Copy images, itinerary and addons
     copyData.images = [...(copyData.images || [])];
+    copyData.included = [...(copyData.included || [])];
+    copyData.excluded = [...(copyData.excluded || [])];
+    copyData.priceBreakdown = [...(copyData.priceBreakdown || [])].map(item => ({
+      label: item.label,
+      amount: item.amount
+    }));
+    copyData.airportPickup = !!copyData.airportPickup;
+    
     copyData.addons = [...(copyData.addons || [])].map(addon => {
       const { _id, ...rest } = addon;
       return rest;
@@ -381,6 +389,84 @@ class ExperienceService {
 
     matches.sort((a, b) => b.matchScore - a.matchScore);
     return matches;
+  }
+
+  // 🧠 AI RULE-BASED PRICING OPTIMIZATION
+  async optimizePrice(id, targetMonth) {
+    const experience = await Experience.findById(id).populate("itinerary.activities.activity");
+    if (!experience) throw new Error("Experience not found");
+
+    // 1. Cost Basis calculation
+    let costBasis = experience.base_price;
+    if (experience.itinerary) {
+      experience.itinerary.forEach(day => {
+        if (day.activities) {
+          day.activities.forEach(act => {
+            costBasis += act.price || 0;
+          });
+        }
+      });
+    }
+
+    // 2. Rule 1: Seasonality Markup
+    let seasonalityFactor = 0;
+    let seasonName = "Standard / معتدل";
+    
+    const month = targetMonth ? parseInt(targetMonth) : new Date().getMonth() + 1;
+    if ([12, 1, 2].includes(month)) {
+      seasonalityFactor = 0.15; // +15%
+      seasonName = "Winter Peak / ذروة الشتاء";
+    } else if ([7, 8].includes(month)) {
+      seasonalityFactor = 0.10; // +10%
+      seasonName = "Summer Peak / ذروة الصيف";
+    } else if ([4, 5, 10, 11].includes(month)) {
+      seasonalityFactor = 0.05; // +5%
+      seasonName = "Shoulder Season / موسم معتدل";
+    } else {
+      seasonalityFactor = -0.10; // -10% discount
+      seasonName = "Off-Peak Season / موسم ركود";
+    }
+
+    // 3. Rule 2: Capacity Utility Margin
+    let capacityFactor = 0;
+    if (experience.capacity < 6) {
+      capacityFactor = 0.08; // High demand for private/exclusive tours (+8%)
+    } else if (experience.capacity > 20) {
+      capacityFactor = -0.05; // Group pricing (-5%)
+    }
+
+    // 4. Rule 3: Competitor Benchmark Markup
+    const competitorFactor = 0.04; // +4% simulated benchmark
+
+    // 5. Total markup
+    const totalMarkup = seasonalityFactor + capacityFactor + competitorFactor;
+    const recommendedPrice = Math.round(costBasis * (1 + totalMarkup));
+
+    // Reasoning in both Arabic and English
+    const reasoningAR = `تم احتساب السعر المقترح بقيمة $${recommendedPrice} بناءً على: موسم الحجز (${seasonName} بنسبة +${Math.round(seasonalityFactor * 100)}%)، سعة الرحلة (${experience.capacity} أفراد بنسبة ${Math.round(capacityFactor * 100)}%) وهامش المنافسين التنافسي (+${Math.round(competitorFactor * 100)}%).`;
+    const reasoningEN = `Recommended price of $${recommendedPrice} calculated based on: Booking Season (${seasonName} +${Math.round(seasonalityFactor * 100)}%), Capacity factor (${experience.capacity} seats ${Math.round(capacityFactor * 100)}%), and Competitor benchmark margin (+${Math.round(competitorFactor * 100)}%).`;
+
+    return {
+      currentPrice: experience.base_price,
+      recommendedPrice,
+      costBasis,
+      seasonName,
+      seasonalityFactor,
+      capacityFactor,
+      competitorFactor,
+      reasoningAR,
+      reasoningEN
+    };
+  }
+
+  async applyOptimizedPrice(id, price) {
+    const experience = await Experience.findByIdAndUpdate(
+      id,
+      { base_price: Number(price) },
+      { new: true }
+    );
+    if (!experience) throw new Error("Experience not found");
+    return experience;
   }
 }
 

@@ -63,9 +63,27 @@ class ReviewService {
       if (!confirmedBooking) trustScore = Math.min(trustScore, 80); // Unverified purchase drops trust
     }
 
+    // 4. Provider auto-linking logic
+    let providerId = data.provider || null;
+    if (!providerId) {
+      const expDoc = await mongoose.model("Experience").findById(experience);
+      if (expDoc && expDoc.itinerary && expDoc.itinerary.length > 0) {
+        for (const day of expDoc.itinerary) {
+          if (day.activities && day.activities.length > 0) {
+            const actWithProv = day.activities.find(act => act.provider);
+            if (actWithProv) {
+              providerId = actWithProv.provider;
+              break;
+            }
+          }
+        }
+      }
+    }
+
     const review = await Review.create({
       user: userId,
       experience,
+      provider: providerId,
       rating,
       comment,
       isVerifiedBooking: !!confirmedBooking,
@@ -73,6 +91,22 @@ class ReviewService {
       isSpam,
       sentiment
     });
+
+    // 5. Update Provider's Trust Score in database
+    if (providerId) {
+      try {
+        const ProviderModel = mongoose.model("Provider");
+        const allProvReviews = await Review.find({ provider: providerId });
+        let newTrust = 100;
+        if (allProvReviews.length > 0) {
+          const avg = allProvReviews.reduce((sum, r) => sum + r.rating, 0) / allProvReviews.length;
+          newTrust = Math.round(avg * 20); 
+        }
+        await ProviderModel.findByIdAndUpdate(providerId, { trustScore: newTrust });
+      } catch (err) {
+        console.error("Failed to update provider trust score:", err);
+      }
+    }
 
     return await review.populate([
       { path: "user", select: "firstName lastName" },

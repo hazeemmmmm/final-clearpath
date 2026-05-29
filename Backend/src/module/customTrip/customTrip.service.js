@@ -59,6 +59,7 @@ class CustomTripService {
       experience: experienceId,
     })
       .populate("experience")
+      .populate("combinedExperiences")
       .populate("itinerary.activities.activity")
       .populate("extra_activities.activity");
 
@@ -113,7 +114,12 @@ class CustomTripService {
     }
 
     // Add base_price from the experience!
-    const basePrice = custom.experience ? custom.experience.base_price : 0;
+    let basePrice = custom.experience ? custom.experience.base_price : 0;
+    if (custom.combinedExperiences) {
+      custom.combinedExperiences.forEach(exp => {
+        basePrice += exp.base_price || 0;
+      });
+    }
     total += basePrice;
     originalTotal += basePrice;
 
@@ -123,6 +129,7 @@ class CustomTripService {
         _id: custom._id,
         user: custom.user,
         experience: custom.experience,
+        combinedExperiences: custom.combinedExperiences || [],
         itinerary: custom.itinerary || [],
         extra_activities: custom.extra_activities || [],
         total_price: total,
@@ -263,6 +270,48 @@ class CustomTripService {
 
     if (act) {
       act.status = "removed";
+    }
+
+    await trip.save();
+    return trip;
+  }
+
+  // =========================
+  // 🗺️ COMBINE DESTINATION / PACKAGE
+  // =========================
+  async combine(userId, customTripId, targetPackageId) {
+    const trip = await CustomTrip.findOne({ _id: customTripId, user: userId });
+    if (!trip) throw new Error("Custom Trip not found");
+
+    const targetExp = await Experience.findById(targetPackageId);
+    if (!targetExp) throw new Error("Target package experience not found");
+
+    // Shift day numbers of the target itinerary and append
+    const currentDaysCount = trip.itinerary.length;
+    const shiftedItinerary = (targetExp.itinerary || []).map(day => {
+      return {
+        day_number: currentDaysCount + day.day_number,
+        title: day.title || "",
+        description: day.description || "",
+        image: day.image || "",
+        activities: (day.activities || []).map(act => ({
+          activity: act.activity,
+          provider: act.provider || null,
+          price: Number(act.price) || 0,
+          status: "active"
+        })),
+        status: "active"
+      };
+    });
+
+    trip.itinerary.push(...shiftedItinerary);
+
+    if (!trip.combinedExperiences) {
+      trip.combinedExperiences = [];
+    }
+
+    if (!trip.combinedExperiences.includes(targetPackageId)) {
+      trip.combinedExperiences.push(targetPackageId);
     }
 
     await trip.save();

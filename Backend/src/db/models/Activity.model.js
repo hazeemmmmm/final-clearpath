@@ -4,7 +4,7 @@ const activitySchema = new mongoose.Schema({
   name: { type: String, required: true },
   type: {
       type: String,
-      enum: ["tour", "entertainment", "hiking", "hotel", "food"],
+      enum: ["tour", "entertainment", "hiking", "hotel", "food", "transport", "airport_pickup"],
       required: true
     },
   destination: { type: mongoose.Schema.Types.ObjectId, ref: "Destination", required: true },

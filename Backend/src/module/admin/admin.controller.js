@@ -8,6 +8,8 @@ import { Interaction } from '../../db/models/interaction.model.js';
 // Get Intelligence Flags
 export const getIntelligenceDashboard = async (req, res, next) => {
   try {
+    const isDemoMode = req.query.demo === "true";
+
     const flags = {
       demandAlerts: [],
       fraudAlerts: [],
@@ -30,7 +32,6 @@ export const getIntelligenceDashboard = async (req, res, next) => {
       const bookingCount = expBookings.length;
 
       // Rule 1: High Demand / Low Capacity Warning
-      // Real Data Trigger: High interest and increasing bookings
       if (totalInterest > 10 && bookingCount > 2) {
         flags.demandAlerts.push({
           type: "High Demand",
@@ -52,8 +53,8 @@ export const getIntelligenceDashboard = async (req, res, next) => {
       }
     }
 
-    // Ensure we always show demo alerts if database is completely empty so graduation project looks good
-    if (flags.demandAlerts.length === 0) {
+    // 🎓 Academic Presentation Demo Injection
+    if (isDemoMode && flags.demandAlerts.length === 0) {
        flags.demandAlerts.push({
           type: "High Demand",
           experienceId: "demo-mohra",
@@ -73,8 +74,19 @@ export const getIntelligenceDashboard = async (req, res, next) => {
     // 2. Fraud & Scam Risk Detection (Rule-Based)
     const users = await User.find({ role: "user" }).lean();
     
-    // Check for users with multiple cancelled bookings (potential spam/fraud)
     for (const user of users) {
+      if (user.isFlagged) {
+        flags.fraudAlerts.push({
+          userId: user._id,
+          userName: `${user.firstName} ${user.lastName}`,
+          severity: "Flagged / تم التجميد",
+          isFlagged: true,
+          message: `Account is currently restricted/suspended: ${user.flaggedReason || 'Spam behavior detected.'}`,
+          actionRecommended: "Unflag Account"
+        });
+        continue;
+      }
+
       const userBookings = bookings.filter(b => String(b.user) === String(user._id));
       const cancelled = userBookings.filter(b => b.status === "Cancelled").length;
       
@@ -83,56 +95,52 @@ export const getIntelligenceDashboard = async (req, res, next) => {
           userId: user._id,
           userName: `${user.firstName} ${user.lastName}`,
           severity: "High",
+          isFlagged: false,
           message: `User has an abnormally high cancellation rate (${cancelled} cancellations). Potential spam behavior detected.`,
           actionRecommended: "Flag Account"
         });
       }
     }
 
-    // 🎓 Graduation Project Demo Injection: Ensure we always have at least one fraud alert to show the feature working
-    if (flags.fraudAlerts.length === 0) {
+    // 🎓 Academic Presentation Demo Injection
+    if (isDemoMode && flags.fraudAlerts.length === 0) {
       flags.fraudAlerts.push({
         userId: "demo-user-123",
         userName: "John Doe (Simulated Alert)",
         severity: "High",
+        isFlagged: false,
         message: "User has cancelled 4 bookings within 24 hours. High risk of spam or competitor probing.",
         actionRecommended: "Flag Account"
       });
     }
 
-    // 3. Trust Scoring (AI Simulation)
+    // 3. Trust Scoring (Real Rating calculation + Academic fallback)
     const providers = await Provider.find().lean();
     const reviews = await Review.find().lean();
 
     for (const provider of providers) {
       const providerReviews = reviews.filter(r => String(r.provider) === String(provider._id));
-      let score = 50; // Base Score
+      let score = provider.trustScore !== undefined ? provider.trustScore : 100;
       
       if (providerReviews.length > 0) {
         const avgRating = providerReviews.reduce((sum, r) => sum + r.rating, 0) / providerReviews.length;
-        score += avgRating * 10; // Boost score based on good ratings
+        score = Math.round(avgRating * 20); // 5 stars -> 100, 4 stars -> 80
       }
       
-      // Bonus for completing profile/docs (simulated rule)
-      if (provider.contact_info) score += 10;
-
-      // Cap at 100
-      score = Math.min(score, 100);
-
       flags.trustScores.push({
         providerId: provider._id,
         providerName: provider.name,
-        trustScore: Math.round(score),
+        trustScore: score,
         tier: score >= 80 ? "Premium Trusted" : (score >= 60 ? "Verified" : "Under Review")
       });
     }
 
-    // 🎓 Graduation Project Demo Injection: 
-    if (flags.trustScores.length === 0) {
+    // 🎓 Academic Presentation Demo Injection
+    if (isDemoMode && flags.trustScores.length === 0) {
       flags.trustScores.push(
-        { providerId: "p1", providerName: "Desert Nomads Team", trustScore: 95, tier: "Premium Trusted" },
-        { providerId: "p2", providerName: "Siwa Eco-Tours", trustScore: 88, tier: "Premium Trusted" },
-        { providerId: "p3", providerName: "Nile Cruise Co.", trustScore: 55, tier: "Under Review" }
+        { providerId: "demo-p1", providerName: "Desert Nomads Team (Simulated)", trustScore: 95, tier: "Premium Trusted" },
+        { providerId: "demo-p2", providerName: "Siwa Eco-Tours (Simulated)", trustScore: 88, tier: "Premium Trusted" },
+        { providerId: "demo-p3", providerName: "Nile Cruise Co. (Simulated)", trustScore: 55, tier: "Under Review" }
       );
     }
 
@@ -140,5 +148,56 @@ export const getIntelligenceDashboard = async (req, res, next) => {
   } catch (error) {
     console.error("Intelligence Dashboard Error:", error);
     return res.status(500).json({ success: false, message: "Failed to generate intelligence report." });
+  }
+};
+
+// PATCH /admin/flag-user/:userId
+export const flagUser = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const { reason = "Flagged due to suspicious booking activities." } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { isFlagged: true, flaggedReason: reason },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found." });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `User ${user.firstName} ${user.lastName} successfully flagged and restricted.`,
+      user
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// PATCH /admin/unflag-user/:userId
+export const unflagUser = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { isFlagged: false, flaggedReason: "" },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found." });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `User ${user.firstName} ${user.lastName} restrictions successfully removed.`,
+      user
+    });
+  } catch (error) {
+    return next(error);
   }
 };

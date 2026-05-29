@@ -19,6 +19,7 @@ const customDaySchema = new mongoose.Schema({
 const customTripSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   experience: { type: mongoose.Schema.Types.ObjectId, ref: "Experience", required: true },
+  combinedExperiences: [{ type: mongoose.Schema.Types.ObjectId, ref: "Experience" }],
   itinerary: [customDaySchema],
   extra_activities: [customActivitySchema],
   total_price: { type: Number, default: 0 }
