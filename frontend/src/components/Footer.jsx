@@ -13,10 +13,21 @@ const Footer = () => {
           
           {/* Brand Info */}
           <div className="tw-flex tw-flex-col tw-gap-6">
-            <Link to="/" className="tw-inline-block">
-              <span className="tw-text-2xl tw-font-serif tw-font-bold tw-tracking-wide tw-text-rose-600 dark:tw-text-rose-200">
-                Clear<span className="tw-text-rose-500 dark:tw-text-rose-300">Path</span>
-              </span>
+            <Link to="/" className="tw-inline-block tw-mb-2">
+              <div className="tw-relative tw-w-[200px] md:tw-w-[260px] tw-h-20 tw-flex tw-items-center tw-justify-start">
+                {/* Light Mode Logo */}
+                <img 
+                  src="/logo-light.png" 
+                  alt="ClearPath Logo" 
+                  className="tw-absolute tw-w-full tw-h-full tw-object-contain tw-scale-[1.6] md:tw-scale-[1.8] tw-origin-left tw-transition-opacity tw-duration-300 dark:tw-opacity-0"
+                />
+                {/* Dark Mode Logo */}
+                <img 
+                  src="/logo-dark.png" 
+                  alt="ClearPath Logo" 
+                  className="tw-absolute tw-w-full tw-h-full tw-object-contain tw-scale-[1.6] md:tw-scale-[1.8] tw-origin-left tw-transition-opacity tw-duration-300 tw-opacity-0 dark:tw-opacity-100"
+                />
+              </div>
             </Link>
             <p className="tw-text-sm tw-text-slate-600 dark:tw-text-slate-400 tw-leading-relaxed tw-max-w-xs">
               {lang === 'AR' 

@@ -69,9 +69,21 @@ const Navbar = ({ isScrolled }) => {
           className="tw-flex tw-items-center tw-cursor-pointer" 
           onClick={() => navigate('/')}
         >
-          <span className="tw-text-2xl tw-font-serif tw-font-bold tw-tracking-wide tw-text-rose-200">
-            Clear<span className="tw-text-rose-300">Path</span>
-          </span>
+          {/* Brand Logo - Native transparent images */}
+          <div className="tw-relative tw-w-[180px] md:tw-w-[240px] lg:tw-w-[280px] tw-h-16 md:tw-h-20 tw-flex tw-items-center tw-justify-start">
+            {/* Light Mode Logo */}
+            <img 
+              src="/logo-light.png" 
+              alt="ClearPath Logo" 
+              className="tw-absolute tw-w-full tw-h-full tw-object-contain tw-scale-[1.5] md:tw-scale-[1.7] tw-origin-left tw-transition-opacity tw-duration-300 dark:tw-opacity-0"
+            />
+            {/* Dark Mode Logo */}
+            <img 
+              src="/logo-dark.png" 
+              alt="ClearPath Logo" 
+              className="tw-absolute tw-w-full tw-h-full tw-object-contain tw-scale-[1.5] md:tw-scale-[1.7] tw-origin-left tw-transition-opacity tw-duration-300 tw-opacity-0 dark:tw-opacity-100"
+            />
+          </div>
         </div>
 
         {/* Center: Navigation Links */}

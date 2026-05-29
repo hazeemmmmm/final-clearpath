@@ -67,6 +67,7 @@ const Experiences = () => {
   const [experiences, setExperiences] = useState([]);
   const [loading, setLoading] = useState(true);
   const [wishlistIds, setWishlistIds] = useState(new Set());
+  const [isScrolled, setIsScrolled] = useState(false);
   
   // Search States
   const [destinations, setDestinations] = useState([]);
@@ -88,6 +89,11 @@ const Experiences = () => {
     window.scrollTo(0, 0);
     document.body.style.overflow = 'auto';
 
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+
     const handleClickOutside = (event) => {
       if (!event.target.closest('.search-item')) {
         setShowDestDropdown(false);
@@ -96,6 +102,7 @@ const Experiences = () => {
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
+      window.removeEventListener('scroll', handleScroll);
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
@@ -207,7 +214,7 @@ const Experiences = () => {
 
   return (
     <div className={`tw-min-h-screen tw-bg-slate-50 dark:tw-bg-[#0a0b0d] tw-font-sans tw-flex tw-flex-col ${lang === 'AR' ? 'tw-dir-rtl' : ''}`}>
-      <Navbar lang={lang} setLang={setLang} isScrolled={true} />
+      <Navbar lang={lang} setLang={setLang} isScrolled={isScrolled} />
 
       {/* Hero Section with Pyramids Background */}
       <header className="tw-relative tw-w-full tw-min-h-[80vh] tw-flex tw-flex-col tw-items-center tw-justify-center tw-pt-32 tw-pb-16">
