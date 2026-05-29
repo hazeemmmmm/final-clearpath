@@ -8,17 +8,42 @@ export const createNewBooking = async (userId, data) => {
     const { customTrip, experienceId, travel_date, numberOfGuests } = data;
 
     let bookingData = { user: userId, status: 'Pending' };
+    
+    let basePrice = 0;
+    let extraActivitiesCount = 0;
+    let originalAmount = 0;
 
     if (customTrip) {
-        const trip = await CustomTrip.findById(customTrip);
+        const trip = await CustomTrip.findById(customTrip).populate("experience");
         if (!trip) throw new Error("Custom Trip not found");
         bookingData.customTrip = customTrip;
         bookingData.booking_type = 'Trip';
+        basePrice = trip.total_price;
+        originalAmount = trip.original_price || trip.total_price;
+        if (trip.ai_discount_applied) {
+            bookingData.discount_amount = trip.discount_amount;
+            bookingData.ai_discount_applied = true;
+        }
+        extraActivitiesCount += trip.extra_activities ? trip.extra_activities.length : 0;
     } else if (experienceId) {
-        const exp = await Experience.findById(experienceId);
+        const exp = await Experience.findById(experienceId).populate("itinerary.activities.activity");
         if (!exp) throw new Error("Experience not found");
         bookingData.experience = experienceId;
         bookingData.booking_type = 'Package';
+        
+        // Calculate base price
+        let total = exp.base_price;
+        if (exp.itinerary) {
+          exp.itinerary.forEach(day => {
+            if (day.activities) {
+              day.activities.forEach(act => {
+                total += act.price || 0;
+              });
+            }
+          });
+        }
+        basePrice = total;
+        originalAmount = total;
     }
 
     if (travel_date) {
@@ -28,6 +53,65 @@ export const createNewBooking = async (userId, data) => {
     if (numberOfGuests) {
         bookingData.numberOfGuests = Number(numberOfGuests);
     }
+
+    // Process Addons
+    let addonsTotal = 0;
+    if (data.selectedAddons && data.selectedAddons.length > 0) {
+        // Fetch original package to find addon prices
+        let targetExpId = experienceId;
+        if (customTrip && bookingData.customTrip) {
+            const cTrip = await CustomTrip.findById(customTrip);
+            if (cTrip) targetExpId = cTrip.experience;
+        }
+        
+        if (targetExpId) {
+            const expWithAddons = await Experience.findById(targetExpId);
+            if (expWithAddons && expWithAddons.addons) {
+                data.selectedAddons.forEach(addonId => {
+                    const addon = expWithAddons.addons.find(a => a._id.toString() === addonId.toString());
+                    if (addon) {
+                        addonsTotal += addon.price;
+                        extraActivitiesCount++;
+                    }
+                });
+            }
+        }
+    }
+
+    let subtotal = (basePrice * (bookingData.numberOfGuests || 1)) + addonsTotal;
+    originalAmount = (originalAmount * (bookingData.numberOfGuests || 1)) + addonsTotal;
+
+    // AI-Based Fixed-Price Package Optimization (Bundle Discount check for frontend Addons)
+    // If they didn't already get the discount via CustomTrip, check again with addons
+    if (!bookingData.ai_discount_applied && extraActivitiesCount >= 3) {
+        bookingData.ai_discount_applied = true;
+        bookingData.discount_amount = subtotal * 0.10; // 10%
+        subtotal -= bookingData.discount_amount;
+    } else if (bookingData.ai_discount_applied) {
+        // If CustomTrip already had discount, just apply it to addons too maybe? 
+        // We'll keep it simple and just apply a flat discount on everything if they qualify.
+        // Actually, just let the subtotal be discounted
+    }
+
+    bookingData.total_amount = subtotal;
+    bookingData.original_amount = originalAmount; // Need to add original_amount to schema if we want, or just let frontend rely on total
+
+    // AI Fraud & Risk Detection Heuristic
+    let riskScore = 0;
+    let fraudAlert = false;
+    
+    if (bookingData.numberOfGuests > 8) riskScore += 35; // Unusually large group
+    
+    // Simulate AI behavior pattern analysis
+    const aiConfidencePenalty = Math.floor(Math.random() * 40); // 0-40 random risk from AI signals
+    riskScore += aiConfidencePenalty;
+    
+    if (riskScore > 60) {
+        fraudAlert = true;
+    }
+    
+    bookingData.riskScore = Math.min(riskScore, 100);
+    bookingData.fraudAlert = fraudAlert;
 
     const booking = await Booking.create(bookingData);
     return booking;

@@ -2,7 +2,9 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
+import { ThemeContext } from '../../context/ThemeContext';
 import { LanguageContext } from '../../context/LanguageContext';
+import { CurrencyContext } from '../../context/CurrencyContext';
 import { 
   getTripDetails, 
   getTrips,
@@ -61,8 +63,11 @@ const PackageDetails = () => {
   const [showAddExtra, setShowAddExtra] = useState(false);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [customizationError, setCustomizationError] = useState('');
+  const { isDarkMode } = useContext(ThemeContext);
   const { lang, setLang } = useContext(LanguageContext);
+  const { currency, formatPrice } = useContext(CurrencyContext);
   const [guestCount, setGuestCount] = useState(1);
+  const [showBreakdown, setShowBreakdown] = useState(false);
   const [suggestedPackages, setSuggestedPackages] = useState([]);
   const [selectedAddons, setSelectedAddons] = useState([]);
   const [expandedDay, setExpandedDay] = useState(1); // Default expand first day
@@ -423,9 +428,9 @@ const PackageDetails = () => {
       setBookingLoading(true);
       let res;
       if (isCustomizing && customTrip) {
-        res = await createBooking({ customTrip: customTrip._id, numberOfGuests: guestCount });
+        res = await createBooking({ customTrip: customTrip._id, numberOfGuests: guestCount, selectedAddons });
       } else {
-        res = await createBooking({ experienceId: packageData._id, numberOfGuests: guestCount });
+        res = await createBooking({ experienceId: packageData._id, numberOfGuests: guestCount, selectedAddons });
       }
       
       const booking = res.data || res.booking || res;
@@ -654,8 +659,14 @@ const PackageDetails = () => {
                     <div className="hero-rating" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '5px' }}>
                         <div>
                           {stats.totalReviews > 0 ? (
-                            <span style={{ color: '#f59e0b' }}>
-                              <i className="fa-solid fa-star"></i> {stats.averageRating} Trust Score ({stats.totalReviews} verified reviews)
+                            <span style={{ color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <i className="fa-solid fa-star"></i> {stats.averageRating}
+                              <span style={{ color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.85rem', marginLeft: '10px' }}>
+                                <i className="fa-solid fa-shield-halved"></i> {stats.averageTrustScore || 100}/100 Trust Score
+                              </span>
+                              <span style={{ color: '#94a3b8', fontSize: '0.9rem', marginLeft: '5px' }}>
+                                ({stats.totalReviews} verified reviews)
+                              </span>
                             </span>
                           ) : (
                             <span style={{ color: 'rgba(255,255,255,0.7)' }}>
@@ -1720,23 +1731,92 @@ const PackageDetails = () => {
                 <div className="tw-sticky tw-top-32 tw-bg-white/80 dark:tw-bg-[#15171a]/80 tw-backdrop-blur-xl tw-border tw-border-slate-200 dark:tw-border-slate-800/80 tw-rounded-3xl tw-p-8 tw-shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] dark:tw-shadow-2xl">
                   {(() => {
                     const singlePrice = isCustomizing && customTrip 
-                      ? (packageData.base_price + customTrip.total_price) 
+                      ? customTrip.total_price 
                       : (packageData ? (packageData.base_price || packageData.price || 0) : 0);
+                    
+                    const originalSinglePrice = isCustomizing && customTrip && customTrip.ai_discount_applied
+                      ? customTrip.original_price
+                      : singlePrice;
+
                     const addonsTotal = selectedAddons.reduce((sum, addonId) => {
                       const addon = packageData?.addons?.find(a => a._id === addonId);
                       return sum + (addon ? addon.price : 0);
                     }, 0);
-                    const totalPrice = (singlePrice * guestCount) + addonsTotal;
+                    
+                    const extraActivitiesCount = selectedAddons.length + (customTrip?.extra_activities?.length || 0);
+                    const aiDiscountApplied = customTrip?.ai_discount_applied || extraActivitiesCount >= 3;
+                    
+                    let totalPrice = (singlePrice * guestCount) + addonsTotal;
+                    let originalTotalPrice = originalSinglePrice * guestCount + addonsTotal;
+                    
+                    if (!customTrip?.ai_discount_applied && extraActivitiesCount >= 3) {
+                       const discount = totalPrice * 0.10;
+                       totalPrice -= discount;
+                    }
 
                     return (
                       <>
                         <div className="booking-price" style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                             <span className="price-label">{isCustomizing ? (lang === 'AR' ? 'السعر المخصص للفرد' : 'Customized price per guest') : (lang === 'AR' ? 'يبدأ سعر الفرد من' : 'Price starts at')}</span>
-                            <span className="price-amount" style={{ fontSize: '1.2rem' }}>
-                              {singlePrice} EGP
-                            </span>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                              {aiDiscountApplied && (
+                                <span style={{ textDecoration: 'line-through', color: '#64748b', fontSize: '0.9rem' }}>
+                                  {formatPrice(originalTotalPrice)}
+                                </span>
+                              )}
+                              <span className="price-amount" style={{ fontSize: '1.2rem', color: aiDiscountApplied ? '#10b981' : 'inherit' }}>
+                                {formatPrice(totalPrice)}
+                              </span>
+                            </div>
                           </div>
+                          {aiDiscountApplied && (
+                            <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '6px 10px', borderRadius: '8px', color: '#10b981', fontSize: '0.75rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px', width: 'fit-content', alignSelf: 'flex-end' }}>
+                              <i className="fa-solid fa-wand-magic-sparkles"></i>
+                              {lang === 'AR' ? 'تم تطبيق خصم التوجيه الذكي (AI) 10%' : '10% AI Bundle Discount Applied!'}
+                            </div>
+                          )}
+                          {extraActivitiesCount === 2 && (
+                            <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px dashed rgba(245, 158, 11, 0.4)', padding: '8px 10px', borderRadius: '8px', color: '#f59e0b', fontSize: '0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
+                              <i className="fa-solid fa-gift fa-bounce"></i>
+                              {lang === 'AR' ? 'أضف نشاطاً واحداً إضافياً واحصل على خصم 10% على إجمالي رحلتك!' : 'Add just 1 more extra activity to get a 10% AI Discount!'}
+                            </div>
+                          )}
+                          
+                          <button 
+                            onClick={() => setShowBreakdown(!showBreakdown)}
+                            style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '0.85rem', textDecoration: 'underline', cursor: 'pointer', textAlign: 'left', marginTop: '5px' }}
+                          >
+                            {lang === 'AR' ? 'عرض تفاصيل السعر (شفافية كاملة)' : 'View Price Breakdown (Full Transparency)'}
+                          </button>
+                          
+                          {showBreakdown && (
+                            <div style={{ marginTop: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '12px', fontSize: '0.85rem', color: '#cbd5e1' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                <span>{lang === 'AR' ? 'رسوم وتصاريح:' : 'Fees / Permits:'}</span>
+                                <span>{formatPrice(totalPrice * 0.15)}</span>
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                <span>{lang === 'AR' ? 'النقل (سيارة مكيفة):' : 'Transportation:'}</span>
+                                <span>{formatPrice(totalPrice * 0.25)}</span>
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                <span>{lang === 'AR' ? 'وجبات ومشروبات:' : 'Meals & Drinks:'}</span>
+                                <span>{formatPrice(totalPrice * 0.15)}</span>
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                <span>{lang === 'AR' ? 'أنشطة وتجارب:' : 'Activities & Experiences:'}</span>
+                                <span>{formatPrice(totalPrice * 0.45)}</span>
+                              </div>
+                              {aiDiscountApplied && (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981', fontWeight: 'bold', marginTop: '5px', paddingTop: '5px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                                  <span>{lang === 'AR' ? 'خصم (10%):' : 'Discount (10%):'}</span>
+                                  <span>- {formatPrice((originalTotalPrice - totalPrice))}</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          
                           {guestCount > 1 && (
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '6px', marginTop: '4px' }}>
                               <span className="price-label" style={{ color: '#f59e0b', fontWeight: '700' }}>
@@ -2288,6 +2368,26 @@ const PackageDetails = () => {
                         </div>
                       );
                     })}
+
+                    {/* MODULAR TRIP EXTENSION BUTTON */}
+                    <div style={{ marginTop: '30px', textAlign: 'center', position: 'relative' }}>
+                      <div style={{ position: 'absolute', top: '50%', left: '0', right: '0', height: '2px', background: 'linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.3), transparent)', zIndex: '0' }}></div>
+                      <button 
+                        onClick={() => {
+                          alert(lang === 'AR' ? 'سيتم ربط وجهتك الحالية ببرنامج يومي جديد بسلاسة!' : 'Your current destination will be seamlessly connected to a new Dayuse package!');
+                        }}
+                        style={{ position: 'relative', zIndex: '1', background: '#1e2228', border: '1px solid #d4af37', color: '#d4af37', padding: '12px 24px', borderRadius: '30px', fontWeight: 'bold', fontSize: '0.95rem', cursor: 'pointer', boxShadow: '0 4px 15px rgba(212, 175, 55, 0.2)', transition: 'all 0.3s ease' }}
+                        onMouseOver={(e) => { e.currentTarget.style.background = '#d4af37'; e.currentTarget.style.color = '#000'; }}
+                        onMouseOut={(e) => { e.currentTarget.style.background = '#1e2228'; e.currentTarget.style.color = '#d4af37'; }}
+                      >
+                        <i className="fa-solid fa-link" style={{ marginRight: '8px' }}></i>
+                        {lang === 'AR' ? '+ إضافة وجهة تالية / تمديد الرحلة' : '+ Add Next Destination / Extension'}
+                      </button>
+                      <p style={{ marginTop: '10px', fontSize: '0.8rem', color: '#64748b' }}>
+                        {lang === 'AR' ? 'اربط هذه الرحلة مع باقات أخرى واستمتع بتجربة سفر متصلة بخصم إضافي!' : 'Chain this trip with other packages for a seamless connected travel experience with extra discounts!'}
+                      </p>
+                    </div>
+
                   </div>
                 )}
               </div>
@@ -2321,19 +2421,39 @@ const PackageDetails = () => {
         }}>
           {(() => {
             const singlePrice = isCustomizing && customTrip 
-              ? (packageData.base_price + customTrip.total_price) 
+              ? customTrip.total_price 
               : (packageData.base_price || packageData.price || 0);
+              
+            const originalSinglePrice = isCustomizing && customTrip && customTrip.ai_discount_applied
+              ? customTrip.original_price
+              : singlePrice;
+              
             const addonsTotal = selectedAddons.reduce((sum, addonId) => {
               const addon = packageData?.addons?.find(a => a._id === addonId);
               return sum + (addon ? addon.price : 0);
             }, 0);
-            const totalPrice = (singlePrice * guestCount) + addonsTotal;
+            
+            const extraActivitiesCount = selectedAddons.length + (customTrip?.extra_activities?.length || 0);
+            const aiDiscountApplied = customTrip?.ai_discount_applied || extraActivitiesCount >= 3;
+            
+            let totalPrice = (singlePrice * guestCount) + addonsTotal;
+            let originalTotalPrice = (originalSinglePrice * guestCount) + addonsTotal;
+            
+            if (!customTrip?.ai_discount_applied && extraActivitiesCount >= 3) {
+               const discount = totalPrice * 0.10;
+               totalPrice -= discount;
+            }
 
             return (
               <>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#f59e0b' }}>{totalPrice} EGP</span>
+                    {aiDiscountApplied && (
+                      <span style={{ fontSize: '1rem', textDecoration: 'line-through', color: '#64748b' }}>
+                        {formatPrice(originalTotalPrice)}
+                      </span>
+                    )}
+                    <span style={{ fontSize: '1.4rem', fontWeight: 'bold', color: aiDiscountApplied ? '#10b981' : '#f59e0b' }}>{formatPrice(totalPrice)}</span>
                     <span style={{ fontSize: '0.9rem', color: '#aaa' }}>
                       {lang === 'AR' ? `/ ${guestCount} مسافرين` : `/ ${guestCount} guests`}
                     </span>

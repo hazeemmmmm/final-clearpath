@@ -582,6 +582,17 @@ const SupervisorDashboard = () => {
                                         <span className={`sv-status-badge ${booking.status?.toLowerCase()}`}>
                                           {booking.status}
                                         </span>
+                                        {booking.riskScore !== undefined && (
+                                          <span className="sv-status-badge" style={{ 
+                                            background: booking.fraudAlert ? 'rgba(244, 63, 94, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                                            color: booking.fraudAlert ? '#fb7185' : '#34d399',
+                                            border: `1px solid ${booking.fraudAlert ? 'rgba(244, 63, 94, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`,
+                                            display: 'flex', alignItems: 'center', gap: '4px'
+                                          }}>
+                                            {booking.fraudAlert ? <i className="fa-solid fa-triangle-exclamation"></i> : <i className="fa-solid fa-shield-check"></i>}
+                                            Risk: {booking.riskScore}%
+                                          </span>
+                                        )}
                                       </div>
                                       <div className="sv-booking-pricing">
                                         <span className="total">{formatCurrency(booking.total_amount)}</span>

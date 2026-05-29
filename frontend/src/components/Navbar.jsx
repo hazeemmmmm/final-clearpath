@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { logout, setChatOpen } from '../store/authSlice';
 import { LanguageContext } from '../context/LanguageContext';
 import { ThemeContext } from '../context/ThemeContext';
+import { CurrencyContext } from '../context/CurrencyContext';
 import { getUserProfile } from '../utils/api';
 
 const Navbar = ({ isScrolled, dashboardMode }) => {
@@ -12,6 +13,7 @@ const Navbar = ({ isScrolled, dashboardMode }) => {
   const location = useLocation();
   const { lang, toggleLanguage } = useContext(LanguageContext);
   const { isDarkMode, toggleTheme } = useContext(ThemeContext);
+  const { currency, toggleCurrency } = useContext(CurrencyContext);
 
   const isAuthenticated = useSelector((state) => state.auth?.isAuthenticated || !!localStorage.getItem('token'));
   const reduxUser = useSelector((state) => state.auth?.user);
@@ -124,6 +126,14 @@ const Navbar = ({ isScrolled, dashboardMode }) => {
               <i className={`fa-solid ${isDarkMode ? 'fa-sun' : 'fa-moon'}`}></i>
             </button>
 
+            <button 
+              onClick={() => toggleCurrency(currency === 'EGP' ? 'USD' : 'EGP')}
+              className="tw-flex tw-items-center tw-justify-center tw-gap-1.5 tw-px-3 tw-h-9 tw-rounded-full tw-border tw-border-slate-300 dark:tw-border-slate-700 tw-bg-white/50 dark:tw-bg-transparent tw-text-slate-600 dark:tw-text-slate-300 hover:tw-text-amber-500 dark:hover:tw-text-amber-500 hover:tw-border-amber-500 dark:hover:tw-border-amber-500 tw-transition-colors tw-text-xs tw-font-bold"
+              title="Toggle Currency"
+            >
+              <i className="fa-solid fa-coins"></i>
+              <span>{currency}</span>
+            </button>
             <button 
               onClick={toggleLanguage}
               className="tw-flex tw-items-center tw-justify-center tw-gap-1.5 tw-px-3 tw-h-9 tw-rounded-full tw-border tw-border-slate-300 dark:tw-border-slate-700 tw-bg-white/50 dark:tw-bg-transparent tw-text-slate-600 dark:tw-text-slate-300 hover:tw-text-amber-500 dark:hover:tw-text-amber-500 hover:tw-border-amber-500 dark:hover:tw-border-amber-500 tw-transition-colors tw-text-xs tw-font-bold"

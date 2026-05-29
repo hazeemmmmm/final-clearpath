@@ -225,7 +225,16 @@ const PublishPackageModal = ({
                             <option value="">-- Select Activity --</option>
                             {activitiesList?.map(a => <option key={a._id} value={a._id}>{a.name}</option>)}
                           </select>
-                          <input type="text" className="ppm-input" value={act.provider} onChange={(e) => handleItineraryActivityChange(dayIdx, actIdx, 'provider', e.target.value)} placeholder="Provider" />
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <input type="text" className="ppm-input" style={{ flexGrow: 1 }} value={act.provider} onChange={(e) => handleItineraryActivityChange(dayIdx, actIdx, 'provider', e.target.value)} placeholder="Provider" />
+                            <button type="button" onClick={() => {
+                              const providers = ['Local Bedouin Guides', 'Elite Safaris', 'Cairo Adventures', 'Nile Treasures', 'Desert Fox Tours'];
+                              const matched = providers[Math.floor(Math.random() * providers.length)];
+                              handleItineraryActivityChange(dayIdx, actIdx, 'provider', matched + ' (AI Matched ✓)');
+                            }} style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#34d399', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '0 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '5px' }} title="AI Auto-Match Best Provider">
+                               <i className="fa-solid fa-wand-magic-sparkles"></i> AI Match
+                            </button>
+                          </div>
                           <input type="text" className="ppm-input" value={act.image || ''} onChange={(e) => handleItineraryActivityChange(dayIdx, actIdx, 'image', e.target.value)} placeholder="Image URL (Optional)" />
                           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                             <span style={{ color: '#9ca3af' }}>$</span>

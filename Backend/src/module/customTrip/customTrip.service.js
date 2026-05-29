@@ -78,6 +78,7 @@ class CustomTripService {
 
     // 🔥 CUSTOM TRIP → calculate final result
     let total = 0;
+    let extraActivitiesCount = 0;
 
     if (custom.itinerary) {
       custom.itinerary.forEach(day => {
@@ -95,9 +96,26 @@ class CustomTripService {
       custom.extra_activities.forEach(act => {
         if (act.status === "active") {
           total += act.price || 0;
+          extraActivitiesCount++;
         }
       });
     }
+
+    let originalTotal = total;
+    let aiDiscountApplied = false;
+    let discountAmount = 0;
+
+    // AI-Based Fixed-Price Package Optimization (Bundle Discount)
+    if (extraActivitiesCount >= 3) {
+      aiDiscountApplied = true;
+      discountAmount = total * 0.10; // 10% discount for 3+ extra activities
+      total = total - discountAmount;
+    }
+
+    // Add base_price from the experience!
+    const basePrice = custom.experience ? custom.experience.base_price : 0;
+    total += basePrice;
+    originalTotal += basePrice;
 
     return {
       source: "customTrip",
@@ -108,6 +126,9 @@ class CustomTripService {
         itinerary: custom.itinerary || [],
         extra_activities: custom.extra_activities || [],
         total_price: total,
+        original_price: originalTotal,
+        ai_discount_applied: aiDiscountApplied,
+        discount_amount: discountAmount
       },
     };
   }

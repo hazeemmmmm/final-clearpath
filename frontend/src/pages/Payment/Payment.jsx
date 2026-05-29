@@ -190,6 +190,25 @@ const Payment = () => {
                 </div>
 
                 <div className="price-summary-box">
+                  {bookingData?.ai_discount_applied && (
+                    <>
+                      <div className="summary-row" style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', textDecoration: 'line-through' }}>
+                        <span>{lang === 'AR' ? 'السعر الأصلي:' : 'Original Price:'}</span>
+                        <span>{selectedCurrency === 'EGP' ? `${bookingData.original_amount} EGP` : `$${parseFloat((bookingData.original_amount / 50).toFixed(2))} USD`}</span>
+                      </div>
+                      <div className="summary-row" style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981', fontWeight: 'bold' }}>
+                        <span><i className="fa-solid fa-wand-magic-sparkles"></i> {lang === 'AR' ? 'خصم باقة الذكاء الاصطناعي:' : 'AI Bundle Discount:'}</span>
+                        <span>- {selectedCurrency === 'EGP' ? `${bookingData.discount_amount} EGP` : `$${parseFloat((bookingData.discount_amount / 50).toFixed(2))} USD`}</span>
+                      </div>
+                    </>
+                  )}
+                  {discountPercent > 0 && !bookingData?.ai_discount_applied && (
+                    <div className="summary-row" style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981', fontWeight: 'bold' }}>
+                      <span><i className="fa-solid fa-ticket"></i> {lang === 'AR' ? 'خصم البرومو كود:' : 'Promo Discount:'}</span>
+                      <span>- {discountPercent}%</span>
+                    </div>
+                  )}
+                  
                   <div className="summary-row total-row" style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between' }}>
                     <span className="total-lbl">{lang === 'AR' ? 'الإجمالي المستحق للدفع:' : 'Total Amount Payable:'}</span>
                     <strong className="total-val">

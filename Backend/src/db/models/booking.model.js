@@ -12,6 +12,24 @@ const bookingSchema = new mongoose.Schema({
   couponCode: { type: String, required: false },
   discount_amount: { type: Number, default: 0 },
   status: { type: String, enum: ["Confirmed","Pending","Cancelled"], default: "Pending" },
+  payment_status: {
+    type: String,
+    enum: ["pending", "completed", "failed", "refunded"],
+    default: "pending",
+  },
+  // AI Fraud & Risk Detection Fields
+  riskScore: {
+    type: Number,
+    default: 0,
+  },
+  fraudAlert: {
+    type: Boolean,
+    default: false,
+  },
+  payment_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Payment",
+  },
   cancellationInfo: {
     canceledAt: { type: Date },
     feePercent: { type: Number },
@@ -21,49 +39,21 @@ const bookingSchema = new mongoose.Schema({
 }, { timestamps: true, strictPopulate: false });
 
 bookingSchema.pre("validate", async function(next) {
-  if (!this.total_amount) {
-    let singlePrice = 0;
-    if (this.customTrip) {
-      const customTrip = await mongoose.model("CustomTrip").findById(this.customTrip)
-        .populate("experience");
-      if (customTrip) {
-        singlePrice = customTrip.total_price || (customTrip.experience ? customTrip.experience.base_price : 0);
-      } else {
-        return next(new Error("CustomTrip not found"));
-      }
-    } else if (this.experience) {
-      const exp = await mongoose.model("Experience").findById(this.experience);
-      if (exp) {
-        let total = exp.base_price;
-        if (exp.itinerary) {
-          exp.itinerary.forEach(day => {
-            if (day.activities) {
-              day.activities.forEach(act => {
-                total += act.price || 0;
-              });
-            }
-          });
-        }
-        singlePrice = total;
-      } else {
-        return next(new Error("Experience not found"));
-      }
+  if (this.total_amount && !this.couponCode) {
+    // If total_amount is already set correctly by the service and no coupon is being applied, skip
+    return next();
+  }
+
+  // Calculate Discount if a coupon is applied
+  if (this.couponCode) {
+    const coupon = await mongoose.model("Coupon").findOne({ code: this.couponCode, is_active: true });
+    if (coupon && coupon.expires_at > new Date()) {
+      const discount = (this.total_amount * coupon.discount_percentage) / 100;
+      this.discount_amount = (this.discount_amount || 0) + discount;
+      this.total_amount -= discount;
+    } else {
+      this.couponCode = null; // invalid coupon
     }
-    
-    let subtotal = singlePrice * (this.numberOfGuests || 1);
-    
-    // Calculate Discount
-    if (this.couponCode) {
-      const coupon = await mongoose.model("Coupon").findOne({ code: this.couponCode, is_active: true });
-      if (coupon && coupon.expires_at > new Date()) {
-        this.discount_amount = (subtotal * coupon.discount_percentage) / 100;
-        subtotal -= this.discount_amount;
-      } else {
-        this.couponCode = null; // invalid coupon
-      }
-    }
-    
-    this.total_amount = subtotal;
   }
 
   next();

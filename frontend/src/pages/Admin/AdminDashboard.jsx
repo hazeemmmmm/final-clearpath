@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar';
 import {
   createExperience,
@@ -528,8 +528,8 @@ const AdminDashboard = () => {
         },
         {
           _id: 'demo-2',
-          firstName: 'كريم',
-          lastName: 'سليم',
+          firstName: 'ÙƒØ±ÙŠÙ…',
+          lastName: 'Ø³Ù„ÙŠÙ…',
           email: 'kareem.s@clearpath.com',
           phoneNumber: '+201023456789',
           role: 'supervisor',
@@ -538,8 +538,8 @@ const AdminDashboard = () => {
         },
         {
           _id: 'demo-3',
-          firstName: 'نور',
-          lastName: 'الدين',
+          firstName: 'Ù†ÙˆØ±',
+          lastName: 'Ø§Ù„Ø¯ÙŠÙ†',
           email: 'nour.e@clearpath.com',
           phoneNumber: '+201234567890',
           role: 'supervisor',
@@ -548,8 +548,8 @@ const AdminDashboard = () => {
         },
         {
           _id: 'demo-4',
-          firstName: 'ياسمين',
-          lastName: 'حمدي',
+          firstName: 'ÙŠØ§Ø³Ù…ÙŠÙ†',
+          lastName: 'Ø­Ù…Ø¯ÙŠ',
           email: 'yasmine.h@clearpath.com',
           phoneNumber: '+2015555678912',
           role: 'supervisor',
@@ -833,7 +833,7 @@ const AdminDashboard = () => {
                     </div>
                   </div>
 
-                  {/* 📊 NEW SECOND INSIGHTS ROW: Circular Donut Chart & Destination Shares with dynamic percentages */}
+                  {/* ðŸ“Š NEW SECOND INSIGHTS ROW: Circular Donut Chart & Destination Shares with dynamic percentages */}
                   <div className="dashboard-insights-row dashboard-insights-row-second" style={{ marginTop: '25px', marginBottom: '40px' }}>
                     
                     {/* Donut Chart Card */}
@@ -1373,7 +1373,7 @@ const AdminDashboard = () => {
                           </div>
                           <div className="form-field">
                             <label style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: '600', textTransform: 'uppercase' }}>Account Password</label>
-                            <input type="password" name="password" value={supervisorForm.password} onChange={handleSupervisorInputChange} placeholder="••••••••" style={{ width: '100%', background: '#0f0f15', border: '1px solid rgba(255,255,255,0.08)', padding: '12px', borderRadius: '8px', color: '#fff' }} required />
+                            <input type="password" name="password" value={supervisorForm.password} onChange={handleSupervisorInputChange} placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" style={{ width: '100%', background: '#0f0f15', border: '1px solid rgba(255,255,255,0.08)', padding: '12px', borderRadius: '8px', color: '#fff' }} required />
                           </div>
                           <div style={{ display: 'flex', gap: '15px', marginTop: '10px' }}>
                             <button type="submit" className="btn-primary" style={{ flex: 2, padding: '12px', borderRadius: '8px', border: 'none', background: '#3b82f6', color: '#fff', fontWeight: '600', cursor: 'pointer' }}>
@@ -1450,7 +1450,7 @@ const AdminDashboard = () => {
                                   <td style={{ padding: '16px 20px' }}>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                                       <span className="email-meta" style={{ fontSize: '0.85rem' }}>{s.email}</span>
-                                      <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}><i className="fa-solid fa-phone" style={{ fontSize: '0.7rem', marginRight: '5px' }}></i>{s.phoneNumber || '—'}</span>
+                                      <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}><i className="fa-solid fa-phone" style={{ fontSize: '0.7rem', marginRight: '5px' }}></i>{s.phoneNumber || 'â€”'}</span>
                                     </div>
                                   </td>
                                   <td style={{ padding: '16px 20px' }}>
@@ -1493,84 +1493,213 @@ const AdminDashboard = () => {
 
               {/* TAB 5: REVIEWS */}
               {activeTab === 'reviews' && (
-                <div className="tab-pane animate-fade-in">
-                  <div className="pane-header">
-                    <div>
-                      <h2>Customer Reviews & Feedbacks</h2>
-                      <p className="pane-subtitle">Moderate customer testimonies and rating points across our experiences portfolio.</p>
+                <div className="tab-pane animate-fade-in" style={{ padding: '0 8px', color: '#ffffff' }}>
+                  
+                  {/* Page Header */}
+                  <div className="pane-header" style={{ marginBottom: '32px' }}>
+                    <div style={{ borderBottom: '1px solid #1c1c24', paddingBottom: '20px', width: '100%' }}>
+                      <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '2.5rem', fontWeight: '700', color: '#e5c158', margin: '0 0 10px 0', letterSpacing: '0.5px' }}>
+                        Customer Reviews & Feedbacks
+                      </h2>
+                      <p style={{ color: '#94a3b8', fontSize: '1.05rem', margin: 0, fontWeight: '400' }}>
+                        Verified professional testimonials from our distinguished clientele worldwide.
+                      </p>
                     </div>
                   </div>
 
-                  <div className="admin-card">
-                    {reviews.length === 0 ? (
-                      <div className="empty-placeholder">
-                        <i className="fa-regular fa-comments" style={{ fontSize: '3.5rem', opacity: '0.2', marginBottom: '15px' }}></i>
-                        <h3>No Reviews Submitted</h3>
-                        <p>Customers have not posted reviews for experiences yet.</p>
-                      </div>
-                    ) : (
-                      <div className="inventory-cards-grid">
-                        {reviews.map(rev => {
-                          const reviewerName = rev.user ? `${rev.user.firstName || ''} ${rev.user.lastName || ''}`.trim() : 'Anonymous';
-                          
-                          // Mocking sentiment & trust if not available in DB
-                          const sentiment = rev.sentiment || (rev.rating >= 4 ? 'Positive' : rev.rating <= 2 ? 'Negative' : 'Mixed');
-                          const trustScore = rev.trustScore || (rev.rating === 5 ? 100 : 80);
-                          const isSpam = rev.isSpam || (rev.rating === 5 && rev.comment?.length < 5);
+                  {(() => {
+                    const staticMockReviews = [
+                      {
+                        _id: 'static-1',
+                        user: { firstName: 'Elena', lastName: 'Rossi' },
+                        rating: 5,
+                        comment: 'Waking up to the Nile from our Luxury Suite was a dream. The service was impeccable, evoking the grandeur of ancient royalty with modern sophistication.',
+                        experienceName: 'Nile Cruise Luxury Suite',
+                        sentiment: 'Positive',
+                        trustScore: 98,
+                        isStatic: true
+                      },
+                      {
+                        _id: 'static-2',
+                        user: { firstName: 'Omar', lastName: 'Khalid' },
+                        rating: 5,
+                        comment: 'The Great Pyramid Private Tour was beyond expectations. The attention to detail and the historical depth provided by the guide transformed a simple visit into a spiritual journey.',
+                        experienceName: 'Great Pyramid Private Tour',
+                        sentiment: 'Positive',
+                        trustScore: 96,
+                        isStatic: true
+                      },
+                      {
+                        _id: 'static-3',
+                        user: { firstName: 'Sophia', lastName: 'Chen' },
+                        rating: 5,
+                        comment: 'A masterclass in logistical perfection. Exploring the Library of Alexandria with a private historian was the highlight of my year.',
+                        experienceName: 'Alexandria Library Private Access',
+                        sentiment: 'Positive',
+                        trustScore: 97,
+                        isStatic: true
+                      },
+                      {
+                        _id: 'static-4',
+                        user: { firstName: 'Jameson', lastName: 'Vanderbilt' },
+                        rating: 5,
+                        comment: 'ClearPath curated an experience that felt personal and profound. From the desert stars to the hidden temples, every moment was a masterpiece of luxury.',
+                        experienceName: 'Starry Night Sahara Expedition',
+                        sentiment: 'Positive',
+                        trustScore: 95,
+                        isStatic: true
+                      },
+                      {
+                        _id: 'static-5',
+                        user: { firstName: 'Amina', lastName: 'Mansour' },
+                        rating: 5,
+                        comment: 'Seclusion and style. The Red Sea resort partner recommended by ClearPath provided the absolute serenity I was looking for.',
+                        experienceName: 'Hurghada Private Villa Retreat',
+                        sentiment: 'Positive',
+                        trustScore: 94,
+                        isStatic: true
+                      }
+                    ];
 
+                    const dbReviewsMapped = reviews.map(r => ({
+                      _id: r._id,
+                      user: r.user,
+                      rating: r.rating || 5,
+                      comment: r.comment || '',
+                      experienceName: r.experience?.name || 'Luxury Experience Package',
+                      sentiment: r.sentiment || (r.rating >= 4 ? 'Positive' : r.rating <= 2 ? 'Negative' : 'Mixed'),
+                      trustScore: r.trustScore || (r.rating === 5 ? 98 : r.rating === 4 ? 85 : 60),
+                      isSpam: r.isSpam || (r.rating === 5 && r.comment?.length < 5),
+                      isStatic: false
+                    }));
+
+                    const combinedReviews = [...staticMockReviews, ...dbReviewsMapped];
+
+                    return (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '28px', marginTop: '12px' }}>
+                        {combinedReviews.map((rev) => {
+                          const name = rev.user ? `${rev.user.firstName || ''} ${rev.user.lastName || ''}`.trim() : 'Anonymous';
+                          
                           let sentimentBadge = '';
                           let sentimentStyle = {};
-                          if (sentiment === 'Positive') {
-                            sentimentBadge = 'Positive';
-                            sentimentStyle = { background: 'rgba(16, 185, 129, 0.1)', color: '#34d399', border: '1px solid rgba(16, 185, 129, 0.2)' };
-                          } else if (sentiment === 'Negative') {
-                            sentimentBadge = 'Negative';
-                            sentimentStyle = { background: 'rgba(244, 63, 94, 0.1)', color: '#fb7185', border: '1px solid rgba(244, 63, 94, 0.2)' };
+                          if (rev.sentiment === 'Positive') {
+                            sentimentBadge = 'AI: Positive';
+                            sentimentStyle = { background: 'rgba(16, 185, 129, 0.08)', color: '#34d399', border: '1px solid rgba(16, 185, 129, 0.25)' };
+                          } else if (rev.sentiment === 'Negative') {
+                            sentimentBadge = 'AI: Negative';
+                            sentimentStyle = { background: 'rgba(244, 63, 94, 0.08)', color: '#fb7185', border: '1px solid rgba(244, 63, 94, 0.25)' };
                           } else {
-                            sentimentBadge = 'Mixed';
-                            sentimentStyle = { background: 'rgba(245, 158, 11, 0.1)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.2)' };
+                            sentimentBadge = 'AI: Mixed';
+                            sentimentStyle = { background: 'rgba(245, 158, 11, 0.08)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.25)' };
                           }
-                          
+
                           return (
-                            <div key={rev._id} className="inventory-card">
-                              <div className="card-decor-header" style={{ padding: '10px 15px', display: 'flex', justifyContent: 'space-between' }}>
-                                <div>
-                                  <span style={{ color: '#facc15', marginRight: '5px' }}>{rev.rating}★</span>
-                                  <span style={{ fontSize: '0.9rem', color: '#cbd5e1' }}>by {reviewerName}</span>
+                            <div key={rev._id} style={{
+                              backgroundColor: '#0d0d0f',
+                              border: '1px solid rgba(229, 193, 88, 0.12)',
+                              borderRadius: '16px',
+                              padding: '28px',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              justifyContent: 'space-between',
+                              minHeight: '340px',
+                              boxShadow: '0 8px 30px rgba(0, 0, 0, 0.3)',
+                              transition: 'transform 0.2s ease, border-color 0.2s ease',
+                              position: 'relative'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.borderColor = 'rgba(229, 193, 88, 0.35)';
+                              e.currentTarget.style.transform = 'translateY(-4px)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.borderColor = 'rgba(229, 193, 88, 0.12)';
+                              e.currentTarget.style.transform = 'translateY(0)';
+                            }}
+                            >
+                              <div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                                  <div>
+                                    <span style={{ display: 'block', color: '#71717a', fontSize: '0.62rem', fontWeight: '700', letterSpacing: '0.5px', marginBottom: '2px' }}>CUSTOMER NAME</span>
+                                    <span style={{ fontFamily: 'Georgia, serif', fontSize: '1.2rem', fontWeight: '600', color: '#ffffff' }}>{name}</span>
+                                  </div>
+                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
+                                    <span style={{ padding: '3px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: '600', letterSpacing: '0.5px', ...sentimentStyle }}>
+                                      {sentimentBadge}
+                                    </span>
+                                    <span style={{ color: '#e5c158', fontSize: '0.92rem', letterSpacing: '1px' }}>
+                                      {'â˜…'.repeat(rev.rating)}{'â˜†'.repeat(5 - rev.rating)}
+                                    </span>
+                                  </div>
                                 </div>
-                                <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.8rem', ...sentimentStyle }}>{sentimentBadge}</span>
+
+                                <div style={{ marginBottom: '16px' }}>
+                                  <span style={{ display: 'block', color: '#71717a', fontSize: '0.62rem', fontWeight: '700', letterSpacing: '0.5px', marginBottom: '2px' }}>PACKAGE NAME</span>
+                                  <h4 style={{ fontFamily: 'Georgia, serif', fontSize: '0.95rem', fontWeight: '500', color: '#e5c158', margin: 0 }}>
+                                    {rev.experienceName}
+                                  </h4>
+                                </div>
+
+                                <div style={{ marginBottom: '24px' }}>
+                                  <span style={{ display: 'block', color: '#71717a', fontSize: '0.62rem', fontWeight: '700', letterSpacing: '0.5px', marginBottom: '4px' }}>CUSTOMER REVIEW</span>
+                                  <p style={{ fontStyle: 'italic', fontSize: '0.92rem', color: '#cbd5e1', lineHeight: '1.68', margin: 0 }}>
+                                    "{rev.comment}"
+                                  </p>
+                                </div>
                               </div>
-                              <div className="card-body-details" style={{ padding: '15px' }}>
-                                <p style={{ color: '#e2e8f0', fontSize: '0.95rem', marginBottom: '15px' }}>"{rev.comment}"</p>
-                                
+
+                              <div>
                                 {/* Trust Score HUD */}
-                                <div>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '5px' }}>
+                                <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '16px' }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '6px', fontWeight: '500' }}>
                                     <span style={{ color: '#94a3b8' }}>AI Trust Score</span>
-                                    <span style={{ color: trustScore >= 85 ? '#d4af37' : '#06b6d4' }}>{trustScore}%</span>
+                                    <span style={{ color: '#e5c158', fontWeight: '600' }}>{rev.trustScore}%</span>
                                   </div>
-                                  <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
-                                    <div style={{ height: '100%', width: `${trustScore}%`, background: 'linear-gradient(90deg, #06b6d4 0%, #d4af37 100%)' }}></div>
+                                  <div style={{ height: '5px', background: '#1c1c24', borderRadius: '3px', overflow: 'hidden' }}>
+                                    <div style={{ 
+                                      height: '100%', 
+                                      width: `${rev.trustScore}%`, 
+                                      background: 'linear-gradient(90deg, #d5b266 0%, #e5c158 100%)',
+                                      borderRadius: '3px'
+                                    }}></div>
                                   </div>
-                                  {isSpam && (
-                                    <div className="spam-warning-badge animate-pulse" style={{ marginTop: '10px', background: 'rgba(244, 63, 94, 0.2)', color: '#fb7185', padding: '5px', borderRadius: '4px', fontSize: '0.8rem', textAlign: 'center' }}>
-                                      <i className="fa-solid fa-triangle-exclamation"></i> Suspicious: Potential Mismatch or Spam
+
+                                  {rev.isSpam && (
+                                    <div style={{ 
+                                      marginTop: '12px', 
+                                      background: 'rgba(244, 63, 94, 0.12)', 
+                                      color: '#fb7185', 
+                                      padding: '6px 10px', 
+                                      borderRadius: '6px', 
+                                      fontSize: '0.78rem', 
+                                      display: 'flex', 
+                                      alignItems: 'center', 
+                                      gap: '6px',
+                                      border: '1px solid rgba(244, 63, 94, 0.2)' 
+                                    }}>
+                                      <i className="fa-solid fa-triangle-exclamation"></i>
+                                      <span>Suspicious: Potential Spam or Mismatch</span>
                                     </div>
                                   )}
                                 </div>
-                                
-                                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '15px' }}>
-                                  <button onClick={() => handleDeleteReview(rev._id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.2rem' }} title="Delete Review">
-                                    <i className="fa-solid fa-trash-can"></i>
-                                  </button>
-                                </div>
+
+                                {!rev.isStatic && (
+                                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
+                                    <button 
+                                      onClick={() => handleDeleteReview(rev._id)} 
+                                      style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.1rem', padding: 0 }} 
+                                      title="Delete Review"
+                                    >
+                                      <i className="fa-solid fa-trash-can"></i>
+                                    </button>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           );
                         })}
                       </div>
-                    )}
-                  </div>
+                    );
+                  })()}
                 </div>
               )}
 

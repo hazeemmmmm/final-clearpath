@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { getIntelligenceDashboard } from '../../utils/api'; 
-import './AdminDashboard.css';
 
 const AdminIntelligence = () => {
   const [data, setData] = useState({ demandAlerts: [], fraudAlerts: [], trustScores: [] });
@@ -43,279 +42,883 @@ const AdminIntelligence = () => {
 
   if (loading) {
     return (
-      <div className="tw-min-h-[60vh] tw-flex tw-flex-col tw-items-center tw-justify-center">
-        <div className="tw-relative tw-w-20 tw-h-20 tw-mb-5">
-          <i className="fa-solid fa-brain fa-3x tw-text-[#73749B] dark:tw-text-[#8E6B92] tw-absolute tw-top-1/2 tw-left-1/2 -tw-translate-x-1/2 -tw-translate-y-1/2 tw-z-10"></i>
-          <div className="tw-absolute tw-inset-0 tw-border-4 tw-border-[#73749B]/30 dark:tw-border-[#8E6B92]/30 tw-border-t-[#73749B] dark:tw-border-t-[#8E6B92] tw-rounded-full tw-animate-spin"></div>
+      <div className="intel-loading-screen">
+        <div className="intel-spinner-container">
+          <i className="fa-solid fa-brain fa-3x intel-brain-icon"></i>
+          <div className="intel-spinner"></div>
         </div>
-        <h3 className="tw-text-slate-900 dark:tw-text-[var(--text-main)] tw-font-bold">Initializing Neural Engine...</h3>
-        <p className="tw-text-slate-500 dark:tw-text-[var(--text-muted)]">Running diagnostic algorithms and processing real-time metrics.</p>
+        <h3>Initializing Neural Engine...</h3>
+        <p>Running diagnostic algorithms and processing real-time metrics.</p>
+        <style>{`
+          .intel-loading-screen {
+            background-color: #0b0b0e;
+            color: #ffffff;
+            min-height: 70vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Poppins', sans-serif;
+          }
+          .intel-spinner-container {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+          }
+          .intel-brain-icon {
+            color: #d5b266;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+          }
+          .intel-spinner {
+            position: absolute;
+            inset: 0;
+            border: 4px solid rgba(213, 178, 102, 0.1);
+            border-top: 4px solid #d5b266;
+            border-radius: 50%;
+            animation: intel-spin 1.2s linear infinite;
+          }
+          .intel-loading-screen h3 {
+            margin: 10px 0;
+            font-weight: 600;
+            color: #ffffff;
+          }
+          .intel-loading-screen p {
+            color: #71717a;
+            font-size: 0.9rem;
+          }
+          @keyframes intel-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
       </div>
     );
   }
 
   if (error) {
-    return <div className="tw-m-5 tw-p-5 tw-rounded-xl tw-bg-red-50 dark:tw-bg-red-900/20 tw-border tw-border-red-200 dark:tw-border-red-800 tw-text-red-700 dark:tw-text-red-400">{error}</div>;
+    return (
+      <div className="intel-error-container">
+        <i className="fa-solid fa-circle-exclamation fa-2x"></i>
+        <span>{error}</span>
+        <style>{`
+          .intel-error-container {
+            margin: 20px;
+            padding: 20px;
+            border-radius: 12px;
+            background-color: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-family: 'Poppins', sans-serif;
+          }
+        `}</style>
+      </div>
+    );
   }
 
   return (
-    <div className="tw-p-4 md:tw-p-8 tw-bg-[#f8fafc] dark:tw-bg-[var(--bg-darker)] tw-min-h-screen tw-font-sans tw-relative tw-transition-colors">
-      
-      {/* Interactive Toast Notification */}
+    <div className="intel-dashboard-theme">
+      {/* Toast Notification */}
       {toast && (
-        <div className="tw-fixed tw-top-5 tw-right-5 tw-bg-[#73749B] dark:tw-bg-[#8E6B92] tw-text-white tw-px-6 tw-py-4 tw-rounded-lg tw-shadow-lg tw-z-50 tw-flex tw-items-center tw-gap-3 tw-animate-slide-in">
+        <div className="intel-toast">
           <i className="fa-solid fa-circle-check"></i>
-          <strong className="tw-text-sm">{toast}</strong>
+          <span>{toast}</span>
         </div>
       )}
 
-      {/* Header */}
-      <div className="tw-flex tw-justify-between tw-items-end tw-mb-10 tw-pb-5 tw-border-b tw-border-slate-200 dark:tw-border-[var(--border-light)]">
-        <div>
-          <div className="tw-inline-flex tw-items-center tw-gap-2 tw-bg-[#73749B]/10 dark:tw-bg-[#8E6B92]/10 tw-px-4 tw-py-1.5 tw-rounded-full tw-text-[#73749B] dark:tw-text-[#8E6B92] tw-font-bold tw-text-sm tw-mb-4">
-            <span className="tw-w-2 tw-h-2 tw-bg-[#73749B] dark:tw-bg-[#8E6B92] tw-rounded-full tw-shadow-[0_0_10px_#8E6B92] tw-animate-pulse"></span>
-            AI Engine Online
+      {/* Top Header Section */}
+      <div className="intel-header">
+        <div className="intel-header-left">
+          <div className="intel-title-icon-box">
+            <i className="fa-solid fa-chart-line"></i>
           </div>
-          <h2 className="tw-text-3xl md:tw-text-4xl tw-font-extrabold tw-text-slate-900 dark:tw-text-[var(--text-main)] tw-mb-2 tw-tracking-tight">Intelligence Hub</h2>
-          <p className="tw-text-slate-600 dark:tw-text-[var(--text-muted)] tw-text-lg tw-m-0 tw-max-w-2xl">
-            Advanced behavioral analytics, demand forecasting, and real-time security monitoring powered by ClearPath AI.
-          </p>
+          <div className="intel-title-texts">
+            <div className="intel-title-row">
+              <h2>AI Demand Forecasting</h2>
+              <span className="intel-pill-badge">Q3 2026 PROJECTIONS</span>
+            </div>
+            <span className="intel-subtitle">STRATEGIC PREDICTIVE ANALYSIS</span>
+          </div>
         </div>
-        <div className="tw-text-right">
-          <p className="tw-text-sm tw-text-slate-400 dark:tw-text-[var(--text-dim)] tw-mb-1">Last Sync</p>
-          <strong className="tw-text-slate-900 dark:tw-text-[var(--text-main)] tw-font-mono tw-text-lg">{new Date().toLocaleTimeString()}</strong>
+        
+        <div className="intel-header-right">
+          <div className="intel-icon-btn">
+            <i className="fa-regular fa-bell"></i>
+            <span className="intel-badge-dot"></span>
+          </div>
+          <div className="intel-icon-btn">
+            <i className="fa-solid fa-sliders"></i>
+          </div>
+          <div className="intel-user-badge">
+            <span>Manage Account</span>
+            <img 
+              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150" 
+              alt="User profile" 
+              className="intel-user-avatar"
+            />
+          </div>
         </div>
       </div>
 
-      <div className="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-8">
+      {/* Description */}
+      <p className="intel-description">
+        Predictive analysis engine combining historical booking data, wishlist velocity trends, and real-time page views to forecast destination demand for the upcoming luxury season.
+      </p>
+
+      {/* Core Grid System */}
+      <div className="intel-grid-container">
         
-        {/* 1. Demand Forecasting (AI-Powered) */}
-        <div className="tw-col-span-1 md:tw-col-span-2 tw-bg-white dark:tw-bg-[var(--bg-card)] tw-rounded-2xl tw-p-8 tw-shadow-sm dark:tw-shadow-none tw-border tw-border-slate-200 dark:tw-border-[var(--border-light)] tw-relative tw-overflow-hidden">
-          <div className="tw-absolute tw-top-0 tw-left-0 tw-w-full tw-h-1.5 tw-bg-gradient-to-r tw-from-[#73749B] tw-to-[#8E6B92]"></div>
-          
-          <div className="tw-flex tw-justify-between tw-items-start tw-mb-8">
-            <div>
-              <h3 className="tw-text-xl tw-font-bold tw-text-slate-900 dark:tw-text-[var(--text-main)] tw-flex tw-items-center tw-gap-3 tw-mb-2">
-                <div className="tw-w-11 tw-h-11 tw-rounded-xl tw-bg-gradient-to-br tw-from-[#73749B]/20 tw-to-[#8E6B92]/10 tw-flex tw-items-center tw-justify-center tw-text-[#73749B] dark:tw-text-[#8E6B92]">
-                  <i className="fa-solid fa-chart-area tw-text-lg"></i>
-                </div>
-                AI Demand Forecasting
-                <span className="tw-text-xs tw-bg-[#8E6B92] tw-text-white tw-px-3 tw-py-1 tw-rounded-full tw-uppercase tw-tracking-widest">Q3 2026 Projections</span>
-              </h3>
-              <p className="tw-text-slate-600 dark:tw-text-[var(--text-muted)] tw-text-sm">Predictive analysis combining historical bookings, wishlist trends, and page views.</p>
+        {/* Left Side: Projected Booking Volume Graph */}
+        <div className="intel-card intel-chart-card">
+          <div className="intel-card-header">
+            <div className="intel-card-header-left">
+              <h3>Projected Booking Volume</h3>
+              <span className="intel-card-subtitle">SUMMER SEASON (MAY – AUGUST 2026)</span>
+            </div>
+            <div className="intel-chart-legend">
+              <div className="intel-legend-item">
+                <span className="legend-dot dot-gray"></span>
+                <span>Base Trend</span>
+              </div>
+              <div className="intel-legend-item">
+                <span className="legend-dot dot-gold"></span>
+                <span>AI Projected Surge</span>
+              </div>
             </div>
           </div>
 
-          <div className="tw-flex tw-flex-wrap tw-gap-8">
-            {/* SVG Chart Area */}
-            <div className="tw-flex-1 tw-min-w-[400px] tw-bg-slate-50 dark:tw-bg-[#101017] tw-rounded-2xl tw-p-6 tw-relative tw-border tw-border-slate-200 dark:tw-border-[var(--border-light)]">
-              <h4 className="tw-m-0 tw-mb-6 tw-text-slate-800 dark:tw-text-[var(--text-main)] tw-text-lg tw-font-semibold">Projected Booking Volume (Summer 2026)</h4>
-              <div className="tw-relative tw-w-full tw-h-[220px]">
-                <svg viewBox="0 0 500 220" className="tw-w-full tw-h-full tw-overflow-visible">
-                  <defs>
-                    <linearGradient id="purpleGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#8E6B92" stopOpacity="0.4" />
-                      <stop offset="100%" stopColor="#8E6B92" stopOpacity="0.0" />
-                    </linearGradient>
-                    <linearGradient id="indigoGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#73749B" stopOpacity="0.4" />
-                      <stop offset="100%" stopColor="#73749B" stopOpacity="0.0" />
-                    </linearGradient>
-                  </defs>
-                  
-                  {/* Grid Lines */}
-                  {[0, 50, 100, 150].map((y) => (
-                    <g key={y}>
-                      <line x1="40" y1={y} x2="480" y2={y} stroke="currentColor" strokeOpacity="0.1" className="tw-text-slate-400 dark:tw-text-white" strokeDasharray="4 4" />
-                      <text x="30" y={y + 4} fill="currentColor" className="tw-text-slate-400 dark:tw-text-[var(--text-dim)]" fontSize="10" textAnchor="end">{(150 - y) * 2}</text>
-                    </g>
-                  ))}
-                  
-                  {/* Base Data (Indigo) */}
-                  <path d="M 50 150 L 50 120 C 150 100, 250 140, 350 80 C 420 50, 480 30, 480 30 L 480 150 Z" fill="url(#indigoGrad)" className="tw-transition-all tw-duration-500" />
-                  <path d="M 50 120 C 150 100, 250 140, 350 80 C 420 50, 480 30, 480 30" fill="none" stroke="#73749B" strokeWidth="3" />
-                  
-                  {/* Forecast Data (Purple) */}
-                  <path d="M 50 150 L 50 100 C 150 60, 250 110, 350 40 C 420 10, 480 0, 480 0 L 480 150 Z" fill="url(#purpleGrad)" className="tw-transition-all tw-duration-500 hover:tw-opacity-80 tw-cursor-crosshair" />
-                  <path d="M 50 100 C 150 60, 250 110, 350 40 C 420 10, 480 0, 480 0" fill="none" stroke="#8E6B92" strokeWidth="4" strokeDasharray="8 4" />
-                  
-                  {/* X-Axis Labels */}
-                  <text x="50" y="170" fill="currentColor" className="tw-text-slate-500 dark:tw-text-[var(--text-muted)]" fontSize="12" fontWeight="bold">May (Actual)</text>
-                  <text x="190" y="170" fill="currentColor" className="tw-text-slate-500 dark:tw-text-[var(--text-muted)]" fontSize="12" fontWeight="bold">June 2026</text>
-                  <text x="330" y="170" fill="currentColor" className="tw-text-slate-500 dark:tw-text-[var(--text-muted)]" fontSize="12" fontWeight="bold">July 2026</text>
-                  <text x="460" y="170" fill="currentColor" className="tw-text-slate-500 dark:tw-text-[var(--text-muted)]" fontSize="12" fontWeight="bold">August 2026</text>
-
-                  {/* Interactive Points */}
-                  <circle cx="190" cy="85" r="6" fill="currentColor" className="tw-text-white dark:tw-text-[var(--bg-card)]" stroke="#8E6B92" strokeWidth="3" />
-                  <circle cx="330" cy="60" r="6" fill="currentColor" className="tw-text-white dark:tw-text-[var(--bg-card)]" stroke="#8E6B92" strokeWidth="3" />
-                  <circle cx="480" cy="0" r="6" fill="currentColor" className="tw-text-white dark:tw-text-[var(--bg-card)]" stroke="#8E6B92" strokeWidth="3" />
-                </svg>
-              </div>
-              <div className="tw-flex tw-gap-5 tw-mt-4 tw-justify-center">
-                <div className="tw-flex tw-items-center tw-gap-2 tw-text-sm tw-text-slate-600 dark:tw-text-[var(--text-muted)]">
-                  <div className="tw-w-3 tw-h-3 tw-rounded-sm tw-bg-[#73749B]"></div> Base Trend
-                </div>
-                <div className="tw-flex tw-items-center tw-gap-2 tw-text-sm tw-text-slate-600 dark:tw-text-[var(--text-muted)]">
-                  <div className="tw-w-3 tw-h-3 tw-rounded-sm tw-bg-[#8E6B92]"></div> AI Projected Surge
-                </div>
-              </div>
-            </div>
-
-            {/* Smart Recommendations */}
-            <div className="tw-flex-1 tw-min-w-[300px] tw-flex tw-flex-col tw-gap-4">
-              <h4 className="tw-m-0 tw-text-slate-900 dark:tw-text-[var(--text-main)] tw-text-lg tw-flex tw-items-center tw-gap-2">
-                <i className="fa-solid fa-wand-magic-sparkles tw-text-[#8E6B92]"></i> Automated Actions
-              </h4>
+          {/* SVG Vector Chart Area */}
+          <div className="intel-svg-wrapper">
+            <svg viewBox="0 0 520 220" className="intel-svg-chart">
+              <defs>
+                <linearGradient id="intelGoldGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#d5b266" stopOpacity="0.25" />
+                  <stop offset="100%" stopColor="#d5b266" stopOpacity="0.0" />
+                </linearGradient>
+              </defs>
               
-              {data.demandAlerts.map((alert, idx) => {
-                const isWarning = alert.type === "High Demand";
-                const colorClassBg = isWarning ? "tw-bg-[#73749B]" : "tw-bg-[#8E6B92]";
-                const colorClassBorder = isWarning ? "tw-border-[#73749B]/20 tw-border-l-[#73749B]" : "tw-border-[#8E6B92]/20 tw-border-l-[#8E6B92]";
-                const colorClassGrad = isWarning ? "tw-from-[#73749B]/5" : "tw-from-[#8E6B92]/5";
-                
-                return (
-                  <div key={idx} className={`tw-p-5 tw-rounded-xl tw-bg-gradient-to-r ${colorClassGrad} tw-to-transparent tw-border tw-border-slate-200 dark:tw-border-[var(--border-light)] tw-border-l-4 ${colorClassBorder}`}>
-                    <div className="tw-flex tw-justify-between tw-mb-2">
-                      <strong className="tw-text-slate-900 dark:tw-text-[var(--text-main)] tw-text-base">{alert.experienceName}</strong>
-                      <span className={`tw-text-xs tw-font-bold tw-text-white ${isWarning ? 'tw-bg-[#73749B]' : 'tw-bg-[#8E6B92]'} tw-px-2 tw-py-0.5 tw-rounded-full`}>{alert.type}</span>
-                    </div>
-                    <p className="tw-text-sm tw-text-slate-600 dark:tw-text-[var(--text-muted)] tw-mb-4 tw-leading-relaxed">{alert.message}</p>
+              {/* Horizontal grid guide lines */}
+              <line x1="10" y1="160" x2="510" y2="160" stroke="#1f1f2a" strokeWidth="1" strokeDasharray="3 3" />
+              <line x1="10" y1="110" x2="510" y2="110" stroke="#1f1f2a" strokeWidth="1" strokeDasharray="3 3" />
+              <line x1="10" y1="60" x2="510" y2="60" stroke="#1f1f2a" strokeWidth="1" strokeDasharray="3 3" />
+              
+              {/* Base Trend Line (Champagne Gold Dotted) */}
+              <path d="M 30 160 Q 150 145, 270 135 T 490 120" fill="none" stroke="#d5b266" strokeWidth="2" strokeDasharray="4 4" opacity="0.4" />
+              
+              {/* AI Surge Gradient Area */}
+              <path d="M 30 160 Q 150 140, 270 115 T 490 30 L 490 200 L 30 200 Z" fill="url(#intelGoldGrad)" />
+              
+              {/* AI Surge Solid Line */}
+              <path d="M 30 160 Q 150 140, 270 115 T 490 30" fill="none" stroke="#d5b266" strokeWidth="3" />
+
+              {/* Data points */}
+              <circle cx="270" cy="115" r="5" fill="#0d0d10" stroke="#d5b266" strokeWidth="3" />
+              <circle cx="490" cy="30" r="5" fill="#d5b266" stroke="#d5b266" strokeWidth="2" />
+              
+              {/* X-Axis Labels */}
+              <text x="30" y="200" fill="#71717a" className="intel-axis-text" textAnchor="middle">MAY (ACTUAL)</text>
+              <text x="175" y="200" fill="#71717a" className="intel-axis-text" textAnchor="middle">JUNE 2026</text>
+              <text x="325" y="200" fill="#71717a" className="intel-axis-text" textAnchor="middle">JULY 2026</text>
+              <text x="475" y="200" fill="#71717a" className="intel-axis-text" textAnchor="middle">AUGUST 2026</text>
+            </svg>
+          </div>
+        </div>
+
+        {/* Right Side: Automated Actions List */}
+        <div className="intel-card intel-actions-card">
+          <h3 className="intel-actions-header">
+            <i className="fa-solid fa-wand-magic-sparkles"></i> AUTOMATED ACTIONS
+          </h3>
+          
+          <div className="intel-actions-list">
+            {data.demandAlerts.map((alert, idx) => {
+              const isWarning = alert.type === "High Demand";
+              const badgeClass = isWarning ? "intel-badge-warning" : "intel-badge-opportunity";
+              
+              return (
+                <div key={idx} className="intel-action-item">
+                  <div className="intel-item-title-row">
+                    <h4>{alert.experienceName.replace(" (Simulated)", "")}</h4>
+                    <span className={`intel-status-badge ${badgeClass}`}>
+                      {isWarning ? "HIGH DEMAND" : "CONVERSION DROP"}
+                    </span>
+                  </div>
+                  <p className="intel-item-desc">{alert.message}</p>
+                  
+                  {isWarning ? (
                     <button 
                       onClick={() => handleAction(alert.experienceId, 'demand', `Action performed for ${alert.experienceName}`)}
                       disabled={processing === alert.experienceId}
-                      className={`tw-w-full tw-flex tw-justify-center tw-items-center tw-gap-2 ${colorClassBg} tw-text-white tw-font-bold tw-py-2.5 tw-px-4 tw-rounded-lg tw-transition-all tw-duration-200 hover:-tw-translate-y-0.5 hover:tw-shadow-lg disabled:tw-opacity-70 disabled:tw-cursor-not-allowed`}
+                      className="intel-btn-solid"
                     >
-                      {processing === alert.experienceId ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className={`fa-solid ${isWarning ? 'fa-user-plus' : 'fa-percent'}`}></i>} {alert.actionRecommended}
+                      {processing === alert.experienceId ? (
+                        <i className="fa-solid fa-circle-notch fa-spin"></i>
+                      ) : (
+                        <i className="fa-solid fa-user-plus"></i>
+                      )}
+                      <span>{alert.actionRecommended}</span>
                     </button>
-                  </div>
-                );
-              })}
-
-            </div>
-          </div>
-        </div>
-
-        {/* 2. Fraud & Scam Risk */}
-        <div className="tw-col-span-1 tw-bg-white dark:tw-bg-[var(--bg-card)] tw-rounded-2xl tw-p-8 tw-shadow-sm dark:tw-shadow-none tw-border tw-border-slate-200 dark:tw-border-[var(--border-light)] tw-relative tw-overflow-hidden">
-          <div className="tw-absolute tw-top-0 tw-left-0 tw-w-full tw-h-1.5 tw-bg-gradient-to-r tw-from-red-500 tw-to-red-400"></div>
-          <div className="tw-flex tw-justify-between tw-items-start tw-mb-8">
-            <div>
-              <h3 className="tw-text-xl tw-font-bold tw-text-slate-900 dark:tw-text-[var(--text-main)] tw-flex tw-items-center tw-gap-3 tw-mb-2">
-                <div className="tw-w-10 tw-h-10 tw-rounded-lg tw-bg-red-500/10 tw-flex tw-items-center tw-justify-center tw-text-red-500">
-                  <i className="fa-solid fa-shield-virus"></i>
-                </div>
-                Fraud & Scam Detection
-              </h3>
-              <p className="tw-text-slate-600 dark:tw-text-[var(--text-muted)] tw-text-sm tw-m-0">Behavioral anomaly and risk monitoring.</p>
-            </div>
-            <div className={`tw-px-3 tw-py-1 tw-rounded-full tw-text-xs tw-font-bold ${data.fraudAlerts.length > 0 ? 'tw-bg-red-500/10 tw-text-red-500' : 'tw-bg-[#73749B]/10 tw-text-[#73749B]'}`}>
-              {data.fraudAlerts.length > 0 ? `${data.fraudAlerts.length} Threats` : 'Secure'}
-            </div>
-          </div>
-          
-          <div>
-            {data.fraudAlerts.length === 0 ? (
-              <div className="tw-text-center tw-py-8 tw-text-slate-400 dark:tw-text-[var(--text-dim)]">
-                <i className="fa-solid fa-shield-check fa-3x tw-text-[#73749B] tw-mb-4"></i>
-                <p>System integrity is at 100%. No malicious patterns detected.</p>
-              </div>
-            ) : (
-              <div className="tw-flex tw-flex-col tw-gap-4">
-                {data.fraudAlerts.map((alert, idx) => (
-                  <div key={idx} className="tw-p-5 tw-rounded-xl tw-bg-gradient-to-r tw-from-red-500/5 tw-to-transparent tw-border tw-border-red-500/10 tw-border-l-4 tw-border-l-red-500">
-                    <div className="tw-flex tw-justify-between tw-mb-2">
-                      <strong className="tw-text-slate-900 dark:tw-text-[var(--text-main)] tw-text-base tw-flex tw-items-center tw-gap-2">
-                        <i className="fa-solid fa-user-slash tw-text-red-500"></i> {alert.userName}
-                      </strong>
-                      <span className="tw-text-xs tw-font-bold tw-text-white tw-bg-red-500 tw-px-2 tw-py-0.5 tw-rounded-full tw-uppercase tw-tracking-widest">{alert.severity} RISK</span>
-                    </div>
-                    <p className="tw-text-sm tw-text-slate-600 dark:tw-text-[var(--text-muted)] tw-mb-4 tw-leading-relaxed">{alert.message}</p>
+                  ) : (
                     <button 
-                      onClick={() => handleAction(alert.userId, 'fraud', `${alert.userName} Account Suspended`)}
-                      disabled={processing === alert.userId}
-                      className="tw-w-full tw-flex tw-justify-center tw-items-center tw-gap-2 tw-bg-slate-900 dark:tw-bg-[var(--bg-darker)] dark:tw-border dark:tw-border-[var(--border-light)] tw-text-white tw-font-bold tw-py-2.5 tw-px-4 tw-rounded-lg tw-transition-all tw-duration-200 hover:tw-opacity-90 disabled:tw-opacity-70 disabled:tw-cursor-not-allowed"
+                      onClick={() => handleAction(alert.experienceId, 'demand', `Action performed for ${alert.experienceName}`)}
+                      disabled={processing === alert.experienceId}
+                      className="intel-btn-outline"
                     >
-                      {processing === alert.userId ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-solid fa-gavel"></i>} {alert.actionRecommended}
+                      {processing === alert.experienceId ? (
+                        <i className="fa-solid fa-circle-notch fa-spin"></i>
+                      ) : (
+                        <span className="intel-btn-symbol">%</span>
+                      )}
+                      <span>{alert.actionRecommended}</span>
                     </button>
-                  </div>
-                ))}
-              </div>
-            )}
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* 3. Trust Scoring */}
-        <div className="tw-col-span-1 tw-bg-white dark:tw-bg-[var(--bg-card)] tw-rounded-2xl tw-p-8 tw-shadow-sm dark:tw-shadow-none tw-border tw-border-slate-200 dark:tw-border-[var(--border-light)] tw-relative tw-overflow-hidden">
-          <div className="tw-absolute tw-top-0 tw-left-0 tw-w-full tw-h-1.5 tw-bg-gradient-to-r tw-from-[#73749B] tw-to-[#8E6B92]"></div>
-          <div className="tw-flex tw-justify-between tw-items-start tw-mb-8">
-            <div>
-              <h3 className="tw-text-xl tw-font-bold tw-text-slate-900 dark:tw-text-[var(--text-main)] tw-flex tw-items-center tw-gap-3 tw-mb-2">
-                <div className="tw-w-10 tw-h-10 tw-rounded-lg tw-bg-[#73749B]/10 tw-flex tw-items-center tw-justify-center tw-text-[#73749B]">
-                  <i className="fa-solid fa-star-half-stroke"></i>
+        {/* Bottom Left Card: Fraud & Scam Risk */}
+        <div className="intel-card intel-half-card">
+          <div className="intel-card-header">
+            <div className="intel-card-title-block">
+              <div className="intel-card-icon-box box-red">
+                <i className="fa-solid fa-shield-virus"></i>
+              </div>
+              <div className="intel-card-header-texts">
+                <h3>Fraud & Scam Detection</h3>
+                <span className="intel-card-subtitle">Behavioral anomaly and risk monitoring.</span>
+              </div>
+            </div>
+            <span className="intel-threat-pill">1 THREAT DETECTED</span>
+          </div>
+
+          <div className="intel-threats-list">
+            {data.fraudAlerts.map((alert, idx) => (
+              <div key={idx} className="intel-threat-item">
+                <div className="intel-threat-header-row">
+                  <span className="intel-threat-name">
+                    <i className="fa-solid fa-user-slash"></i> {alert.userName.replace(" (Simulated Alert)", "")}
+                  </span>
+                  <span className="intel-risk-badge">HIGH RISK</span>
                 </div>
-                Provider Trust Matrix
-              </h3>
-              <p className="tw-text-slate-600 dark:tw-text-[var(--text-muted)] tw-text-sm tw-m-0">Automated quality assurance and rating index.</p>
+                <p className="intel-threat-desc">{alert.message}</p>
+                <button 
+                  onClick={() => handleAction(alert.userId, 'fraud', `${alert.userName} Account Suspended`)}
+                  disabled={processing === alert.userId}
+                  className="intel-btn-dark"
+                >
+                  {processing === alert.userId ? (
+                    <i className="fa-solid fa-circle-notch fa-spin"></i>
+                  ) : (
+                    <i className="fa-solid fa-gavel"></i>
+                  )}
+                  <span>{alert.actionRecommended}</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom Right Card: Provider Trust Matrix */}
+        <div className="intel-card intel-half-card">
+          <div className="intel-card-title-block">
+            <div className="intel-card-icon-box box-gold">
+              <i className="fa-solid fa-star-half-stroke"></i>
+            </div>
+            <div className="intel-card-header-texts">
+              <h3>Provider Trust Matrix</h3>
+              <span className="intel-card-subtitle">Automated quality assurance rating index.</span>
             </div>
           </div>
-          
-          <div className="tw-flex tw-flex-col tw-gap-4">
-            {data.trustScores.length === 0 ? (
-              <p className="tw-text-slate-400 dark:tw-text-[var(--text-dim)] tw-text-center tw-w-full">Awaiting provider reviews to generate matrices.</p>
-            ) : (
-              data.trustScores.map((provider, idx) => {
-                const isPremium = provider.trustScore >= 80;
-                const isVerified = provider.trustScore >= 60 && provider.trustScore < 80;
-                
-                let strokeClass = 'tw-text-red-500';
-                let bgClass = 'tw-bg-red-50 dark:tw-bg-red-500/10';
-                
-                if (isPremium) {
-                  strokeClass = 'tw-text-[#73749B]';
-                  bgClass = 'tw-bg-[#73749B]/10';
-                } else if (isVerified) {
-                  strokeClass = 'tw-text-[#8E6B92]';
-                  bgClass = 'tw-bg-[#8E6B92]/10';
-                }
-                
-                return (
-                  <div key={idx} className={`tw-p-5 tw-rounded-xl tw-bg-slate-50 dark:tw-bg-[#101017] tw-border tw-border-slate-200 dark:tw-border-[var(--border-light)] tw-flex tw-items-center tw-justify-between tw-transition-transform tw-duration-200 hover:-tw-translate-y-1 tw-cursor-pointer`}>
-                    <div className="tw-flex tw-items-center tw-gap-4">
-                      <div className="tw-w-11 tw-h-11 tw-rounded-full tw-bg-slate-900 dark:tw-bg-[var(--bg-darker)] tw-text-white tw-flex tw-items-center tw-justify-center tw-font-bold">
-                        {provider.providerName.substring(0,2).toUpperCase()}
-                      </div>
-                      <div>
-                        <strong className="tw-block tw-text-slate-900 dark:tw-text-[var(--text-main)] tw-text-base tw-mb-1">{provider.providerName}</strong>
-                        <span className={`tw-text-xs tw-font-bold ${strokeClass} ${bgClass} tw-px-2.5 tw-py-0.5 tw-rounded-full`}>
-                          {isPremium && <i className="fa-solid fa-crown tw-mr-1"></i>}
-                          {provider.tier}
-                        </span>
-                      </div>
+
+          <div className="intel-providers-list">
+            {data.trustScores.map((provider, idx) => {
+              const isPremium = provider.trustScore >= 80;
+              const initials = provider.providerName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+              
+              return (
+                <div key={idx} className="intel-provider-row">
+                  <div className="intel-provider-left">
+                    <div className={`intel-provider-avatar-badge ${isPremium ? 'avatar-gold' : 'avatar-red'}`}>
+                      {initials}
                     </div>
-                    
-                    {/* Circular Progress Gauge */}
-                    <div className="tw-relative tw-w-14 tw-h-14">
-                      <svg viewBox="0 0 36 36" className="tw-w-full tw-h-full">
-                        <path stroke="currentColor" strokeOpacity="0.1" className="tw-text-slate-500 dark:tw-text-white" strokeWidth="3" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                        <path stroke="currentColor" className={strokeClass} strokeWidth="3" strokeDasharray={`${provider.trustScore}, 100`} strokeLinecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" style={{ animation: 'dash 1.5s ease-out forwards' }} />
-                      </svg>
-                      <div className="tw-absolute tw-top-1/2 tw-left-1/2 -tw-translate-x-1/2 -tw-translate-y-1/2 tw-font-bold tw-text-slate-900 dark:tw-text-[var(--text-main)]">
-                        {provider.trustScore}
-                      </div>
+                    <div className="intel-provider-meta">
+                      <h4>{provider.providerName}</h4>
+                      <span className={`intel-tier-text ${isPremium ? 'text-gold' : 'text-red'}`}>
+                        {isPremium && <i className="fa-solid fa-crown"></i>} {provider.tier.toUpperCase()}
+                      </span>
                     </div>
                   </div>
-                );
-              })
-            )}
+
+                  {/* Circular SVG Progress Gauge */}
+                  <div className="intel-gauge-wrapper">
+                    <svg viewBox="0 0 36 36" className="intel-gauge-svg">
+                      <path 
+                        className="intel-gauge-bg" 
+                        strokeWidth="3" 
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" 
+                      />
+                      <path 
+                        className={`intel-gauge-value ${isPremium ? 'gauge-gold' : 'gauge-red'}`}
+                        strokeWidth="3" 
+                        strokeDasharray={`${provider.trustScore}, 100`} 
+                        strokeLinecap="round" 
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" 
+                      />
+                    </svg>
+                    <div className="intel-gauge-text">{provider.trustScore}</div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
       </div>
-      
+
+      {/* Styled Isolation Block */}
       <style>{`
-        @keyframes dash { 0% { stroke-dasharray: 0, 100; } }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .tw-animate-slide-in { animation: slideIn 0.3s ease-out forwards; }
+        .intel-dashboard-theme {
+          background-color: #0c0c0f;
+          color: #ffffff;
+          font-family: 'Poppins', 'Inter', sans-serif;
+          min-height: 100vh;
+          padding: 24px;
+        }
+
+        /* Toast Styling */
+        .intel-toast {
+          position: fixed;
+          top: 24px;
+          right: 24px;
+          background-color: #d5b266;
+          color: #000000;
+          padding: 12px 24px;
+          border-radius: 8px;
+          box-shadow: 0 10px 25px rgba(213, 178, 102, 0.2);
+          z-index: 9999;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-weight: 600;
+          animation: intel-slide-in 0.3s ease-out forwards;
+        }
+
+        /* Header Layout */
+        .intel-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 24px;
+          border-bottom: 1px solid #1c1c24;
+          padding-bottom: 20px;
+        }
+        .intel-header-left {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+        .intel-title-icon-box {
+          width: 44px;
+          height: 44px;
+          background-color: rgba(213, 178, 102, 0.1);
+          border: 1px solid rgba(213, 178, 102, 0.2);
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #d5b266;
+          font-size: 1.25rem;
+        }
+        .intel-title-texts {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .intel-title-row {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .intel-title-texts h2 {
+          font-size: 1.6rem;
+          font-weight: 700;
+          margin: 0;
+          color: #ffffff;
+        }
+        .intel-pill-badge {
+          font-size: 0.72rem;
+          font-weight: 700;
+          color: #d5b266;
+          border: 1px solid #d5b266;
+          padding: 3px 10px;
+          border-radius: 12px;
+          letter-spacing: 0.5px;
+        }
+        .intel-subtitle {
+          font-size: 0.68rem;
+          font-weight: 700;
+          color: #a1a1aa;
+          letter-spacing: 2px;
+        }
+
+        /* Top controls */
+        .intel-header-right {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+        .intel-icon-btn {
+          width: 40px;
+          height: 40px;
+          border: 1px solid #1c1c24;
+          background-color: #121216;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #a1a1aa;
+          cursor: pointer;
+          position: relative;
+          transition: all 0.2s;
+        }
+        .intel-icon-btn:hover {
+          color: #ffffff;
+          border-color: #d5b266;
+        }
+        .intel-badge-dot {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          width: 6px;
+          height: 6px;
+          background-color: #d5b266;
+          border-radius: 50%;
+        }
+        .intel-user-badge {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          border: 1px solid #1c1c24;
+          background-color: #121216;
+          padding: 4px 6px 4px 16px;
+          border-radius: 20px;
+          font-size: 0.85rem;
+          font-weight: 500;
+          color: #e4e4e7;
+          cursor: pointer;
+        }
+        .intel-user-avatar {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          object-fit: cover;
+        }
+
+        /* Description */
+        .intel-description {
+          color: #94a3b8;
+          font-size: 0.95rem;
+          line-height: 1.6;
+          max-width: 800px;
+          margin: 0 0 32px 0;
+        }
+
+        /* Grid */
+        .intel-grid-container {
+          display: grid;
+          grid-template-columns: 2fr 1fr;
+          gap: 24px;
+        }
+
+        /* Cards Base */
+        .intel-card {
+          background-color: #111115;
+          border: 1px solid #1d1d25;
+          border-radius: 16px;
+          padding: 24px;
+          position: relative;
+        }
+        .intel-card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 24px;
+        }
+        .intel-card-header-left h3 {
+          font-size: 1.25rem;
+          font-weight: 600;
+          margin: 0 0 6px 0;
+          color: #ffffff;
+        }
+        .intel-card-subtitle {
+          font-size: 0.72rem;
+          font-weight: 700;
+          color: #71717a;
+          letter-spacing: 1.5px;
+        }
+
+        /* Legend */
+        .intel-chart-legend {
+          display: flex;
+          gap: 20px;
+        }
+        .intel-legend-item {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 0.85rem;
+          color: #a1a1aa;
+        }
+        .legend-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+        }
+        .dot-gray { background-color: rgba(213, 178, 102, 0.4); }
+        .dot-gold { background-color: #d5b266; }
+
+        /* SVG Graph styling */
+        .intel-svg-wrapper {
+          width: 100%;
+          margin-top: 10px;
+        }
+        .intel-svg-chart {
+          width: 100%;
+          overflow: visible;
+        }
+        .intel-axis-text {
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.5px;
+        }
+
+        /* Action list card */
+        .intel-actions-card {
+          display: flex;
+          flex-direction: column;
+        }
+        .intel-actions-header {
+          font-size: 0.85rem;
+          font-weight: 700;
+          color: #d5b266;
+          letter-spacing: 1.5px;
+          margin: 0 0 24px 0;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .intel-actions-list {
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+        }
+        .intel-action-item {
+          background-color: #16161c;
+          border: 1px solid #20202a;
+          border-radius: 12px;
+          padding: 20px;
+          display: flex;
+          flex-direction: column;
+        }
+        .intel-item-title-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 12px;
+        }
+        .intel-action-item h4 {
+          font-size: 1.05rem;
+          font-weight: 600;
+          margin: 0;
+          color: #ffffff;
+        }
+        .intel-status-badge {
+          font-size: 0.65rem;
+          font-weight: 700;
+          padding: 3px 8px;
+          border-radius: 4px;
+          letter-spacing: 0.5px;
+        }
+        .intel-badge-warning {
+          background-color: rgba(213, 178, 102, 0.12);
+          color: #d5b266;
+          border: 1px solid rgba(213, 178, 102, 0.2);
+        }
+        .intel-badge-opportunity {
+          background-color: rgba(239, 68, 68, 0.12);
+          color: #f87171;
+          border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+        .intel-item-desc {
+          font-size: 0.85rem;
+          color: #94a3b8;
+          line-height: 1.5;
+          margin: 0 0 20px 0;
+        }
+
+        /* Buttons styling */
+        .intel-btn-solid {
+          background-color: #d5b266;
+          color: #000000;
+          border: none;
+          padding: 10px 16px;
+          border-radius: 6px;
+          font-weight: 700;
+          font-size: 0.88rem;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          transition: all 0.2s;
+        }
+        .intel-btn-solid:hover {
+          background-color: #c49e54;
+        }
+        .intel-btn-outline {
+          background-color: transparent;
+          border: 1px solid #d5b266;
+          color: #d5b266;
+          padding: 10px 16px;
+          border-radius: 6px;
+          font-weight: 700;
+          font-size: 0.88rem;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          transition: all 0.2s;
+        }
+        .intel-btn-outline:hover {
+          background-color: rgba(213, 178, 102, 0.05);
+        }
+        .intel-btn-symbol {
+          font-size: 1rem;
+          line-height: 1;
+        }
+
+        /* Bottom Row Cards */
+        .intel-half-card {
+          grid-column: span 1;
+          margin-top: 8px;
+        }
+        .intel-card-title-block {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+        .intel-card-icon-box {
+          width: 40px;
+          height: 40px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.1rem;
+        }
+        .box-red {
+          background-color: rgba(239, 68, 68, 0.1);
+          border: 1px solid rgba(239, 68, 68, 0.2);
+          color: #f87171;
+        }
+        .box-gold {
+          background-color: rgba(213, 178, 102, 0.1);
+          border: 1px solid rgba(213, 178, 102, 0.2);
+          color: #d5b266;
+        }
+        .intel-card-header-texts h3 {
+          font-size: 1.15rem;
+          font-weight: 600;
+          margin: 0 0 2px 0;
+          color: #ffffff;
+        }
+
+        /* Threat Pill badge */
+        .intel-threat-pill {
+          background-color: rgba(239, 68, 68, 0.15);
+          color: #f87171;
+          font-size: 0.65rem;
+          font-weight: 700;
+          padding: 4px 10px;
+          border-radius: 4px;
+          border: 1px solid rgba(239, 68, 68, 0.2);
+          letter-spacing: 0.5px;
+        }
+
+        /* Threat items list styling */
+        .intel-threats-list {
+          margin-top: 24px;
+        }
+        .intel-threat-item {
+          background-color: #16161c;
+          border: 1px solid rgba(239, 68, 68, 0.12);
+          border-left: 4px solid #ef4444;
+          border-radius: 8px;
+          padding: 20px;
+          display: flex;
+          flex-direction: column;
+        }
+        .intel-threat-header-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 8px;
+        }
+        .intel-threat-name {
+          font-weight: 600;
+          font-size: 0.95rem;
+          color: #ffffff;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .intel-risk-badge {
+          background-color: #ef4444;
+          color: #ffffff;
+          font-size: 0.65rem;
+          font-weight: 700;
+          padding: 2px 6px;
+          border-radius: 4px;
+        }
+        .intel-threat-desc {
+          font-size: 0.85rem;
+          color: #94a3b8;
+          line-height: 1.5;
+          margin: 0 0 16px 0;
+        }
+        .intel-btn-dark {
+          background-color: #27272a;
+          color: #e4e4e7;
+          border: 1px solid #3f3f46;
+          padding: 8px 16px;
+          border-radius: 6px;
+          font-weight: 600;
+          font-size: 0.85rem;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          transition: all 0.2s;
+        }
+        .intel-btn-dark:hover {
+          background-color: #18181b;
+          border-color: #52525b;
+        }
+
+        /* Providers list styling */
+        .intel-providers-list {
+          margin-top: 24px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+        .intel-provider-row {
+          background-color: #16161c;
+          border: 1px solid #20202a;
+          border-radius: 12px;
+          padding: 16px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          transition: transform 0.2s;
+        }
+        .intel-provider-row:hover {
+          transform: translateY(-2px);
+        }
+        .intel-provider-left {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+        .intel-provider-avatar-badge {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 700;
+          font-size: 0.9rem;
+        }
+        .avatar-gold {
+          background-color: rgba(213, 178, 102, 0.1);
+          color: #d5b266;
+          border: 1px solid rgba(213, 178, 102, 0.2);
+        }
+        .avatar-red {
+          background-color: rgba(239, 68, 68, 0.1);
+          color: #f87171;
+          border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+        .intel-provider-meta h4 {
+          font-size: 0.95rem;
+          font-weight: 600;
+          margin: 0 0 4px 0;
+          color: #ffffff;
+        }
+        .intel-tier-text {
+          font-size: 0.65rem;
+          font-weight: 700;
+          letter-spacing: 0.5px;
+        }
+        .text-gold { color: #d5b266; }
+        .text-red { color: #f87171; }
+
+        /* Trust Circle Progress HUD */
+        .intel-gauge-wrapper {
+          position: relative;
+          width: 48px;
+          height: 48px;
+        }
+        .intel-gauge-svg {
+          width: 100%;
+          height: 100%;
+        }
+        .intel-gauge-bg {
+          fill: none;
+          stroke: #1f1f2a;
+        }
+        .intel-gauge-value {
+          fill: none;
+        }
+        .gauge-gold { stroke: #d5b266; }
+        .gauge-red { stroke: #ef4444; }
+        .intel-gauge-text {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          font-size: 0.85rem;
+          font-weight: 700;
+          color: #ffffff;
+        }
+
+        /* Slide-in animation for toast */
+        @keyframes intel-slide-in {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Responsive Layout collapse */
+        @media (max-width: 1024px) {
+          .intel-grid-container {
+            grid-template-columns: 1fr;
+          }
+          .intel-half-card {
+            grid-column: span 1;
+          }
+        }
       `}</style>
     </div>
   );

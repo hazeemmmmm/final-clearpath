@@ -103,6 +103,7 @@ class ReviewService {
         $group: {
           _id: "$experience",
           averageRating: { $avg: "$rating" },
+          averageTrustScore: { $avg: "$trustScore" },
           totalReviews: { $sum: 1 },
           ratings: { $push: "$rating" },
         },
@@ -118,6 +119,7 @@ class ReviewService {
 
     return {
       averageRating: Math.round(stats[0].averageRating * 10) / 10,
+      averageTrustScore: Math.round(stats[0].averageTrustScore || 100),
       totalReviews: stats[0].totalReviews,
       ratingBreakdown: breakdown,
     };

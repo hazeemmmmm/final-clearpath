@@ -1,19 +1,19 @@
 /* PackageDetails.css - Premium Web App Design System */
 
-:root {
-  --primary-color: #003D59;
-  --secondary-color: #d4af37;
-  --accent-color: #CE1126;
-  --bg-main: #f8fafc;
-  --card-bg: #ffffff;
-  --text-dark: #1e293b;
-  --text-muted: #64748b;
-  --border-light: #e2e8f0;
-  --success-color: #2e7d32;
-  --error-color: #c62828;
+.package-details-page {
+  --primary-color: #e5c158;
+  --secondary-color: #d5b266;
+  --accent-color: #d4af37;
+  --bg-main: #09090b;
+  --card-bg: #14141a;
+  --text-dark: #ffffff;
+  --text-muted: #94a3b8;
+  --border-light: #27272a;
+  --success-color: #34d399;
+  --error-color: #fb7185;
   --font-family: 'Outfit', 'Inter', sans-serif;
-  --box-shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.04);
-  --box-shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.08);
+  --box-shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.4);
+  --box-shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.6);
 }
 
 .package-details-page {
@@ -294,11 +294,11 @@
 }
 
 .day-content {
-  background: #f8fafc;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 18px 22px;
   flex-grow: 1;
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--border-light);
 }
 
 .activity-list {
@@ -343,12 +343,12 @@
 }
 
 .booking-card {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(20, 20, 26, 0.85);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(229, 193, 88, 0.2);
   border-radius: 24px;
   padding: 30px;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
 }
 
 .booking-price {
@@ -1134,36 +1134,36 @@ body:not(.dark-mode) .packing-card h3 {
 /* 🌙 DYNAMIC THEME & RTL SUPPORT (MODERN OVERRIDES)              */
 /* ============================================================== */
 
-/* Root Variables (Light Mode) */
+/* Root Variables (Forced Dark Luxury Mode) */
 :root {
-  --primary-color: #003D59;
-  --secondary-color: #d4af37;
-  --accent-color: #CE1126;
-  --bg-main: #f8fafc;
-  --card-bg: rgba(255, 255, 255, 0.9);
-  --text-dark: #0f172a;
-  --text-muted: #64748b;
-  --border-light: #e2e8f0;
-  --success-color: #10b981;
-  --error-color: #ef4444;
-  --box-shadow-soft: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
-  --glass-border: rgba(255, 255, 255, 0.6);
+  --primary-color: #e5c158;
+  --secondary-color: #d5b266;
+  --accent-color: #d4af37;
+  --bg-main: #09090b;
+  --card-bg: rgba(20, 20, 26, 0.85);
+  --text-dark: #ffffff;
+  --text-muted: #94a3b8;
+  --border-light: rgba(229, 193, 88, 0.15);
+  --success-color: #34d399;
+  --error-color: #fb7185;
+  --box-shadow-soft: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+  --glass-border: rgba(229, 193, 88, 0.1);
 }
 
-/* Dark Mode Overrides */
+/* Dark Mode Overrides (Same as above) */
 .dark, body.dark-mode {
-  --primary-color: #60a5fa;
-  --secondary-color: #fcd34d;
-  --accent-color: #fb7185;
-  --bg-main: #0a0b0d;
-  --card-bg: rgba(21, 23, 26, 0.85);
-  --text-dark: #f8fafc;
+  --primary-color: #e5c158;
+  --secondary-color: #d5b266;
+  --accent-color: #d4af37;
+  --bg-main: #09090b;
+  --card-bg: rgba(20, 20, 26, 0.85);
+  --text-dark: #ffffff;
   --text-muted: #94a3b8;
-  --border-light: rgba(255, 255, 255, 0.08);
+  --border-light: rgba(229, 193, 88, 0.15);
   --success-color: #34d399;
-  --error-color: #f87171;
+  --error-color: #fb7185;
   --box-shadow-soft: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
-  --glass-border: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(229, 193, 88, 0.1);
 }
 
 /* Apply variables aggressively */
