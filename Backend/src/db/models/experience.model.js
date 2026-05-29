@@ -13,6 +13,10 @@ const activityItemSchema = new mongoose.Schema(
       ref: "Provider",
     },
 
+    image: {
+      type: String,
+    },
+
     price: {
       type: Number,
       required: true,

@@ -35,7 +35,7 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   min-height: 100vh;
   padding-top: 0 !important; /* Overriding offset from main layout to merge topbars */
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 .admin-dashboard-container {
@@ -204,8 +204,11 @@
 .aura-main-pane {
   flex: 1;
   margin-left: 280px;
-  padding: 40px;
+  padding: 20px 40px 40px 40px;
   background-color: var(--bg-darker);
+  height: calc(100vh - 80px);
+  margin-top: 80px;
+  overflow-y: auto;
 }
 
 /* ⚡ Top navigation header */
@@ -931,8 +934,6 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 35px;
-  max-height: calc(100vh - 240px);
-  overflow-y: auto;
   padding-right: 5px;
   padding-bottom: 20px;
 }

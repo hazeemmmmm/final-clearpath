@@ -5,6 +5,7 @@
    Design System Variables — Teal Accent Palette
    ═══════════════════════════════════════════════════ */
 .supervisor-theme {
+  overflow: hidden;
   --sv-bg-darker: #0b0f14;
   --sv-bg-dark: #101720;
   --sv-bg-card: #151d2b;
@@ -233,9 +234,11 @@
 .sv-main-content {
   flex: 1;
   margin-left: 270px;
-  padding: 36px;
+  padding: 20px 36px 36px 36px;
   background-color: var(--sv-bg-darker);
-  min-height: 100vh;
+  height: calc(100vh - 80px);
+  margin-top: 80px;
+  overflow-y: auto;
 }
 
 /* ═══════════════════════════════════════════════════

@@ -996,16 +996,22 @@ const PackageDetails = () => {
                                       return (
                                         <li key={index} className="activity-item" style={{ 
                                           display: 'flex', 
-                                          flexDirection: 'column', 
-                                          alignItems: 'stretch', 
+                                          alignItems: 'center', 
                                           padding: '12px 15px', 
                                           background: 'rgba(0,0,0,0.02)',
                                           border: '1px solid var(--border-light, #e2e8f0)',
                                           borderRadius: '10px', 
                                           opacity: (isDisabled || isActRemoved) ? 0.5 : 1,
-                                          transition: 'all 0.2s'
+                                          transition: 'all 0.2s',
+                                          gap: '15px'
                                         }}>
-                                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: '10px' }}>
+                                          {act?.image && (
+                                            <div style={{ flex: '0 0 60px', height: '60px', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
+                                              <img src={act.image} alt="Activity" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            </div>
+                                          )}
+                                          <div style={{ flex: '1', display: 'flex', flexDirection: 'column' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: '10px' }}>
                                             <label style={{ 
                                               display: 'flex', 
                                               alignItems: 'center', 
@@ -1062,6 +1068,7 @@ const PackageDetails = () => {
                                               {act.description || actObj.description}
                                             </div>
                                           )}
+                                          </div>
                                         </li>
                                       );
                                     })}
@@ -1397,9 +1404,9 @@ const PackageDetails = () => {
                                               flexDirection: 'column',
                                               gap: '6px'
                                             }}>
-                                              <div style={{ color: '#fff', fontWeight: '700' }}>
-                                                {selectedActObj.name}
-                                              </div>
+                                                <div style={{ color: '#fff', fontWeight: '700' }}>
+                                                  {selectedActObj.name}
+                                                </div>
                                               <div style={{ color: '#f59e0b', fontWeight: '600', display: 'flex', gap: '15px' }}>
                                                 <span>
                                                   <i className="fa-solid fa-parachute-box" style={{ marginRight: '5px' }}></i>

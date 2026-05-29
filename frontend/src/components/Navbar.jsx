@@ -6,7 +6,7 @@ import { LanguageContext } from '../context/LanguageContext';
 import { ThemeContext } from '../context/ThemeContext';
 import { getUserProfile } from '../utils/api';
 
-const Navbar = ({ isScrolled }) => {
+const Navbar = ({ isScrolled, dashboardMode }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
@@ -60,8 +60,14 @@ const Navbar = ({ isScrolled }) => {
     navigate('/login');
   };
 
+  const navBgClass = dashboardMode
+    ? 'tw-bg-transparent tw-border-none dark'
+    : isScrolled
+      ? 'tw-bg-white/95 dark:tw-bg-[#0a0b0d]/95 tw-backdrop-blur-md tw-shadow-sm dark:tw-shadow-2xl tw-border-b tw-border-slate-200/50 dark:tw-border-slate-800/50'
+      : 'tw-bg-transparent tw-border-b tw-border-slate-200/50 dark:tw-border-slate-800/50';
+
   return (
-    <nav className={`tw-fixed tw-top-0 tw-w-full tw-z-[1000] tw-transition-all tw-duration-300 ${isScrolled ? 'tw-bg-white/95 dark:tw-bg-[#0a0b0d]/95 tw-backdrop-blur-md tw-shadow-sm dark:tw-shadow-2xl' : 'tw-bg-transparent'} tw-border-b tw-border-slate-200/50 dark:tw-border-slate-800/50`}>
+    <nav className={`tw-fixed tw-top-0 tw-w-full tw-z-[1000] tw-transition-all tw-duration-300 ${navBgClass}`}>
       <div className="tw-max-w-7xl tw-mx-auto tw-w-full tw-px-4 md:tw-px-6 lg:tw-px-8 tw-py-5 tw-flex tw-items-center tw-justify-between">
         
         {/* Left: Brand Logo */}

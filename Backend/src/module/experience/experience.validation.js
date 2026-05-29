@@ -54,6 +54,7 @@ export const createExperienceSchema = Joi.object({
     activities: Joi.array().items(Joi.object({
       activity: activityField.optional(),
       provider: providerField.optional(),
+      image: Joi.string().optional(),
       price: Joi.number().positive().optional()
     })).optional()
   })).optional()
@@ -78,6 +79,7 @@ export const updateExperienceSchema = Joi.object({
     activities: Joi.array().items(Joi.object({
       activity: activityField,
       provider: providerField,
+      image: Joi.string().optional(),
       price: Joi.number().positive()
     }))
   }))

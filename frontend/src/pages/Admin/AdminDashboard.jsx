@@ -16,6 +16,8 @@ import {
   adminCreateSupervisor
 } from '../../utils/api';
 import AdminIntelligence from './AdminIntelligence';
+import PublishPackageModal from './PublishPackageModal';
+import EditPackageModal from './EditPackageModal';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -35,6 +37,7 @@ const AdminDashboard = () => {
   // Loaders
   const [loadingData, setLoadingData] = useState(true);
   const [submittingPkg, setSubmittingPkg] = useState(false);
+  const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   
   // Search & Filters
   const [userSearch, setUserSearch] = useState('');
@@ -593,29 +596,14 @@ const AdminDashboard = () => {
 
   return (
     <div className="premium-admin-theme">
-      <Navbar />
+      <Navbar dashboardMode={true} />
 
       <div className="admin-dashboard-container">
         {/* Sidebar Menu */}
         <aside className="aura-sidebar">
-          <div className="aura-brand">
-            <div className="brand-dot"></div>
-            <span>ClearPath Pro</span>
-          </div>
 
-          <div className="admin-profile-snippet">
-            <img 
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150" 
-              alt="Admin Profile" 
-              className="admin-avatar"
-            />
-            <div className="admin-details">
-              <h4>Sarah Connor</h4>
-              <p>Platform Manager</p>
-            </div>
-          </div>
 
-          <ul className="aura-menu">
+          <ul className="aura-menu" style={{ marginTop: '100px' }}>
             <li className={activeTab === 'overview' ? 'active' : ''} onClick={() => setActiveTab('overview')}>
               <i className="fa-solid fa-chart-pie"></i>
               <span>Dashboard Overview</span>
@@ -659,41 +647,8 @@ const AdminDashboard = () => {
         </aside>
 
         {/* Main Content Pane */}
-        <main className="aura-main-pane">
-          {/* Top Navigation Bar */}
-          <header className="aura-topbar">
-            <div className="topbar-search">
-              <i className="fa-solid fa-magnifying-glass"></i>
-              <input 
-                type="text" 
-                placeholder={
-                  activeTab === 'users' ? 'Search users by name/email...' :
-                  activeTab === 'bookings' ? 'Search bookings by buyer/destination...' :
-                  'Search dashboards, metrics, records...'
-                }
-                value={activeTab === 'users' ? userSearch : activeTab === 'bookings' ? bookingSearch : ''}
-                onChange={(e) => {
-                  if (activeTab === 'users') setUserSearch(e.target.value);
-                  else if (activeTab === 'bookings') setBookingSearch(e.target.value);
-                }}
-              />
-            </div>
+        <main className="aura-main-pane" style={{ paddingTop: '100px' }}>
 
-            <div className="topbar-controls">
-              <div className="control-btn" title="Quick Support">
-                <i className="fa-solid fa-circle-question"></i>
-              </div>
-              <div className="control-btn alerts-trigger" title="Notifications">
-                <i className="fa-solid fa-bell"></i>
-                <span className="alert-count">3</span>
-              </div>
-              <div className="control-divider"></div>
-              <div className="profile-indicator">
-                <span className="greeting">Active System</span>
-                <span className="role-badge global-admin">Root Admin</span>
-              </div>
-            </div>
-          </header>
 
           {/* Quick Success/Error Message banners */}
           {successMsg && (

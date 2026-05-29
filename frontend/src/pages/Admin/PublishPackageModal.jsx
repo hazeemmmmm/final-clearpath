@@ -77,7 +77,7 @@ const PublishPackageModal = ({
             if (field === 'activity' && value) {
               const matchedAct = activitiesList?.find(a => a._id === value);
               if (matchedAct) {
-                updated.activity = matchedAct.name;
+                updated.activity = value;
                 updated.price = matchedAct.price || 0;
                 updated.provider = matchedAct.provider?.name || matchedAct.provider || 'Platform Provider';
               }
@@ -220,12 +220,13 @@ const PublishPackageModal = ({
                       
                       <h5 style={{ color: '#9ca3af', marginBottom: '10px', fontSize: '0.9rem' }}>Day Activities</h5>
                       {day.activities.map((act, actIdx) => (
-                        <div className="ppm-activity-row" key={actIdx} style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 100px 40px', gap: '10px', marginBottom: '10px' }}>
-                          <select className="ppm-input" onChange={(e) => handleItineraryActivityChange(dayIdx, actIdx, 'activity', e.target.value)} required>
-                            <option value="">{act.activity || '-- Select Activity --'}</option>
+                        <div className="ppm-activity-row" key={actIdx} style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1.5fr 100px 40px', gap: '10px', marginBottom: '10px' }}>
+                          <select className="ppm-input" value={act.activity?._id || act.activity || ''} onChange={(e) => handleItineraryActivityChange(dayIdx, actIdx, 'activity', e.target.value)} required>
+                            <option value="">-- Select Activity --</option>
                             {activitiesList?.map(a => <option key={a._id} value={a._id}>{a.name}</option>)}
                           </select>
                           <input type="text" className="ppm-input" value={act.provider} onChange={(e) => handleItineraryActivityChange(dayIdx, actIdx, 'provider', e.target.value)} placeholder="Provider" />
+                          <input type="text" className="ppm-input" value={act.image || ''} onChange={(e) => handleItineraryActivityChange(dayIdx, actIdx, 'image', e.target.value)} placeholder="Image URL (Optional)" />
                           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                             <span style={{ color: '#9ca3af' }}>$</span>
                             <input type="number" className="ppm-input" value={act.price} onChange={(e) => handleItineraryActivityChange(dayIdx, actIdx, 'price', e.target.value)} style={{ padding: '12px 5px' }} />

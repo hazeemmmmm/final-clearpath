@@ -236,6 +236,8 @@ const EditPackageModal = ({ experience, onClose, onUpdate, activitiesList, provi
                         <option value="">Select Provider</option>
                         {providersList?.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
                       </select>
+
+                      <input type="text" value={act.image || ''} onChange={(e) => handleActivityChange(dIdx, aIdx, 'image', e.target.value)} placeholder="Image URL" style={{ flex: 1, padding: '8px', background: 'rgba(0,0,0,0.2)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }} />
                       
                       <input type="number" value={act.price} onChange={(e) => handleActivityChange(dIdx, aIdx, 'price', Number(e.target.value))} placeholder="Price" style={{ flex: 1, padding: '8px', background: 'rgba(0,0,0,0.2)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }} />
                       

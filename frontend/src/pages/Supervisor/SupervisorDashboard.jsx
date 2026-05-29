@@ -184,27 +184,14 @@ const SupervisorDashboard = () => {
   // ═════════════════════════════════════════════════
   return (
     <div className="supervisor-theme">
-      <Navbar />
+      <Navbar dashboardMode={true} />
 
       <div className="sv-dashboard-layout">
         {/* ──────── Sidebar ──────── */}
         <aside className="sv-sidebar">
-          <div className="sv-brand">
-            <div className="sv-brand-icon">
-              <i className="fa-solid fa-route"></i>
-            </div>
-            <span className="sv-brand-text">ClearPath</span>
-          </div>
 
-          <div className="sv-profile-card">
-            <div className="sv-profile-avatar">{userInitial}</div>
-            <div className="sv-profile-info">
-              <h4>{userName}</h4>
-              <p>Trip Supervisor</p>
-            </div>
-          </div>
 
-          <ul className="sv-menu">
+          <ul className="sv-menu" style={{ marginTop: '100px' }}>
             {menuItems.map((item) => (
               <li
                 key={item.id}
@@ -229,35 +216,8 @@ const SupervisorDashboard = () => {
         </aside>
 
         {/* ──────── Main Content ──────── */}
-        <main className="sv-main-content">
-          {/* Top Bar */}
-          <header className="sv-topbar">
-            <div className="sv-topbar-left">
-              <div className="sv-search-box">
-                <i className="fa-solid fa-magnifying-glass"></i>
-                <input
-                  type="text"
-                  placeholder="Search trips, destinations..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </div>
+        <main className="sv-main-content" style={{ paddingTop: '100px' }}>
 
-            <div className="sv-topbar-right">
-              <div className="sv-topbar-btn" title="Refresh" onClick={loadSupervisorTrips}>
-                <i className="fa-solid fa-rotate"></i>
-              </div>
-              <div className="sv-topbar-btn" title="Notifications">
-                <i className="fa-solid fa-bell"></i>
-                {totalBookings > 0 && <span className="sv-topbar-badge">{totalBookings > 9 ? '9+' : totalBookings}</span>}
-              </div>
-              <div className="sv-topbar-divider"></div>
-              <span className="sv-role-chip">
-                <i className="fa-solid fa-shield-halved" style={{ marginRight: 4 }}></i> Supervisor
-              </span>
-            </div>
-          </header>
 
           {/* Alerts */}
           {successMsg && (
