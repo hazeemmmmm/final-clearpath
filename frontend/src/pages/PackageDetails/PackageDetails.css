@@ -62,10 +62,9 @@
 
 /* 📦 Main Grid Layout */
 .package-grid {
-  display: grid;
-  grid-template-columns: 1fr 360px;
+  display: flex;
+  flex-direction: column;
   gap: 40px;
-  align-items: start;
 }
 
 .package-main-info {
@@ -338,8 +337,9 @@
 
 /* 💳 Booking Sidebar Card (Glassmorphism inspired) */
 .package-sidebar {
-  position: sticky;
-  top: 120px;
+  position: static;
+  width: 100%;
+  margin-top: 20px;
 }
 
 .booking-card {

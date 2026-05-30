@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { getUserBookings, cancelBooking } from '../utils/api';
+import { getUserBookings, cancelBooking, createBooking } from '../utils/api';
 import { LanguageContext } from '../context/LanguageContext';
 import { setChatOpen } from '../store/authSlice';
 
@@ -15,6 +15,76 @@ const MyBookings = () => {
   const [error, setError] = useState('');
   const [actionLoadingId, setActionLoadingId] = useState(null);
   const [expandedBookingIds, setExpandedBookingIds] = useState([]);
+  
+  const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming' | 'saved'
+  const [offlineChain, setOfflineChain] = useState([]);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+
+  const loadOfflineChain = () => {
+    const chainStr = localStorage.getItem('clearpath_trip_chain');
+    if (chainStr) {
+      try {
+        setOfflineChain(JSON.parse(chainStr));
+      } catch (e) {
+        console.error(e);
+      }
+    } else {
+      setOfflineChain([]);
+    }
+  };
+
+  useEffect(() => {
+    loadOfflineChain();
+    window.addEventListener('cartUpdate', loadOfflineChain);
+    return () => window.removeEventListener('cartUpdate', loadOfflineChain);
+  }, []);
+
+  const handleCheckoutChain = async () => {
+    if (offlineChain.length === 0) return;
+    setCheckoutLoading(true);
+    try {
+      const createdBookingIds = [];
+      for (const item of offlineChain) {
+        let payload;
+        if (item.isCustomizing && item.customTripId) {
+          payload = { customTrip: item.customTripId, numberOfGuests: item.guestCount, selectedAddons: item.selectedAddons };
+        } else {
+          payload = { experienceId: item.id, numberOfGuests: item.guestCount, selectedAddons: item.selectedAddons };
+        }
+        
+        const res = await createBooking(payload);
+        const booking = res.data || res.booking || res;
+        if (booking && booking._id) {
+          createdBookingIds.push(booking._id);
+        }
+      }
+
+      if (createdBookingIds.length > 0) {
+        localStorage.removeItem('clearpath_trip_chain');
+        setOfflineChain([]);
+        window.dispatchEvent(new Event('cartUpdate'));
+        
+        alert(lang === 'AR' 
+          ? 'تم إنشاء حجوزات السلسلة بنجاح! جاري تحديث قائمة رحلاتك.' 
+          : 'Trip Chain bookings created successfully! Updating your bookings list.');
+        
+        await fetchBookings();
+        setActiveTab('upcoming');
+      }
+    } catch (err) {
+      console.error(err);
+      alert(lang === 'AR' ? 'فشل إتمام الحجز. يرجى المحاولة لاحقاً.' : 'Failed to complete booking. Please try again later.');
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
+
+  const handleDeleteChainItem = (idxToDelete) => {
+    const updated = offlineChain.filter((_, idx) => idx !== idxToDelete);
+    setOfflineChain(updated);
+    localStorage.setItem('clearpath_trip_chain', JSON.stringify(updated));
+    window.dispatchEvent(new Event('cartUpdate'));
+  };
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -141,151 +211,345 @@ const MyBookings = () => {
               <button className="tw-bg-slate-900 dark:tw-bg-white tw-text-white dark:tw-text-slate-900 hover:tw-bg-amber-500 dark:hover:tw-bg-amber-500 hover:tw-text-slate-900 tw-font-bold tw-py-3 tw-px-8 tw-rounded-md tw-transition-colors" onClick={fetchBookings}>{lang === 'AR' ? 'إعادة المحاولة' : 'Retry'}</button>
             </div>
           </div>
-        ) : bookings.length === 0 ? (
-          <div className="tw-flex tw-justify-center tw-py-16">
-            <div className="tw-bg-white/80 dark:tw-bg-[#15171a]/80 tw-backdrop-blur-md tw-border tw-border-slate-200 dark:tw-border-slate-800 tw-rounded-2xl tw-p-12 tw-text-center tw-max-w-lg tw-w-full tw-shadow-xl">
-              <div className="tw-text-6xl tw-text-slate-300 dark:tw-text-slate-700 tw-mb-6"><i className="fa-solid fa-plane-departure"></i></div>
-              <h3 className="tw-text-2xl tw-font-serif tw-font-bold tw-text-slate-900 dark:tw-text-white tw-mb-4">{lang === 'AR' ? 'لا يوجد حجوزات بعد' : 'No bookings found'}</h3>
-              <p className="tw-text-slate-600 dark:tw-text-slate-400 tw-leading-relaxed tw-mb-8">{lang === 'AR' ? 'لم تقم بحجز أي تجارب أو باقات سياحية حتى الآن. ابدأ مغامرتك اليوم!' : 'You haven\'t booked any travel packages or custom trips yet. Begin your adventure today!'}</p>
-              <button className="tw-w-full tw-bg-amber-500 hover:tw-bg-amber-600 tw-text-slate-900 tw-font-bold tw-py-3 tw-px-8 tw-rounded-md tw-transition-colors" onClick={() => navigate('/experiences')}>
-                {lang === 'AR' ? 'استكشف الرحلات والباقات' : 'Explore Packages'}
+        ) : (
+          <>
+            {/* Elegant Premium Tab Bar */}
+            <div className="tw-flex tw-justify-center tw-mb-8 tw-bg-white/80 dark:tw-bg-[#15171a]/80 tw-backdrop-blur-md tw-p-1.5 tw-rounded-xl tw-border tw-border-slate-200/50 dark:tw-border-slate-800/80 tw-max-w-md tw-mx-auto tw-shadow-lg">
+              <button 
+                onClick={() => setActiveTab('upcoming')}
+                style={{ border: 'none', cursor: 'pointer' }}
+                className={`tw-flex-1 tw-py-2.5 tw-px-6 tw-rounded-lg tw-text-xs tw-font-bold tw-transition-all tw-duration-200 tw-flex tw-items-center tw-justify-center tw-gap-2 ${
+                  activeTab === 'upcoming' 
+                    ? 'tw-bg-amber-500 tw-text-black tw-shadow-[0_4px_12px_rgba(245,158,11,0.2)]' 
+                    : 'tw-bg-transparent tw-text-slate-600 dark:tw-text-slate-400 hover:tw-text-slate-900 dark:hover:tw-text-white'
+                }`}
+              >
+                <i className="fa-solid fa-plane-circle-check"></i>
+                {lang === 'AR' ? 'الرحلات المؤكدة والمدفوعة' : 'Paid & Confirmed Trips'}
+              </button>
+              <button 
+                onClick={() => setActiveTab('saved')}
+                style={{ border: 'none', cursor: 'pointer' }}
+                className={`tw-flex-1 tw-py-2.5 tw-px-6 tw-rounded-lg tw-text-xs tw-font-bold tw-transition-all tw-duration-200 tw-flex tw-items-center tw-justify-center tw-gap-2 tw-relative ${
+                  activeTab === 'saved' 
+                    ? 'tw-bg-amber-500 tw-text-black tw-shadow-[0_4px_12px_rgba(245,158,11,0.2)]' 
+                    : 'tw-bg-transparent tw-text-slate-600 dark:tw-text-slate-400 hover:tw-text-slate-900 dark:hover:tw-text-white'
+                }`}
+              >
+                <i className="fa-solid fa-folder-open"></i>
+                {lang === 'AR' ? 'الرحلات المعلقة والمسارات' : 'Saved & Pending'}
+                {offlineChain.length > 0 && (
+                  <span className="tw-absolute tw-top-1 tw-right-2 tw-w-2 tw-h-2 tw-bg-rose-500 tw-rounded-full tw-animate-ping"></span>
+                )}
               </button>
             </div>
-          </div>
-        ) : (
-          <div className="tw-flex tw-flex-col tw-gap-8">
-            {bookings.map((booking) => {
-              const isCustom = !!booking.customTrip;
-              const expObj = booking.experience || booking.customTrip?.experience;
-              const title = expObj?.name || (isCustom ? (lang === 'AR' ? 'رحلة مخصصة' : 'Custom Trip') : (lang === 'AR' ? 'باقة سياحية مميزة' : 'Premium Package'));
-              const image = expObj?.images?.[0] || expObj?.image || '/img/cairo_pyramids_1775971845389.png';
-              const locationName = expObj?.destination?.name || (lang === 'AR' ? 'مصر' : 'Egypt');
-              
-              const bookingDate = booking.booking_date
-                ? new Date(booking.booking_date).toLocaleDateString(lang === 'AR' ? 'ar-EG' : 'en-US', { month: 'short', day: '2-digit', year: 'numeric' })
-                : '—';
 
-              const guests = booking.numberOfGuests || 1;
-              const status = booking.status || 'Pending';
-              
-              // Status Badge logic matching screenshot (Outline colored badges)
-              let statusClasses = "tw-border-slate-500 tw-text-slate-500 tw-bg-slate-500/10";
-              let statusText = lang === 'AR' ? 'قيد الانتظار' : 'PENDING';
-              
-              if (status === 'Confirmed') {
-                statusClasses = "tw-border-amber-500/40 tw-text-amber-600 dark:tw-text-amber-500 tw-bg-amber-500/10";
-                statusText = lang === 'AR' ? 'مؤكد' : 'CONFIRMED';
-              } else if (status === 'Cancelled') {
-                statusClasses = "tw-border-slate-500/40 tw-text-slate-500 dark:tw-text-slate-500 tw-bg-slate-500/10";
-                statusText = lang === 'AR' ? 'ملغي' : 'CANCELLED';
-              } else if (status === 'Completed') {
-                statusClasses = "tw-border-slate-500/40 tw-text-slate-600 dark:tw-text-slate-400 tw-bg-slate-500/10";
-                statusText = lang === 'AR' ? 'مكتمل' : 'COMPLETED';
-              }
-
-              return (
-                <div key={booking._id} className="tw-bg-white dark:tw-bg-[#111111] tw-border tw-border-slate-200 dark:tw-border-[#1f1f1f] tw-rounded-lg tw-overflow-hidden tw-shadow-sm hover:tw-shadow-xl tw-transition-all tw-flex tw-flex-col md:tw-flex-row">
-                  {/* Image Section */}
-                  <div className="tw-relative md:tw-w-1/3 tw-h-56 md:tw-h-auto">
-                    <img src={image} alt={title} className="tw-w-full tw-h-full tw-object-cover" />
-                    <div className="tw-absolute tw-inset-0 tw-bg-gradient-to-t tw-from-black/60 tw-to-transparent md:tw-hidden"></div>
+            {/* Tab 1: Upcoming/Paid Trips */}
+            {activeTab === 'upcoming' && (
+              <div className="tw-flex tw-flex-col tw-gap-8">
+                {bookings.filter(b => b.status === 'Confirmed' || b.status === 'Completed').length === 0 ? (
+                  <div className="tw-flex tw-justify-center tw-py-16">
+                    <div className="tw-bg-white/80 dark:tw-bg-[#15171a]/80 tw-backdrop-blur-md tw-border tw-border-slate-200 dark:tw-border-slate-800 tw-rounded-2xl tw-p-12 tw-text-center tw-max-w-lg tw-w-full tw-shadow-xl">
+                      <div className="tw-text-6xl tw-text-slate-300 dark:tw-text-slate-700 tw-mb-6"><i className="fa-solid fa-plane-departure"></i></div>
+                      <h3 className="tw-text-2xl tw-font-serif tw-font-bold tw-text-slate-900 dark:tw-text-white tw-mb-4">{lang === 'AR' ? 'لا يوجد رحلات مؤكدة' : 'No confirmed trips'}</h3>
+                      <p className="tw-text-slate-600 dark:tw-text-slate-400 tw-leading-relaxed tw-mb-8">{lang === 'AR' ? 'لم تقم بحجز أو دفع أي رحلات بعد. استكشف باقاتنا الرائعة وابدأ السفر الآن!' : 'You do not have any paid or confirmed bookings yet. Explore our packages and start booking!'}</p>
+                      <button className="tw-w-full tw-bg-amber-500 hover:tw-bg-amber-600 tw-text-slate-900 tw-font-bold tw-py-3 tw-px-8 tw-rounded-md tw-transition-colors tw-border-none tw-cursor-pointer" onClick={() => navigate('/experiences')}>
+                        {lang === 'AR' ? 'استكشف الرحلات والباقات' : 'Explore Packages'}
+                      </button>
+                    </div>
                   </div>
+                ) : (
+                  bookings.filter(b => b.status === 'Confirmed' || b.status === 'Completed').map((booking) => {
+                    const isCustom = !!booking.customTrip;
+                    const expObj = booking.experience || booking.customTrip?.experience;
+                    const title = expObj?.name || (isCustom ? (lang === 'AR' ? 'رحلة مخصصة' : 'Custom Trip') : (lang === 'AR' ? 'باقة سياحية مميزة' : 'Premium Package'));
+                    const image = expObj?.images?.[0] || expObj?.image || '/logo-dark.png';
+                    const locationName = expObj?.destination?.name || (lang === 'AR' ? 'مصر' : 'Egypt');
+                    
+                    const bookingDate = booking.booking_date
+                      ? new Date(booking.booking_date).toLocaleDateString(lang === 'AR' ? 'ar-EG' : 'en-US', { month: 'short', day: '2-digit', year: 'numeric' })
+                      : '—';
 
-                  {/* Content Section */}
-                  <div className="md:tw-w-2/3 tw-p-6 md:tw-p-8 tw-flex tw-flex-col">
-                    {/* Header Row */}
-                    <div className="tw-flex tw-flex-col sm:tw-flex-row sm:tw-justify-between sm:tw-items-center tw-mb-4 tw-gap-3">
-                      <div className="tw-flex tw-gap-2 tw-flex-wrap">
-                        <div className={`tw-inline-flex tw-items-center tw-px-3 tw-py-1 tw-rounded-full tw-border ${statusClasses} tw-text-[10px] tw-font-semibold tw-tracking-widest tw-uppercase tw-w-fit`}>
-                          {statusText}
+                    const guests = booking.numberOfGuests || 1;
+                    const status = booking.status || 'Pending';
+                    
+                    let statusClasses = "tw-border-amber-500/40 tw-text-amber-600 dark:tw-text-amber-500 tw-bg-amber-500/10";
+                    let statusText = lang === 'AR' ? 'مؤكد' : 'CONFIRMED';
+                    
+                    if (status === 'Completed') {
+                      statusClasses = "tw-border-slate-500/40 tw-text-slate-600 dark:tw-text-slate-400 tw-bg-slate-500/10";
+                      statusText = lang === 'AR' ? 'مكتمل' : 'COMPLETED';
+                    }
+
+                    return (
+                      <div key={booking._id} className="tw-bg-white dark:tw-bg-[#111111] tw-border tw-border-slate-200 dark:tw-border-[#1f1f1f] tw-rounded-lg tw-overflow-hidden tw-shadow-sm hover:tw-shadow-xl tw-transition-all tw-flex tw-flex-col md:tw-flex-row">
+                        {/* Image Section */}
+                        <div className="tw-relative md:tw-w-1/3 tw-h-56 md:tw-h-auto">
+                          <img src={image} alt={title} className="tw-w-full tw-h-full tw-object-cover" />
+                          <div className="tw-absolute tw-inset-0 tw-bg-gradient-to-t tw-from-black/60 tw-to-transparent md:tw-hidden"></div>
                         </div>
-                        {booking.parentBooking && (
-                          <div className="tw-inline-flex tw-items-center tw-px-3 tw-py-1 tw-rounded-full tw-border tw-border-amber-500/30 tw-text-amber-500 tw-bg-amber-500/5 tw-text-[10px] tw-font-semibold tw-tracking-widest tw-uppercase tw-w-fit" title="Chained/sequential package booking">
-                            ⛓️ {lang === 'AR' ? 'حجز متسلسل' : 'CHAINED'}
+
+                        {/* Content Section */}
+                        <div className="md:tw-w-2/3 tw-p-6 md:tw-p-8 tw-flex tw-flex-col">
+                          <div className="tw-flex tw-flex-col sm:tw-flex-row sm:tw-justify-between sm:tw-items-center tw-mb-4 tw-gap-3">
+                            <div className="tw-flex tw-gap-2 tw-flex-wrap">
+                              <div className={`tw-inline-flex tw-items-center tw-px-3 tw-py-1 tw-rounded-full tw-border ${statusClasses} tw-text-[10px] tw-font-semibold tw-tracking-widest tw-uppercase tw-w-fit`}>
+                                {statusText}
+                              </div>
+                              {booking.parentBooking && (
+                                <div className="tw-inline-flex tw-items-center tw-px-3 tw-py-1 tw-rounded-full tw-border tw-border-amber-500/30 tw-text-amber-500 tw-bg-amber-500/5 tw-text-[10px] tw-font-semibold tw-tracking-widest tw-uppercase tw-w-fit" title="Chained/sequential package booking">
+                                  ⛓️ {lang === 'AR' ? 'حجز متسلسل' : 'CHAINED'}
+                                </div>
+                              )}
+                            </div>
+                            <div className="tw-text-slate-500 dark:tw-text-[#666666] tw-text-xs tw-font-medium">
+                              Booking ID: <span className="tw-font-mono">{booking._id.substring(0,8).toUpperCase()}</span>
+                            </div>
                           </div>
-                        )}
-                      </div>
-                      <div className="tw-text-slate-500 dark:tw-text-[#666666] tw-text-xs tw-font-medium">
-                        Booking ID: <span className="tw-font-mono">{booking._id.substring(0,8).toUpperCase()}</span>
-                      </div>
-                    </div>
 
-                    {/* Title */}
-                    <h2 className="tw-font-serif tw-text-2xl md:tw-text-3xl tw-font-bold tw-text-slate-900 dark:tw-text-white tw-mb-4 tw-leading-tight">
-                      {title}
-                    </h2>
+                          <h2 className="tw-font-serif tw-text-2xl md:tw-text-3xl tw-font-bold tw-text-slate-900 dark:tw-text-white tw-mb-4 tw-leading-tight">
+                            {title}
+                          </h2>
 
-                    {/* Meta Icons Row */}
-                    <div className="tw-flex tw-flex-wrap tw-gap-x-6 tw-gap-y-3 tw-mb-8 tw-text-sm tw-font-medium tw-text-slate-600 dark:tw-text-[#cccccc]">
-                      <div className="tw-flex tw-items-center tw-gap-2">
-                        <i className="fa-regular fa-calendar tw-text-amber-500"></i>
-                        <span>{bookingDate}</span>
-                      </div>
-                      <div className="tw-flex tw-items-center tw-gap-2">
-                        <i className="fa-solid fa-user-group tw-text-amber-500"></i>
-                        <span>{guests} {guests === 1 ? (lang === 'AR' ? 'فرد' : 'Guests') : (lang === 'AR' ? 'أفراد' : 'Guests')}</span>
-                      </div>
-                      <div className="tw-flex tw-items-center tw-gap-2">
-                        <i className="fa-solid fa-location-dot tw-text-amber-500"></i>
-                        <span>{locationName}</span>
-                      </div>
-                    </div>
+                          <div className="tw-flex tw-flex-wrap tw-gap-x-6 tw-gap-y-3 tw-mb-8 tw-text-sm tw-font-medium tw-text-slate-600 dark:tw-text-[#cccccc]">
+                            <div className="tw-flex tw-items-center tw-gap-2">
+                              <i className="fa-regular fa-calendar tw-text-amber-500"></i>
+                              <span>{bookingDate}</span>
+                            </div>
+                            <div className="tw-flex tw-items-center tw-gap-2">
+                              <i className="fa-solid fa-user-group tw-text-amber-500"></i>
+                              <span>{guests} {guests === 1 ? (lang === 'AR' ? 'فرد' : 'Guests') : (lang === 'AR' ? 'أفراد' : 'Guests')}</span>
+                            </div>
+                            <div className="tw-flex tw-items-center tw-gap-2">
+                              <i className="fa-solid fa-location-dot tw-text-amber-500"></i>
+                              <span>{locationName}</span>
+                            </div>
+                          </div>
 
-                    {/* Action Buttons Row */}
-                    <div className="tw-mt-auto tw-flex tw-flex-wrap tw-items-center tw-gap-4">
-                      {status !== 'Completed' && status !== 'Cancelled' ? (
-                        <>
-                          <button 
-                            className="tw-bg-[#ffd700] hover:tw-bg-[#e5c100] tw-text-black tw-font-medium tw-py-2.5 tw-px-8 tw-rounded-sm tw-text-sm tw-transition-colors tw-shadow-sm tw-flex tw-items-center tw-gap-2"
-                            onClick={() => expObj?._id && navigate(`/package-details/${expObj._id}`)}
-                          >
-                            {lang === 'AR' ? 'عرض التفاصيل' : 'View Itinerary'}
-                            <i className="fa-solid fa-chevron-down tw-text-xs"></i>
-                          </button>
-                          
-                          {/* Chatbot Support Button */}
-                          <button 
-                            className="tw-bg-transparent tw-border tw-border-slate-300 dark:tw-border-[#333333] tw-text-slate-700 dark:tw-text-[#aaaaaa] hover:tw-border-amber-500 hover:tw-text-amber-500 dark:hover:tw-border-amber-500 dark:hover:tw-text-amber-500 tw-font-medium tw-py-2.5 tw-px-8 tw-rounded-sm tw-text-sm tw-transition-colors"
-                            onClick={() => dispatch(setChatOpen(true))}
-                          >
-                            {lang === 'AR' ? 'الدعم الفني' : 'Support'}
-                          </button>
-                          
-                          {/* Cancel Button */}
-                          <button 
-                            className="tw-bg-transparent tw-border tw-border-slate-300 dark:tw-border-[#333333] tw-text-slate-700 dark:tw-text-[#aaaaaa] hover:tw-border-red-500 hover:tw-text-red-500 dark:hover:tw-border-red-500 dark:hover:tw-text-red-500 tw-font-medium tw-py-2.5 tw-px-8 tw-rounded-sm tw-text-sm tw-transition-colors tw-ml-auto"
-                            disabled={actionLoadingId === booking._id}
-                            onClick={() => navigate(`/booking/${booking._id}/cancel`)}
-                          >
-                            {actionLoadingId === booking._id ? (
-                              <><i className="fa-solid fa-spinner fa-spin tw-mr-2"></i> {lang === 'AR' ? 'جاري الإلغاء...' : 'Cancelling...'}</>
+                          <div className="tw-mt-auto tw-flex tw-flex-wrap tw-items-center tw-gap-4">
+                            {status !== 'Completed' ? (
+                              <>
+                                <button 
+                                  className="tw-bg-[#ffd700] hover:tw-bg-[#e5c100] tw-text-black tw-font-medium tw-py-2.5 tw-px-8 tw-rounded-sm tw-text-sm tw-transition-colors tw-shadow-sm tw-flex tw-items-center tw-gap-2 tw-border-none tw-cursor-pointer"
+                                  onClick={() => expObj?._id && navigate(`/package-details/${expObj._id}`)}
+                                >
+                                  {lang === 'AR' ? 'عرض التفاصيل' : 'View Itinerary'}
+                                  <i className="fa-solid fa-chevron-down tw-text-xs"></i>
+                                </button>
+                                <button 
+                                  className="tw-bg-transparent tw-border tw-border-slate-300 dark:tw-border-[#333333] tw-text-slate-700 dark:tw-text-[#aaaaaa] hover:tw-border-amber-500 hover:tw-text-amber-500 dark:hover:tw-border-amber-500 dark:hover:tw-border-amber-500 tw-font-medium tw-py-2.5 tw-px-8 tw-rounded-sm tw-text-sm tw-transition-colors tw-cursor-pointer"
+                                  onClick={() => dispatch(setChatOpen(true))}
+                                >
+                                  {lang === 'AR' ? 'الدعم الفني' : 'Support'}
+                                </button>
+                                <button 
+                                  className="tw-bg-transparent tw-border tw-border-slate-300 dark:tw-border-[#333333] tw-text-slate-700 dark:tw-text-[#aaaaaa] hover:tw-border-red-500 hover:tw-text-red-500 dark:hover:tw-border-red-500 dark:hover:tw-text-red-500 tw-font-medium tw-py-2.5 tw-px-8 tw-rounded-sm tw-text-sm tw-transition-colors tw-ml-auto tw-cursor-pointer"
+                                  disabled={actionLoadingId === booking._id}
+                                  onClick={() => navigate(`/booking/${booking._id}/cancel`)}
+                                >
+                                  {actionLoadingId === booking._id ? (
+                                    <><i className="fa-solid fa-spinner fa-spin tw-mr-2"></i> {lang === 'AR' ? 'جاري الإلغاء...' : 'Cancelling...'}</>
+                                  ) : (
+                                    <>{lang === 'AR' ? 'إلغاء الحجز' : 'Cancel'}</>
+                                  )}
+                                </button>
+                              </>
                             ) : (
-                              <>{lang === 'AR' ? 'إلغاء الحجز' : 'Cancel'}</>
+                              <>
+                                <button 
+                                  className="tw-bg-transparent tw-border tw-border-amber-500/30 tw-text-amber-600 dark:tw-text-amber-500 hover:tw-bg-amber-500/10 tw-font-medium tw-py-2.5 tw-px-8 tw-rounded-sm tw-text-sm tw-transition-colors tw-flex tw-items-center tw-gap-2 tw-cursor-pointer"
+                                  onClick={() => toggleExpandPlan(booking._id)}
+                                >
+                                  {lang === 'AR' ? 'عرض الذكريات' : 'View Memories'}
+                                </button>
+                                <button 
+                                  className="tw-bg-transparent tw-border tw-border-slate-300 dark:tw-border-[#333333] tw-text-slate-700 dark:tw-text-[#aaaaaa] hover:tw-border-amber-500 hover:tw-text-amber-500 dark:hover:tw-border-amber-500 dark:hover:tw-border-amber-500 tw-font-medium tw-py-2.5 tw-px-8 tw-rounded-sm tw-text-sm tw-transition-colors tw-cursor-pointer"
+                                  onClick={() => expObj?._id && navigate(`/package-details/${expObj._id}`)}
+                                >
+                                  {lang === 'AR' ? 'احجز مجدداً' : 'Book Again'}
+                                </button>
+                              </>
                             )}
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                           <button 
-                            className="tw-bg-transparent tw-border tw-border-amber-500/30 tw-text-amber-600 dark:tw-text-amber-500 hover:tw-bg-amber-500/10 tw-font-medium tw-py-2.5 tw-px-8 tw-rounded-sm tw-text-sm tw-transition-colors tw-flex tw-items-center tw-gap-2"
-                            onClick={() => toggleExpandPlan(booking._id)}
-                          >
-                            {lang === 'AR' ? 'عرض الذكريات' : 'View Memories'}
-                          </button>
-                          <button 
-                            className="tw-bg-transparent tw-border tw-border-slate-300 dark:tw-border-[#333333] tw-text-slate-700 dark:tw-text-[#aaaaaa] hover:tw-border-amber-500 hover:tw-text-amber-500 dark:hover:tw-border-amber-500 dark:hover:tw-text-amber-500 tw-font-medium tw-py-2.5 tw-px-8 tw-rounded-sm tw-text-sm tw-transition-colors"
-                            onClick={() => expObj?._id && navigate(`/package-details/${expObj._id}`)}
-                          >
-                            {lang === 'AR' ? 'احجز مجدداً' : 'Book Again'}
-                          </button>
-                        </>
-                      )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
+
+            {/* Tab 2: Saved / Pending Itineraries */}
+            {activeTab === 'saved' && (
+              <div className="tw-flex tw-flex-col tw-gap-8">
+                
+                {/* 🌟 Glowing Alert for Incomplete offline localStorage Chain */}
+                {offlineChain.length > 0 && (
+                  <div className="tw-bg-gradient-to-r tw-from-amber-500/10 tw-via-amber-500/5 tw-to-transparent tw-border-l-4 tw-border-amber-500 tw-rounded-r-2xl tw-p-6 tw-mb-4 tw-shadow-[0_4px_20px_rgba(245,158,11,0.08)]">
+                    <div className="tw-flex tw-flex-col sm:tw-flex-row sm:tw-items-center sm:tw-justify-between tw-gap-4">
+                      <div className="tw-flex-1">
+                        <h4 className="tw-text-lg tw-font-bold tw-text-amber-500 tw-flex tw-items-center tw-gap-2 tw-mb-1.5">
+                          <i className="fa-solid fa-triangle-exclamation"></i>
+                          {lang === 'AR' ? 'عندك رحلة غير مكتملة، كمل الدفع الآن!' : 'You have an incomplete trip chain! Complete payment now.'}
+                        </h4>
+                        <p className="tw-text-xs tw-text-slate-600 dark:tw-text-slate-400 tw-mb-4">
+                          {lang === 'AR' 
+                            ? 'لقد قمت بتجميع باقات رحلات مسبقاً ولم تكتمل عملية الدفع بعد. يمكنك استكمال الدفع وحجز كامل السلسلة بضغطة زر واحدة.'
+                            : 'You have compiled trip packages that are still pending payment. Secure all packages in your itinerary chain instantly.'}
+                        </p>
+                        
+                        {/* Mini Chain list */}
+                        <div className="tw-flex tw-flex-col tw-gap-3 tw-bg-black/35 tw-p-4 tw-rounded-xl tw-border tw-border-slate-800/80">
+                          {offlineChain.map((item, idx) => (
+                            <div key={idx} className="tw-flex tw-items-center tw-justify-between tw-gap-3 tw-text-xs">
+                              <span className="tw-text-white tw-font-semibold tw-flex tw-items-center tw-gap-2">
+                                <i className="fa-solid fa-link tw-text-amber-500/80"></i>
+                                {item.name} ({item.guestCount} {lang === 'AR' ? 'مسافر' : 'Guests'})
+                              </span>
+                              <div className="tw-flex tw-items-center tw-gap-3">
+                                <span className="tw-text-amber-500 tw-font-bold">{item.totalPrice} EGP</span>
+                                <button 
+                                  onClick={() => handleDeleteChainItem(idx)}
+                                  className="tw-bg-transparent tw-border-none tw-text-rose-500 hover:tw-text-rose-400 tw-cursor-pointer"
+                                  title="Delete"
+                                >
+                                  <i className="fa-solid fa-trash-can"></i>
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                          <div className="tw-flex tw-justify-between tw-items-center tw-pt-3 tw-border-t tw-border-slate-800/80 tw-text-sm tw-font-bold">
+                            <span className="tw-text-slate-400">{lang === 'AR' ? 'المجموع الكلي للسلسلة:' : 'Total Chain Price:'}</span>
+                            <span className="tw-text-amber-500 tw-text-lg">{offlineChain.reduce((sum, item) => sum + item.totalPrice, 0)} EGP</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={handleCheckoutChain}
+                        disabled={checkoutLoading}
+                        className="tw-bg-amber-500 hover:tw-bg-amber-600 tw-text-black tw-font-extrabold tw-py-4 tw-px-8 tw-rounded-xl tw-transition-colors tw-shadow-lg tw-flex tw-items-center tw-justify-center tw-gap-2 tw-border-none tw-cursor-pointer tw-text-sm tw-flex-shrink-0 tw-h-fit"
+                      >
+                        {checkoutLoading ? (
+                          <><i className="fa-solid fa-circle-notch fa-spin"></i> {lang === 'AR' ? 'جاري الحجز...' : 'Booking...'}</>
+                        ) : (
+                          <><i className="fa-solid fa-credit-card"></i> {lang === 'AR' ? 'حجز وإتمام الدفع للسلسلة' : 'Book & Pay Chain'}</>
+                        )}
+                      </button>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                )}
+
+                {/* Database Pending Bookings List */}
+                {bookings.filter(b => b.status === 'Pending' || b.status === 'Cancelled').length === 0 && offlineChain.length === 0 ? (
+                  <div className="tw-flex tw-justify-center tw-py-16">
+                    <div className="tw-bg-white/80 dark:tw-bg-[#15171a]/80 tw-backdrop-blur-md tw-border tw-border-slate-200 dark:tw-border-slate-800 tw-rounded-2xl tw-p-12 tw-text-center tw-max-w-lg tw-w-full tw-shadow-xl">
+                      <div className="tw-text-6xl tw-text-slate-300 dark:tw-text-slate-700 tw-mb-6"><i className="fa-solid fa-folder-open"></i></div>
+                      <h3 className="tw-text-2xl tw-font-serif tw-font-bold tw-text-slate-900 dark:tw-text-white tw-mb-4">{lang === 'AR' ? 'لا توجد حجوزات معلقة' : 'No pending itineraries'}</h3>
+                      <p className="tw-text-slate-600 dark:tw-text-slate-400 tw-leading-relaxed tw-mb-8">{lang === 'AR' ? 'لا توجد أي حجوزات معلقة أو مسارات رحلات محفوظة حالياً.' : 'You have no pending bookings or saved trip itineraries at the moment.'}</p>
+                    </div>
+                  </div>
+                ) : (
+                  bookings.filter(b => b.status === 'Pending' || b.status === 'Cancelled').map((booking) => {
+                    const isCustom = !!booking.customTrip;
+                    const expObj = booking.experience || booking.customTrip?.experience;
+                    const title = expObj?.name || (isCustom ? (lang === 'AR' ? 'رحلة مخصصة' : 'Custom Trip') : (lang === 'AR' ? 'باقة سياحية مميزة' : 'Premium Package'));
+                    const image = expObj?.images?.[0] || expObj?.image || '/logo-dark.png';
+                    const locationName = expObj?.destination?.name || (lang === 'AR' ? 'مصر' : 'Egypt');
+                    
+                    const bookingDate = booking.booking_date
+                      ? new Date(booking.booking_date).toLocaleDateString(lang === 'AR' ? 'ar-EG' : 'en-US', { month: 'short', day: '2-digit', year: 'numeric' })
+                      : '—';
+
+                    const guests = booking.numberOfGuests || 1;
+                    const status = booking.status || 'Pending';
+                    
+                    let statusClasses = "tw-border-slate-500 tw-text-slate-500 tw-bg-slate-500/10";
+                    let statusText = lang === 'AR' ? 'قيد الانتظار' : 'PENDING';
+                    
+                    if (status === 'Cancelled') {
+                      statusClasses = "tw-border-slate-500/40 tw-text-slate-500 dark:tw-text-slate-500 tw-bg-slate-500/10";
+                      statusText = lang === 'AR' ? 'ملغي' : 'CANCELLED';
+                    }
+
+                    return (
+                      <div key={booking._id} className="tw-bg-white dark:tw-bg-[#111111] tw-border tw-border-slate-200 dark:tw-border-[#1f1f1f] tw-rounded-lg tw-overflow-hidden tw-shadow-sm hover:tw-shadow-xl tw-transition-all tw-flex tw-flex-col md:tw-flex-row">
+                        {/* Image Section */}
+                        <div className="tw-relative md:tw-w-1/3 tw-h-56 md:tw-h-auto">
+                          <img src={image} alt={title} className="tw-w-full tw-h-full tw-object-cover" />
+                          <div className="tw-absolute tw-inset-0 tw-bg-gradient-to-t tw-from-black/60 tw-to-transparent md:tw-hidden"></div>
+                        </div>
+
+                        {/* Content Section */}
+                        <div className="md:tw-w-2/3 tw-p-6 md:tw-p-8 tw-flex tw-flex-col">
+                          <div className="tw-flex tw-flex-col sm:tw-flex-row sm:tw-justify-between sm:tw-items-center tw-mb-4 tw-gap-3">
+                            <div className="tw-flex tw-gap-2 tw-flex-wrap">
+                              <div className={`tw-inline-flex tw-items-center tw-px-3 tw-py-1 tw-rounded-full tw-border ${statusClasses} tw-text-[10px] tw-font-semibold tw-tracking-widest tw-uppercase tw-w-fit`}>
+                                {statusText}
+                              </div>
+                            </div>
+                            <div className="tw-text-slate-500 dark:tw-text-[#666666] tw-text-xs tw-font-medium">
+                              Booking ID: <span className="tw-font-mono">{booking._id.substring(0,8).toUpperCase()}</span>
+                            </div>
+                          </div>
+
+                          <h2 className="tw-font-serif tw-text-2xl md:tw-text-3xl tw-font-bold tw-text-slate-900 dark:tw-text-white tw-mb-4 tw-leading-tight">
+                            {title}
+                          </h2>
+
+                          <div className="tw-flex tw-flex-wrap tw-gap-x-6 tw-gap-y-3 tw-mb-8 tw-text-sm tw-font-medium tw-text-slate-600 dark:tw-text-[#cccccc]">
+                            <div className="tw-flex tw-items-center tw-gap-2">
+                              <i className="fa-regular fa-calendar tw-text-amber-500"></i>
+                              <span>{bookingDate}</span>
+                            </div>
+                            <div className="tw-flex tw-items-center tw-gap-2">
+                              <i className="fa-solid fa-user-group tw-text-amber-500"></i>
+                              <span>{guests} {guests === 1 ? (lang === 'AR' ? 'فرد' : 'Guests') : (lang === 'AR' ? 'أفراد' : 'Guests')}</span>
+                            </div>
+                            <div className="tw-flex tw-items-center tw-gap-2">
+                              <i className="fa-solid fa-location-dot tw-text-amber-500"></i>
+                              <span>{locationName}</span>
+                            </div>
+                          </div>
+
+                          <div className="tw-mt-auto tw-flex tw-flex-wrap tw-items-center tw-gap-4">
+                            {status === 'Pending' && (
+                              <>
+                                <button 
+                                  className="tw-bg-[#ffd700] hover:tw-bg-[#e5c100] tw-text-black tw-font-medium tw-py-2.5 tw-px-8 tw-rounded-sm tw-text-sm tw-transition-colors tw-shadow-sm tw-flex tw-items-center tw-gap-2 tw-border-none tw-cursor-pointer"
+                                  onClick={() => {
+                                    localStorage.setItem('currentBookingId', booking._id);
+                                    navigate('/payment');
+                                  }}
+                                >
+                                  {lang === 'AR' ? 'دفع قيمة الرحلة' : 'Pay Now'}
+                                  <i className="fa-solid fa-credit-card tw-text-xs"></i>
+                                </button>
+                                <button 
+                                  className="tw-bg-transparent tw-border tw-border-slate-300 dark:tw-border-[#333333] tw-text-slate-700 dark:tw-text-[#aaaaaa] hover:tw-border-amber-500 hover:tw-text-amber-500 dark:hover:tw-border-amber-500 dark:hover:tw-border-amber-500 tw-font-medium tw-py-2.5 tw-px-8 tw-rounded-sm tw-text-sm tw-transition-colors tw-cursor-pointer"
+                                  onClick={() => dispatch(setChatOpen(true))}
+                                >
+                                  {lang === 'AR' ? 'الدعم الفني' : 'Support'}
+                                </button>
+                              </>
+                            )}
+                            {status === 'Cancelled' && (
+                              <button 
+                                className="tw-bg-transparent tw-border tw-border-slate-300 dark:tw-border-[#333333] tw-text-slate-700 dark:tw-text-[#aaaaaa] hover:tw-border-amber-500 hover:tw-text-amber-500 dark:hover:tw-border-amber-500 dark:hover:tw-border-amber-500 tw-font-medium tw-py-2.5 tw-px-8 tw-rounded-sm tw-text-sm tw-transition-colors tw-cursor-pointer"
+                                onClick={() => expObj?._id && navigate(`/package-details/${expObj._id}`)}
+                              >
+                                {lang === 'AR' ? 'احجز مجدداً' : 'Book Again'}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
+          </>
         )}
 
         {/* Assistance Section (Based on Screenshot) */}

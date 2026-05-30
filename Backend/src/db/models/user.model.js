@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { sendMail } from "../../utils/email/index.js";
 import { SYS_Role, GENDER, USER_AGENT } from "../../utils/common/enum/index.js";
 

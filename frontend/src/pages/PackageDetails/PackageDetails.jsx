@@ -119,6 +119,271 @@ const PackageDetails = () => {
     }
   };
 
+  const getDynamicIncludedExcluded = () => {
+    // 1. If packageData has included/excluded in DB, return them
+    const dbIncluded = packageData?.included || [];
+    const dbExcluded = packageData?.excluded || [];
+    
+    if (dbIncluded.length > 0 || dbExcluded.length > 0) {
+      return {
+        included: dbIncluded,
+        excluded: dbExcluded
+      };
+    }
+    
+    // 2. Otherwise generate dynamically based on trip keywords
+    const name = (packageData?.name || packageData?.title || '').toLowerCase();
+    
+    const isWaterTrip = name.includes('beach') || name.includes('snorkeling') || name.includes('sea') || name.includes('boat') || name.includes('water') || name.includes('island') || name.includes('ocean') || name.includes('yacht') || name.includes('marina') || name.includes('الغردقة') || name.includes('بحر') || name.includes('شاطئ') || name.includes('يخت');
+    
+    const isDesertHistoryTrip = name.includes('pyramids') || name.includes('temple') || name.includes('luxor') || name.includes('cairo') || name.includes('aswan') || name.includes('history') || name.includes('museum') || name.includes('safari') || name.includes('desert') || name.includes('أهرامات') || name.includes('معبد') || name.includes('الأقصر') || name.includes('أسوان') || name.includes('تاريخ') || name.includes('متحف') || name.includes('سفاري') || name.includes('صحراء');
+
+    if (isWaterTrip) {
+      return {
+        included: [
+          lang === 'AR' ? 'دخول خاص للشاطئ أو اليخت' : 'Private beach or yacht entry pass',
+          lang === 'AR' ? 'معدات سنوركلينج عالية الجودة مجاناً' : 'Complimentary high-quality snorkeling gear',
+          lang === 'AR' ? 'مدرب ألعاب مائية مرخص ومحترف' : 'Professional licensed water sports instructor',
+          lang === 'AR' ? 'وجبة غداء خفيفة أو مياه معدنية مثلجة طوال الرحلة' : 'Light lunch or cold mineral water on board'
+        ],
+        excluded: [
+          lang === 'AR' ? 'المشروبات الفاخرة والعصائر الطبيعية' : 'Premium beverages & natural juices',
+          lang === 'AR' ? 'جلسة تصوير خاصة تحت الماء (إضافة اختيارية)' : 'Private underwater photography (optional)',
+          lang === 'AR' ? 'التوصيل من وإلى الفندق البعيد' : 'Round-trip transfer from remote hotels'
+        ]
+      };
+    } else if (isDesertHistoryTrip) {
+      return {
+        included: [
+          lang === 'AR' ? 'مرشد سياحي خبير بالآثار والقصص المحلية' : 'Expert tour guide fluent in history & local stories',
+          lang === 'AR' ? 'تذاكر دخول المعالم السياحية المحددة بالبرنامج' : 'Entry tickets to scheduled archaeological sights',
+          lang === 'AR' ? 'انتقالات فاخرة مكيفة طوال اليوم' : 'Premium modern air-conditioned vehicle transfers',
+          lang === 'AR' ? 'مياه معدنية باردة ومرطبات' : 'Cold bottled mineral water & refreshments'
+        ],
+        excluded: [
+          lang === 'AR' ? 'تذاكر دخول المقابر الداخلية الخاصة (كالهرم الأكبر)' : 'Entry tickets to special interior chambers (e.g. Great Pyramid)',
+          lang === 'AR' ? 'المشاروات الشخصية والهدايا التذكارية' : 'Personal shopping, souvenirs & local bazaar finds',
+          lang === 'AR' ? 'الوجبات الإضافية غير المذكورة' : 'Extra meals or snacks not listed in the itinerary'
+        ]
+      };
+    } else {
+      return {
+        included: [
+          lang === 'AR' ? 'انتقالات حديثة ومكيفة' : 'Modern air-conditioned vehicle transfers',
+          lang === 'AR' ? 'منسق رحلات محترف ومتحدث بلغات متعددة' : 'Professional multilingual trip coordinator',
+          lang === 'AR' ? 'مياه شرب باردة طوال اليوم' : 'Chilled drinking water throughout the experience'
+        ],
+        excluded: [
+          lang === 'AR' ? 'المصاريف الشخصية والمشتريات' : 'Personal expenses & shopping',
+          lang === 'AR' ? 'الإكراميات الاختيارية لطاقم العمل' : 'Optional tipping for the crew'
+        ]
+      };
+    }
+  };
+
+  const getDynamicPackingGuide = (packageData, lang) => {
+    if (!packageData) return null;
+    
+    const name = (packageData.name || packageData.title || '').toLowerCase();
+    
+    const isWaterTrip = name.includes('beach') || name.includes('snorkeling') || name.includes('sea') || name.includes('boat') || name.includes('water') || name.includes('island') || name.includes('ocean') || name.includes('yacht') || name.includes('marina') || name.includes('الغردقة') || name.includes('بحر') || name.includes('شاطئ') || name.includes('يخت');
+    
+    const isDesertHistoryTrip = name.includes('pyramids') || name.includes('temple') || name.includes('luxor') || name.includes('cairo') || name.includes('aswan') || name.includes('history') || name.includes('museum') || name.includes('safari') || name.includes('desert') || name.includes('أهرامات') || name.includes('معبد') || name.includes('الأقصر') || name.includes('أسوان') || name.includes('تاريخ') || name.includes('متحف') || name.includes('سفاري') || name.includes('صحراء');
+
+    if (isWaterTrip) {
+      return {
+        name: lang === 'AR' ? 'نادي شاطئ الغردقة والألعاب المائية' : 'Hurghada Water Sports & Beach',
+        essentials: [
+          { 
+            item: lang === 'AR' ? 'واقي من الشمس آمن على الشعاب المرجانية (SPF 50+)' : 'Reef-safe sunscreen (SPF 50+)', 
+            required: true, 
+            icon: '☀️' 
+          },
+          { 
+            item: lang === 'AR' ? 'زجاجة مياه معزولة للترطيب' : 'Water bottle (stay hydrated)', 
+            required: true, 
+            icon: '💧' 
+          },
+          { 
+            item: lang === 'AR' ? 'جراب هاتف مقاوم للماء' : 'Waterproof phone case', 
+            required: false, 
+            icon: '📱' 
+          },
+          { 
+            item: lang === 'AR' ? 'نقود كاش للمصاريف الإضافية على الشاطئ' : 'Cash for beach extras', 
+            required: false, 
+            icon: '💵' 
+          },
+          { 
+            item: lang === 'AR' ? 'حقيبة جافة ومنشفة للرحلة' : 'Towel & dry bag', 
+            required: true, 
+            icon: '🎒' 
+          }
+        ],
+        clothing: [
+          { 
+            item: lang === 'AR' ? 'ملابس السباحة (أحضر غياراً إضافياً)' : 'Swimwear (bring extra towel)', 
+            notes: lang === 'AR' ? 'يفضل ملابس مريحة وسريعة الجفاف' : 'Fast-drying fabrics are recommended' 
+          },
+          { 
+            item: lang === 'AR' ? 'قميص واقي من الأشعة فوق البنفسجية / راش جارد' : 'Rash guard / UV shirt', 
+            notes: lang === 'AR' ? 'لحماية إضافية أثناء السباحة لفترات طويلة' : 'For extra protection during long swim sessions' 
+          },
+          { 
+            item: lang === 'AR' ? 'حذاء مائي' : 'Water shoes', 
+            notes: lang === 'AR' ? 'لتفادي الصخور والشعاب الحادة في المناطق الضحلة' : 'Prevents cuts from rocks and corals in shallow water' 
+          },
+          { 
+            item: lang === 'AR' ? 'غطاء خفيف للجسم' : 'Light cover-up', 
+            notes: lang === 'AR' ? 'للاستخدام في المطاعم أو أثناء فترات الاستراحة' : 'For beach restaurants and transitions' 
+          },
+          { 
+            item: lang === 'AR' ? 'نظارة شمسية مستقطبة' : 'Sunglasses', 
+            notes: lang === 'AR' ? 'لتقليل انعكاس الضوء من سطح الماء' : 'Polarized to reduce sea glare' 
+          }
+        ],
+        safetyTips: [
+          { tip: lang === 'AR' ? 'السباحة دائماً في المناطق المحددة واتباع إرشادات المنقذين.' : 'Always swim in designated zones and obey safety flags.' },
+          { tip: lang === 'AR' ? 'أعد وضع واقي الشمس كل ساعتين، خصوصاً بعد السباحة.' : 'Reapply sunscreen every 2 hours - especially after swimming.' },
+          { tip: lang === 'AR' ? 'تجنب السباحة بمفردك في المياه المفتوحة أو أثناء الألعاب المائية.' : 'Do not swim alone, especially in open deep water.' },
+          { tip: lang === 'AR' ? 'أكرم طاقم الإنقاذ بالانتباه لتعليماتهم الأمنية.' : 'Listen carefully to the lifeguards and crew instructions.' }
+        ],
+        emergencyContacts: {
+          police: '122',
+          ambulance: '123',
+          coastGuard: '15656',
+          localHospital: lang === 'AR' ? 'مستشفى الغردقة العام: 0653546740' : 'Hurghada General Hospital: 0653546740'
+        }
+      };
+    } else if (isDesertHistoryTrip) {
+      return {
+        name: lang === 'AR' ? 'الرحلات التاريخية والصحراوية' : 'Historical & Desert Safaris',
+        essentials: [
+          { 
+            item: lang === 'AR' ? 'واقي من الشمس عالي الكفاءة' : 'High-efficiency sunscreen', 
+            required: true, 
+            icon: '☀️' 
+          },
+          { 
+            item: lang === 'AR' ? 'زجاجة مياه قابلة لإعادة التعبئة' : 'Refillable water bottle', 
+            required: true, 
+            icon: '💧' 
+          },
+          { 
+            item: lang === 'AR' ? 'قبعة شمسية واسعة الحواف' : 'Wide-brimmed sun hat', 
+            required: true, 
+            icon: '👒' 
+          },
+          { 
+            item: lang === 'AR' ? 'معقم يدين ومناديل مبللة' : 'Hand sanitizer & wet wipes', 
+            required: false, 
+            icon: '🧴' 
+          },
+          { 
+            item: lang === 'AR' ? 'نقود كاش بالعملة المحلية للشراء والإكراميات' : 'Cash in EGP for tips & local vendors', 
+            required: true, 
+            icon: '💵' 
+          }
+        ],
+        clothing: [
+          { 
+            item: lang === 'AR' ? 'ملابس قطنية خفيفة ومريحة' : 'Lightweight breathable clothing', 
+            notes: lang === 'AR' ? 'يفضل الألوان الفاتحة لعكس أشعة الشمس' : 'Lighter colors reflect heat better' 
+          },
+          { 
+            item: lang === 'AR' ? 'أحذية مشي مريحة ومغلقة' : 'Comfortable walking shoes', 
+            notes: lang === 'AR' ? 'ينصح بأحذية مغلقة لحماية القدم من الرمال والحصى' : 'Closed-toe recommended for sandy/uneven paths' 
+          },
+          { 
+            item: lang === 'AR' ? 'شال خفيف أو وشاح' : 'Light scarf / shawl', 
+            notes: lang === 'AR' ? 'للحماية من الغبار وخصوصاً لزيارة المعالم الدينية' : 'Great for dust protection and temple/mosque visits' 
+          },
+          { 
+            item: lang === 'AR' ? 'نظارة شمسية (حماية UV)' : 'Sunglasses', 
+            notes: lang === 'AR' ? 'لحماية العين من وهج الشمس الصحراوية' : 'Essential to protect against bright desert glare' 
+          },
+          { 
+            item: lang === 'AR' ? 'حقيبة ظهر صغيرة' : 'Small daypack', 
+            notes: lang === 'AR' ? 'لحمل زجاجة المياه والكاميرا والمنعشات الشخصية' : 'Ideal to carry water, camera, and sunscreen' 
+          }
+        ],
+        safetyTips: [
+          { tip: lang === 'AR' ? 'اشرب الكثير من المياه بانتظام حتى لو لم تشعر بالعطش.' : 'Stay hydrated - drink water regularly even if you do not feel thirsty.' },
+          { tip: lang === 'AR' ? 'ابحث عن الظل خلال ساعات الذروة الحارة (من 12 ظهراً حتى 3 عصراً).' : 'Seek shade during peak hot hours (12 PM - 3 PM).' },
+          { tip: lang === 'AR' ? 'احترم العادات المحلية بتغطية الكتفين والركبتين عند دخول الأماكن الدينية.' : 'Respect local customs by covering shoulders/knees in religious sites.' },
+          { tip: lang === 'AR' ? 'حافظ على ممتلكاتك الشخصية في المناطق المزدحمة والأسواق.' : 'Keep an eye on personal belongings in crowded markets/bazaars.' }
+        ],
+        emergencyContacts: {
+          police: '122',
+          ambulance: '123',
+          coastGuard: '',
+          localHospital: lang === 'AR' ? 'شرطة السياحة والآثار: 126' : 'Tourist Police: 126'
+        }
+      };
+    } else {
+      return {
+        name: lang === 'AR' ? 'أساسيات الرحلة العامة' : 'General Trip Essentials',
+        essentials: [
+          { 
+            item: lang === 'AR' ? 'واقي من الشمس ومرطب للشفاه' : 'Sunscreen & lip balm', 
+            required: false, 
+            icon: '☀️' 
+          },
+          { 
+            item: lang === 'AR' ? 'زجاجة مياه للشرب طوال اليوم' : 'Drinking water bottle', 
+            required: true, 
+            icon: '💧' 
+          },
+          { 
+            item: lang === 'AR' ? 'شاحن متنقل للهواتف (Powerbank)' : 'Power bank & charging cables', 
+            required: false, 
+            icon: '🔌' 
+          },
+          { 
+            item: lang === 'AR' ? 'نقود كاش بالجنيه المصري' : 'Cash in EGP', 
+            required: false, 
+            icon: '💵' 
+          },
+          { 
+            item: lang === 'AR' ? 'صورة من بطاقة الهوية أو جواز السفر' : 'Copy of ID / Passport', 
+            required: true, 
+            icon: '🆔' 
+          }
+        ],
+        clothing: [
+          { 
+            item: lang === 'AR' ? 'ملابس مريحة مناسبة للطقس الحالي' : 'Weather-appropriate comfortable clothing', 
+            notes: lang === 'AR' ? 'تحقق من توقعات الطقس قبل الانطلاق' : 'Check local weather forecast before leaving' 
+          },
+          { 
+            item: lang === 'AR' ? 'أحذية مشي مريحة ومناسبة' : 'Comfortable walking shoes', 
+            notes: lang === 'AR' ? 'لتفادي التعب أثناء فترات الجولات والأنشطة' : 'Essential for pleasant walking tours' 
+          },
+          { 
+            item: lang === 'AR' ? 'جاكيت خفيف أو سترة' : 'Light jacket or sweater', 
+            notes: lang === 'AR' ? 'للأوقات المسائية أو الحافلات المكيفة' : 'Useful for cool evenings or air-conditioned buses' 
+          },
+          { 
+            item: lang === 'AR' ? 'نظارة شمسية وحجاب' : 'Sunglasses & cap', 
+            notes: lang === 'AR' ? 'لحماية رأسك وعينيك من أشعة الشمس' : 'To shade your head and eyes' 
+          }
+        ],
+        safetyTips: [
+          { tip: lang === 'AR' ? 'احتفظ دائماً برقم هاتف مرشد الرحلة أو المنظم مسجلاً على هاتفك.' : 'Always keep your guide\'s contact number saved in your phone.' },
+          { tip: lang === 'AR' ? 'احمل بطاقة تعريفية أو صورة الهوية الشخصية طوال الرحلة.' : 'Carry a form of ID or copy with you at all times.' },
+          { tip: lang === 'AR' ? 'التزم بالبقاء مع المجموعة أثناء الجولات السياحية الجماعية.' : 'Stay with your tour group during guided segments.' },
+          { tip: lang === 'AR' ? 'انتبه لخطواتك عند المشي على الأرصفة غير الممهدة أو المعالم القديمة.' : 'Watch your steps on uneven roads or ancient ruins.' }
+        ],
+        emergencyContacts: {
+          police: '122',
+          ambulance: '123',
+          coastGuard: '',
+          localHospital: lang === 'AR' ? 'الطوارئ والنجدة: 122' : 'Police Emergency: 122'
+        }
+      };
+    }
+  };
+
   const checkWishlistStatus = async () => {
     try {
       const response = await getWishlist();
@@ -456,6 +721,54 @@ const PackageDetails = () => {
     }
   };
 
+  const handleAddToTripChain = () => {
+    try {
+      const chainStr = localStorage.getItem('clearpath_trip_chain') || '[]';
+      const currentChain = JSON.parse(chainStr);
+      
+      const isAlreadyChained = currentChain.some(item => item.packageId === packageData._id);
+      if (isAlreadyChained) {
+        alert(lang === 'AR' ? 'هذه الرحلة مضافة بالفعل في سلسلة رحلتك.' : 'This experience is already in your trip chain.');
+        return;
+      }
+
+      const singlePrice = isCustomizing && customTrip 
+        ? customTrip.total_price 
+        : (packageData.base_price || packageData.price || 0);
+
+      const addonsTotal = selectedAddons.reduce((sum, addonId) => {
+        const addon = packageData?.addons?.find(a => a._id === addonId);
+        return sum + (addon ? addon.price : 0);
+      }, 0);
+
+      const extraActivitiesCount = selectedAddons.length + (customTrip?.extra_activities?.length || 0);
+      let totalPrice = (singlePrice * guestCount) + addonsTotal;
+      if (!customTrip?.ai_discount_applied && extraActivitiesCount >= 3) {
+         const discount = totalPrice * 0.10;
+         totalPrice -= discount;
+      }
+
+      const chainItem = {
+        packageId: packageData._id,
+        name: packageData.name || packageData.title,
+        image: activeImage || packageData.image || '',
+        guests: guestCount,
+        selectedAddons: selectedAddons,
+        totalPrice: totalPrice,
+        isCustomized: !!customTrip
+      };
+
+      currentChain.push(chainItem);
+      localStorage.setItem('clearpath_trip_chain', JSON.stringify(currentChain));
+      
+      window.dispatchEvent(new Event('cartUpdate'));
+      
+      alert(lang === 'AR' ? 'تمت إضافة الرحلة إلى سلسلة رحلتك بنجاح!' : 'Experience added to your trip chain successfully!');
+    } catch (err) {
+      console.error('Failed to add to trip chain:', err);
+    }
+  };
+
   const fetchUserProfile = async () => {
     try {
       const response = await getUserProfile();
@@ -655,9 +968,6 @@ const PackageDetails = () => {
 
             {/* Main Grid */}
             <div className="package-grid">
-              
-              {/* Left Column: Details & Itinerary */}
-              <div className="tw-bg-white dark:tw-bg-[#15171a] tw-rounded-3xl tw-p-6 md:tw-p-10 tw-shadow-sm dark:tw-shadow-xl tw-border tw-border-slate-100 dark:tw-border-slate-800/80">
                 {/* Hero Header & Quick Overview */}
                 <div className="experience-hero-header" style={{ marginBottom: '25px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', flexWrap: 'wrap' }}>
@@ -759,110 +1069,341 @@ const PackageDetails = () => {
                   </p>
                 </div>
 
-                {/* What's Included & Excluded */}
-                <div className="included-excluded-section" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '40px' }}>
-                  {/* Included */}
-                  <div style={{ background: 'rgba(34, 197, 94, 0.05)', border: '1px solid rgba(34, 197, 94, 0.2)', borderRadius: '12px', padding: '20px' }}>
-                    <h3 style={{ color: '#22c55e', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <i className="fa-solid fa-circle-check"></i> {lang === 'AR' ? 'يشمل (Zero Hidden Fees)' : 'Included (Zero Hidden Fees)'}
-                    </h3>
-                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', color: '#e2e8f0' }}>
-                      {packageData.included && packageData.included.length > 0 ? (
-                        packageData.included.map((item, idx) => (
-                          <li key={idx}><i className="fa-solid fa-check" style={{ color: '#22c55e', marginRight: '8px' }}></i> {item}</li>
-                        ))
-                      ) : (
-                        <>
-                          <li><i className="fa-solid fa-check" style={{ color: '#22c55e', marginRight: '8px' }}></i> All transfers (4x4 & A/C Vehicles)</li>
-                          <li><i className="fa-solid fa-check" style={{ color: '#22c55e', marginRight: '8px' }}></i> All Meals (Breakfast, Lunch, Dinner)</li>
-                          <li><i className="fa-solid fa-check" style={{ color: '#22c55e', marginRight: '8px' }}></i> National Park & Security Permits</li>
-                          <li><i className="fa-solid fa-check" style={{ color: '#22c55e', marginRight: '8px' }}></i> Professional Camping Gear</li>
-                        </>
-                      )}
-                    </ul>
-                  </div>
+                {/* Booking Card (relocated above Itinerary) */}
+                <div className="booking-card" style={{ marginTop: '20px' }}>
+                  <div className="booking-card-inner">
+                    {/* Left Side: Pricing, Guests, Breakdown, Discounts */}
+                    <div>
+                      {(() => {
+                        const singlePrice = isCustomizing && customTrip 
+                          ? customTrip.total_price 
+                          : (packageData ? (packageData.base_price || packageData.price || 0) : 0);
+                        
+                        const originalSinglePrice = isCustomizing && customTrip && customTrip.ai_discount_applied
+                          ? customTrip.original_price
+                          : singlePrice;
 
-                  {/* Excluded */}
-                  <div style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '12px', padding: '20px' }}>
-                    <h3 style={{ color: '#ef4444', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <i className="fa-solid fa-circle-xmark"></i> {lang === 'AR' ? 'لا يشمل' : 'Excluded'}
-                    </h3>
-                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', color: '#e2e8f0' }}>
-                      {packageData.excluded && packageData.excluded.length > 0 ? (
-                        packageData.excluded.map((item, idx) => (
-                          <li key={idx}><i className="fa-solid fa-xmark" style={{ color: '#ef4444', marginRight: '8px' }}></i> {item}</li>
-                        ))
-                      ) : (
-                        <>
-                          <li><i className="fa-solid fa-xmark" style={{ color: '#ef4444', marginRight: '8px' }}></i> Personal Expenses & Souvenirs</li>
-                          <li><i className="fa-solid fa-xmark" style={{ color: '#ef4444', marginRight: '8px' }}></i> Tipping (Gratuities)</li>
-                          <li><i className="fa-solid fa-xmark" style={{ color: '#ef4444', marginRight: '8px' }}></i> Flights or Visas</li>
-                        </>
+                        const addonsTotal = selectedAddons.reduce((sum, addonId) => {
+                          const addon = packageData?.addons?.find(a => a._id === addonId);
+                          return sum + (addon ? addon.price : 0);
+                        }, 0);
+                        
+                        const extraActivitiesCount = selectedAddons.length + (customTrip?.extra_activities?.length || 0);
+                        const aiDiscountApplied = customTrip?.ai_discount_applied || extraActivitiesCount >= 3;
+                        
+                        let totalPrice = (singlePrice * guestCount) + addonsTotal;
+                        let originalTotalPrice = originalSinglePrice * guestCount + addonsTotal;
+                        
+                        if (!customTrip?.ai_discount_applied && extraActivitiesCount >= 3) {
+                           const discount = totalPrice * 0.10;
+                           totalPrice -= discount;
+                        }
+
+                        return (
+                          <>
+                            <div className="booking-price" style={{ display: 'flex', flexDirection: 'column', gap: '5px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '15px', marginBottom: '15px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                                <span className="price-label" style={{ fontSize: '0.85rem', color: '#a4a4b4', fontWeight: 'bold' }}>{isCustomizing ? (lang === 'AR' ? 'السعر المخصص للفرد' : 'Customized price per guest') : (lang === 'AR' ? 'يبدأ سعر الفرد من' : 'Price starts at')}</span>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                                  {aiDiscountApplied && (
+                                    <span style={{ textDecoration: 'line-through', color: '#64748b', fontSize: '0.9rem' }}>
+                                      {formatPrice(originalTotalPrice)}
+                                    </span>
+                                  )}
+                                  <span className="price-amount" style={{ fontSize: '2rem', color: aiDiscountApplied ? '#10b981' : '#f59e0b', fontWeight: 'bold' }}>
+                                    {formatPrice(totalPrice)}
+                                  </span>
+                                </div>
+                              </div>
+                              {aiDiscountApplied && (
+                                <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '6px 10px', borderRadius: '8px', color: '#10b981', fontSize: '0.75rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px', width: 'fit-content', alignSelf: 'flex-end' }}>
+                                  <i className="fa-solid fa-wand-magic-sparkles"></i>
+                                  {lang === 'AR' ? 'تم تطبيق خصم التوجيه الذكي (AI) 10%' : '10% AI Bundle Discount Applied!'}
+                                </div>
+                              )}
+                              {extraActivitiesCount === 2 && (
+                                <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px dashed rgba(245, 158, 11, 0.4)', padding: '8px 10px', borderRadius: '8px', color: '#f59e0b', fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', width: 'fit-content', alignSelf: 'flex-end' }}>
+                                  <i className="fa-solid fa-gift fa-bounce"></i>
+                                  {lang === 'AR' ? 'أضف نشاطاً واحداً إضافياً واحصل على خصم 10% على إجمالي رحلتك!' : 'Add just 1 more extra activity to get a 10% AI Discount!'}
+                                </div>
+                              )}
+                              
+                              <button 
+                                onClick={() => setShowBreakdown(!showBreakdown)}
+                                style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '0.85rem', textDecoration: 'underline', cursor: 'pointer', textAlign: 'left', marginTop: '5px', width: 'fit-content' }}
+                              >
+                                {lang === 'AR' ? 'عرض تفاصيل السعر (شفافية كاملة)' : 'View Price Breakdown (Full Transparency)'}
+                              </button>
+                              
+                              {showBreakdown && (
+                                <div style={{ marginTop: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '12px', fontSize: '0.85rem', color: '#cbd5e1' }}>
+                                  {packageData.priceBreakdown && packageData.priceBreakdown.length > 0 ? (
+                                    packageData.priceBreakdown.map((item, idx) => (
+                                      <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                        <span>{item.label}</span>
+                                        <span>{formatPrice(item.amount * guestCount)}</span>
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                        <span>{lang === 'AR' ? 'رسوم وتصاريح:' : 'Fees / Permits:'}</span>
+                                        <span>{formatPrice(totalPrice * 0.15)}</span>
+                                      </div>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                        <span>{lang === 'AR' ? 'النقل (سيارة مكيفة):' : 'Transportation:'}</span>
+                                        <span>{formatPrice(totalPrice * 0.25)}</span>
+                                      </div>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                        <span>{lang === 'AR' ? 'وجبات ومشروبات:' : 'Meals & Drinks:'}</span>
+                                        <span>{formatPrice(totalPrice * 0.15)}</span>
+                                      </div>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                        <span>{lang === 'AR' ? 'أنشطة وتجارب:' : 'Activities & Experiences:'}</span>
+                                        <span>{formatPrice(totalPrice * 0.45)}</span>
+                                      </div>
+                                    </>
+                                  )}
+                                  {aiDiscountApplied && (
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981', fontWeight: 'bold', marginTop: '5px', paddingTop: '5px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                                      <span>{lang === 'AR' ? 'خصم (10%):' : 'Discount (10%):'}</span>
+                                      <span>- {formatPrice((originalTotalPrice - totalPrice))}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                              
+                              {guestCount > 1 && (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '10px', marginTop: '10px' }}>
+                                  <span className="price-label" style={{ color: '#f59e0b', fontWeight: '700' }}>
+                                    {lang === 'AR' ? `الإجمالي لـ ${guestCount} مسافرين` : `Total for ${guestCount} guests`}
+                                  </span>
+                                  <span className="price-amount" style={{ color: '#f59e0b', fontSize: '1.4rem', fontWeight: '800' }}>
+                                    {totalPrice} EGP
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Interactive Guest Selector */}
+                            <div className="guest-selector-container" style={{
+                              padding: '12px',
+                              background: 'rgba(255, 255, 255, 0.02)',
+                              border: '1px solid rgba(212, 175, 55, 0.15)',
+                              borderRadius: '10px',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '8px'
+                            }}>
+                              <label style={{ fontSize: '0.85rem', color: '#aaa', fontWeight: '600', display: 'flex', justifyContent: 'space-between', margin: 0 }}>
+                                <span>{lang === 'AR' ? 'عدد المسافرين (الضيوف)' : 'Number of Travelers (Guests)'}</span>
+                                <span style={{ color: '#f59e0b', fontWeight: 'bold' }}>{guestCount} {guestCount === 1 ? (lang === 'AR' ? 'مسافر' : 'Guest') : (lang === 'AR' ? 'مسافرين' : 'Guests')}</span>
+                              </label>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
+                                <button 
+                                  type="button"
+                                  onClick={() => setGuestCount(prev => Math.max(1, prev - 1))}
+                                  disabled={guestCount <= 1}
+                                  style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '50%',
+                                    background: guestCount <= 1 ? '#333' : '#f59e0b',
+                                    color: '#000',
+                                    border: 'none',
+                                    cursor: guestCount <= 1 ? 'not-allowed' : 'pointer',
+                                    fontWeight: 'bold',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'all 0.2s'
+                                  }}
+                                >
+                                  <i className="fa-solid fa-minus"></i>
+                                </button>
+                                <span style={{ fontSize: '1.15rem', fontWeight: 'bold', color: '#fff' }}>{guestCount}</span>
+                                <button 
+                                  type="button"
+                                  onClick={() => setGuestCount(prev => prev + 1)}
+                                  style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '50%',
+                                    background: '#f59e0b',
+                                    color: '#000',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    fontWeight: 'bold',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'all 0.2s'
+                                  }}
+                                >
+                                  <i className="fa-solid fa-plus"></i>
+                                </button>
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+
+                    {/* Right Side: Action Buttons & Benefits */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', justifyContent: 'space-between' }}>
+                      
+                      <div className="booking-benefits" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px', margin: 0 }}>
+                        <div className="benefit-item">
+                          <i className="fa-solid fa-shield-halved" style={{ color: '#f59e0b' }}></i>
+                          <div>
+                            <strong>{lang === 'AR' ? 'إلغاء مجاني' : 'Free Cancellation'}</strong>
+                            <p style={{ margin: 0 }}>{lang === 'AR' ? 'إلغاء مرن حتى 24 ساعة مقدماً' : 'Cancel up to 24 hours in advance'}</p>
+                          </div>
+                        </div>
+                        <div className="benefit-item">
+                          <i className="fa-solid fa-bolt" style={{ color: '#f59e0b' }}></i>
+                          <div>
+                            <strong>{lang === 'AR' ? 'تأكيد فوري' : 'Instant Confirmation'}</strong>
+                            <p style={{ margin: 0 }}>{lang === 'AR' ? 'احجز مكانك مباشرة في ثوانٍ معدودة' : 'Secure your spot in seconds'}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {isCustomizing && customTrip && (
+                        <div style={{ background: 'rgba(212, 175, 55, 0.1)', border: '1px solid #f59e0b', borderRadius: '8px', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px', color: '#f59e0b', fontSize: '0.85rem', fontWeight: '600' }}>
+                          <i className="fa-solid fa-sparkles"></i> {lang === 'AR' ? 'الخطة المخصصة نشطة' : 'Custom Plan Active'}
+                        </div>
                       )}
-                    </ul>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <button 
+                          onClick={handleBookNow} 
+                          className="tw-w-full tw-flex tw-items-center tw-justify-center tw-gap-2 tw-bg-amber-500 hover:tw-bg-amber-600 tw-text-white tw-font-bold tw-py-4 tw-px-6 tw-rounded-2xl tw-transition-all tw-shadow-lg" 
+                          disabled={bookingLoading}
+                          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', border: 'none', borderRadius: '12px', padding: '14px 20px', background: '#f59e0b', color: '#000', fontWeight: 'bold', fontSize: '1rem', transition: 'all 0.2s' }}
+                        >
+                          {bookingLoading ? (
+                            <><i className="fa-solid fa-spinner fa-spin"></i> {lang === 'AR' ? 'جاري إتمام الحجز...' : 'Creating Booking...'}</>
+                          ) : (
+                            <><i className="fa-solid fa-calendar-days"></i> {lang === 'AR' ? 'احجز الباقة الآن' : 'Book Experience Now'}</>
+                          )}
+                        </button>
+
+                        {/* Modular Chain Cart Button */}
+                        <button 
+                          onClick={handleAddToTripChain}
+                          style={{
+                            width: '100%',
+                            background: 'transparent',
+                            border: '2px solid #f59e0b',
+                            color: '#f59e0b',
+                            padding: '12px 20px',
+                            borderRadius: '12px',
+                            cursor: 'pointer',
+                            fontWeight: 'bold',
+                            fontSize: '0.95rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(245, 158, 11, 0.1)'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          <i className="fa-solid fa-link"></i> {lang === 'AR' ? 'إضافة إلى سلسلة الرحلة' : 'Add to Trip Chain'}
+                        </button>
+                        
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                          {/* Wishlist Button */}
+                          <button 
+                            onClick={handleWishlistToggle} 
+                            className={`btn-wishlist-toggle ${isInWishlist ? 'saved' : ''}`}
+                            disabled={wishlistLoading}
+                            style={{
+                              background: isInWishlist ? '#e61e4d' : 'rgba(255,255,255,0.05)',
+                              border: isInWishlist ? '1px solid #e61e4d' : '1px solid rgba(255,255,255,0.1)',
+                              color: isInWishlist ? '#ffffff' : '#cbd5e1',
+                              padding: '10px',
+                              borderRadius: '10px',
+                              cursor: 'pointer',
+                              fontWeight: '700',
+                              fontSize: '0.85rem',
+                              transition: 'all 0.3s ease',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '6px'
+                            }}
+                          >
+                            {wishlistLoading ? (
+                              <><i className="fa-solid fa-spinner fa-spin"></i></>
+                            ) : (
+                              <>
+                                <i className={`${isInWishlist ? 'fa-solid' : 'fa-regular'} fa-heart`} style={{ color: isInWishlist ? '#ffffff' : '#e61e4d' }}></i>
+                                {isInWishlist ? (lang === 'AR' ? 'محفوظ' : 'Saved') : (lang === 'AR' ? 'المفضلة' : 'Wishlist')}
+                              </>
+                            )}
+                          </button>
+
+                          {/* Customize Plan Button */}
+                          {token && (
+                            !customTrip ? (
+                              <button 
+                                onClick={handleStartCustomization} 
+                                className="btn-start-custom"
+                                style={{
+                                  background: 'transparent',
+                                  border: '1px solid #f59e0b',
+                                  color: '#f59e0b',
+                                  padding: '10px',
+                                  borderRadius: '10px',
+                                  cursor: 'pointer',
+                                  fontWeight: '600',
+                                  fontSize: '0.85rem',
+                                  transition: 'all 0.2s',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '6px'
+                                }}
+                              >
+                                <i className="fa-solid fa-sliders"></i> {lang === 'AR' ? 'تخصيص' : 'Customize'}
+                              </button>
+                            ) : (
+                              <button 
+                                onClick={handleToggleCustomization} 
+                                className="btn-start-custom"
+                                style={{
+                                  background: 'transparent',
+                                  border: '1px solid #f59e0b',
+                                  color: '#f59e0b',
+                                  padding: '10px',
+                                  borderRadius: '10px',
+                                  cursor: 'pointer',
+                                  fontWeight: '600',
+                                  fontSize: '0.85rem',
+                                  transition: 'all 0.2s',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '6px'
+                                }}
+                              >
+                                <i className="fa-solid fa-rotate-left"></i> {isCustomizing ? (lang === 'AR' ? 'الأساسي' : 'Standard') : (lang === 'AR' ? 'المخصص' : 'Custom')}
+                              </button>
+                            )
+                          )}
+                        </div>
+
+                        <p style={{ textAlign: 'center', fontSize: '0.78rem', color: '#a4a4b4', margin: '8px 0 0 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                          <i className="fa-solid fa-lock" style={{ color: '#22c55e' }}></i> {lang === 'AR' ? 'دفع آمن 100% | بدون رسوم خفية' : '100% Secure Payment | No Hidden Fees'}
+                        </p>
+                      </div>
+
+                    </div>
                   </div>
                 </div>
-
-                {/* 🎒 Smart Packing Guide Integration */}
-                {packingGuide && (packingGuide.itemsToBring?.length > 0 || packingGuide.itemsNotToBring?.length > 0) && (
-                  <div className="packing-guide-section" style={{ marginBottom: '40px', background: 'var(--card-bg)', border: '1px solid var(--border-light)', borderRadius: '16px', overflow: 'hidden', boxShadow: 'var(--box-shadow-soft)' }}>
-                    <div style={{ background: 'linear-gradient(90deg, #1e293b, #0f172a)', padding: '20px 25px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                      <div style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#f59e0b', width: '45px', height: '45px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem' }}>
-                        <i className="fa-solid fa-suitcase-rolling"></i>
-                      </div>
-                      <div>
-                        <h3 style={{ color: '#fff', margin: '0 0 5px 0', fontSize: '1.25rem', fontWeight: '700' }}>{lang === 'AR' ? 'دليل التحضير للرحلة' : 'Smart Packing Guide'}</h3>
-                        <p style={{ color: '#94a3b8', margin: 0, fontSize: '0.9rem' }}>{lang === 'AR' ? 'ما يجب إحضاره وما يفضل تركه' : 'What to bring and what to leave behind'}</p>
-                      </div>
-                    </div>
-                    
-                    <div style={{ padding: '25px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
-                      {/* What to Bring */}
-                      {packingGuide.itemsToBring?.length > 0 && (
-                        <div>
-                          <h4 style={{ color: '#22c55e', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '15px', fontSize: '1.05rem' }}>
-                            <i className="fa-solid fa-check-circle"></i> {lang === 'AR' ? 'يجب إحضاره' : 'Essential to Bring'}
-                          </h4>
-                          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            {packingGuide.itemsToBring.map((item, idx) => (
-                              <li key={idx} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', background: 'var(--bg-main)', padding: '10px 15px', borderRadius: '8px', border: '1px solid var(--border-light)', cursor: 'pointer', transition: 'all 0.2s' }} onClick={() => handleTogglePackingItem(`bring-${idx}`)}>
-                                <div style={{ color: checkedPackingItems[`bring-${idx}`] ? '#22c55e' : '#cbd5e1', fontSize: '1.1rem', transition: 'color 0.2s' }}>
-                                  <i className={`fa-solid ${checkedPackingItems[`bring-${idx}`] ? 'fa-square-check' : 'fa-square'}`}></i>
-                                </div>
-                                <span style={{ color: checkedPackingItems[`bring-${idx}`] ? '#94a3b8' : 'var(--text-dark)', textDecoration: checkedPackingItems[`bring-${idx}`] ? 'line-through' : 'none', fontSize: '0.95rem', fontWeight: '500' }}>{item}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      
-                      {/* What NOT to Bring */}
-                      {packingGuide.itemsNotToBring?.length > 0 && (
-                        <div>
-                          <h4 style={{ color: '#ef4444', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '15px', fontSize: '1.05rem' }}>
-                            <i className="fa-solid fa-ban"></i> {lang === 'AR' ? 'ممنوع إحضاره' : 'Leave Behind'}
-                          </h4>
-                          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            {packingGuide.itemsNotToBring.map((item, idx) => (
-                              <li key={idx} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', background: '#fef2f2', padding: '10px 15px', borderRadius: '8px', border: '1px solid #fee2e2' }}>
-                                <div style={{ color: '#ef4444', fontSize: '1rem', marginTop: '2px' }}>
-                                  <i className="fa-solid fa-xmark"></i>
-                                </div>
-                                <span style={{ color: '#7f1d1d', fontSize: '0.95rem', fontWeight: '500' }}>{item}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                    {packingGuide.tips && (
-                      <div style={{ padding: '15px 25px', background: '#fef3c7', borderTop: '1px solid #fde68a', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                        <i className="fa-solid fa-lightbulb" style={{ color: '#d97706', fontSize: '1.1rem', marginTop: '3px' }}></i>
-                        <p style={{ margin: 0, color: '#92400e', fontSize: '0.9rem', lineHeight: '1.5' }}><strong>Pro Tip:</strong> {packingGuide.tips}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
 
                 {/* Itinerary Section */}
                 <div className="itinerary-section">
@@ -1078,7 +1619,7 @@ const PackageDetails = () => {
                                 </h5>
 
                                 {day.activities && day.activities.length > 0 ? (
-                                  <ul className="activity-list" style={{ paddingLeft: 0, listStyle: 'none', margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                  <ul className="activity-list" style={{ paddingLeft: 0, listStyle: 'none', margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                     {day.activities.map((act, index) => {
                                       const actObj = act.activity;
                                       const customAct = customDay?.activities?.find(a => (a.activity?._id || a.activity) === (actObj?._id || actObj));
@@ -1087,83 +1628,115 @@ const PackageDetails = () => {
 
                                       const provId = act.provider?._id || act.provider || actObj?.provider?._id || actObj?.provider;
                                       const matchedProv = providersList.find(p => p._id === provId);
-                                      const providerName = matchedProv ? matchedProv.name : (act.provider?.name || actObj?.provider?.name || '');
+                                      const providerName = matchedProv ? matchedProv.name : (act.provider?.name || actObj?.provider?.name || 'Local Guide');
+
+                                      const actName = actObj?.name || act.name || 'Exciting Activity';
+                                      const actDesc = act.description || actObj?.description || 'No description available for this activity.';
+                                      const actImage = act.image || actObj?.image || getActivityImage(actName);
+                                      const actPrice = act.price !== undefined ? act.price : (actObj?.price || 0);
 
                                       return (
                                         <li key={index} className="activity-item" style={{ 
                                           display: 'flex', 
-                                          alignItems: 'center', 
-                                          padding: '12px 15px', 
-                                          background: 'rgba(0,0,0,0.02)',
-                                          border: '1px solid var(--border-light, #e2e8f0)',
-                                          borderRadius: '10px', 
+                                          padding: '15px', 
+                                          background: 'rgba(255, 255, 255, 0.02)',
+                                          border: '1px solid rgba(255, 255, 255, 0.05)',
+                                          borderRadius: '12px', 
                                           opacity: (isDisabled || isActRemoved) ? 0.5 : 1,
-                                          transition: 'all 0.2s',
+                                          transition: 'all 0.3s ease',
+                                          alignItems: 'center',
                                           gap: '15px'
                                         }}>
-                                          {act?.image && (
-                                            <div style={{ flex: '0 0 60px', height: '60px', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
-                                              <img src={act.image} alt="Activity" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                            </div>
-                                          )}
-                                          <div style={{ flex: '1', display: 'flex', flexDirection: 'column' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: '10px' }}>
-                                            <label style={{ 
-                                              display: 'flex', 
-                                              alignItems: 'center', 
-                                              gap: '10px', 
-                                              cursor: isDisabled ? 'not-allowed' : 'pointer', 
-                                              margin: 0, 
-                                              color: (isDisabled || isActRemoved) ? '#888' : 'inherit', 
-                                              fontWeight: '700'
-                                            }}>
-                                              <input 
-                                                type="checkbox"
-                                                disabled={isDisabled}
-                                                checked={!isDisabled && !isActRemoved}
-                                                onChange={() => handleToggleActivityCheckbox(day.day_number, actObj?._id || actObj)}
-                                                style={{ width: '17px', height: '17px', cursor: isDisabled ? 'not-allowed' : 'pointer', accentColor: '#f59e0b' }}
-                                              />
-                                              <span style={{ textDecoration: isActRemoved ? 'line-through' : 'none', color: 'var(--text-dark, #1e293b)', fontSize: '0.95rem' }}>
-                                                <strong>{actObj?.name || act.name || 'Exciting Activity'}</strong>
-                                                {providerName && (
-                                                  <span style={{ 
-                                                    fontSize: '0.74rem', 
-                                                    color: '#f59e0b', 
-                                                    marginLeft: '10px', 
-                                                    backgroundColor: 'rgba(212,175,55,0.08)', 
-                                                    padding: '3px 10px', 
-                                                    borderRadius: '4px',
-                                                    border: '1px solid rgba(212,175,55,0.2)',
-                                                    fontWeight: '700',
-                                                    display: 'inline-flex',
-                                                    alignItems: 'center',
-                                                    gap: '4px'
-                                                  }}>
-                                                    <i className="fa-solid fa-parachute-box"></i>
-                                                    {providerName}
-                                                  </span>
-                                                )}
-                                              </span>
-                                            </label>
-                                            <span className="act-price" style={{ color: (isDisabled || isActRemoved) ? '#777' : 'var(--accent-color, #f59e0b)', fontWeight: '800', fontSize: '0.95rem', textDecoration: isActRemoved ? 'line-through' : 'none' }}>
-                                              +{act.price} EGP
-                                            </span>
-                                          </div>
-
-                                          {/* 📝 Activity Description */}
-                                          {(act.description || actObj?.description) && (
-                                            <div style={{
-                                              paddingLeft: '27px',
-                                              marginTop: '6px',
-                                              fontSize: '0.84rem',
-                                              color: 'var(--text-muted, #64748b)',
+                                          <img 
+                                            src={actImage} 
+                                            alt={actName} 
+                                            style={{
+                                              width: '90px',
+                                              height: '90px',
+                                              borderRadius: '8px',
+                                              objectFit: 'cover',
+                                              flexShrink: 0
+                                            }}
+                                            onError={(e) => {
+                                              e.target.src = 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=300&q=80';
+                                            }}
+                                          />
+                                          <div style={{ flexGrow: 1, minWidth: 0 }}>
+                                            <h4 style={{ 
+                                              color: '#facc15', /* Premium Gold */
+                                              fontSize: '1.05rem',
+                                              fontWeight: '700',
+                                              margin: '0 0 5px 0',
+                                              textDecoration: isActRemoved ? 'line-through' : 'none'
+                                            }}>{actName}</h4>
+                                            <p style={{ 
+                                              color: '#cbd5e1',
+                                              fontSize: '0.85rem',
+                                              margin: '0 0 8px 0',
+                                              display: '-webkit-box',
+                                              WebkitLineClamp: 2,
+                                              WebkitBoxOrient: 'vertical',
+                                              overflow: 'hidden',
                                               lineHeight: '1.4',
                                               textDecoration: isActRemoved ? 'line-through' : 'none'
+                                            }}>{actDesc}</p>
+                                            <div style={{ 
+                                              color: '#9ca3af',
+                                              fontSize: '0.8rem',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              gap: '6px',
+                                              fontWeight: '500'
                                             }}>
-                                              {act.description || actObj.description}
+                                              <i className="fa-solid fa-parachute-box" style={{ color: '#facc15' }}></i>
+                                              <span>{lang === 'AR' ? 'المزود:' : 'Provider:'} {providerName}</span>
                                             </div>
-                                          )}
+                                          </div>
+                                          
+                                          <div style={{ 
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'flex-end',
+                                            gap: '8px',
+                                            flexShrink: 0,
+                                            paddingLeft: '15px',
+                                            borderLeft: '1px solid rgba(255, 255, 255, 0.05)',
+                                            minWidth: '100px'
+                                          }}>
+                                            <span style={{ 
+                                              fontWeight: '800',
+                                              color: '#10b981',
+                                              fontSize: '0.95rem',
+                                              textDecoration: isActRemoved ? 'line-through' : 'none'
+                                            }}>
+                                              {Number(actPrice) === 0 ? (lang === 'AR' ? 'مشمول' : 'Included') : `${actPrice} EGP`}
+                                            </span>
+                                            <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
+                                              {act.time || (index === 0 ? '08:00 AM' : index === 1 ? '01:00 PM' : '04:00 PM')}
+                                            </span>
+                                            {isCustomizing && !isDisabled && (
+                                              <button
+                                                type="button"
+                                                onClick={() => handleToggleActivityCheckbox(day.day_number, actObj?._id || actObj)}
+                                                style={{
+                                                  background: isActRemoved ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)',
+                                                  border: isActRemoved ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid rgba(239, 68, 68, 0.2)',
+                                                  color: isActRemoved ? '#10b981' : '#ef4444',
+                                                  cursor: 'pointer',
+                                                  width: '32px',
+                                                  height: '32px',
+                                                  borderRadius: '6px',
+                                                  display: 'inline-flex',
+                                                  alignItems: 'center',
+                                                  justifyContent: 'center',
+                                                  transition: 'all 0.2s',
+                                                  outline: 'none'
+                                                }}
+                                                title={isActRemoved ? (lang === 'AR' ? 'إعادة إضافة' : 'Add back') : (lang === 'AR' ? 'حذف الفعالية' : 'Remove activity')}
+                                              >
+                                                <i className={`fa-solid ${isActRemoved ? 'fa-circle-plus' : 'fa-trash'}`}></i>
+                                              </button>
+                                            )}
                                           </div>
                                         </li>
                                       );
@@ -1183,45 +1756,105 @@ const PackageDetails = () => {
                                         </h4>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                           {/* Select Dropdown filtering ONLY activities in current destination region NOT in experience already */}
-                                          <select 
-                                            value={newActivitySelection.activityId}
-                                            onChange={(e) => {
-                                              const actId = e.target.value;
-                                              const actObj = activitiesList.find(a => a._id === actId);
-                                              setNewActivitySelection(prev => ({
-                                                ...prev,
-                                                activityId: actId,
-                                                price: actObj ? actObj.price : '',
-                                                providerId: actObj && actObj.provider?._id ? actObj.provider._id : (actObj?.provider || '')
-                                              }));
-                                            }}
-                                            style={{ padding: '10px', background: '#14141f', border: '1.5px solid rgba(212,175,55,0.2)', color: '#fff', borderRadius: '6px', fontSize: '0.85rem', outline: 'none' }}
-                                          >
-                                            <option value="">-- {lang === 'AR' ? 'اختر نشاطاً إضافياً بالمنطقة' : 'Select an Extra Activity in Region'} --</option>
+                                          {/* Visual Grid Selector: Show premium cards instead of a select dropdown (Photo 2) */}
+                                          <div className="activity-cards-grid" style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+                                            gap: '12px',
+                                            maxHeight: '300px',
+                                            overflowY: 'auto',
+                                            background: 'rgba(0,0,0,0.2)',
+                                            padding: '12px',
+                                            borderRadius: '10px',
+                                            border: '1px solid rgba(255, 255, 255, 0.05)',
+                                            boxSizing: 'border-box'
+                                          }}>
                                             {(() => {
                                               const pkgDestId = packageData?.destination?._id || packageData?.destination;
-                                              // Filter: ONLY activities in this region
                                               const regionalActs = activitiesList.filter(act => {
                                                 const actDestId = act.destination?._id || act.destination;
                                                 return actDestId && pkgDestId && actDestId.toString() === pkgDestId.toString();
                                               });
 
-                                              // Filter out activities that are already in the current day's plan to prevent duplicate additions
                                               const currentDayActIds = day.activities.map(a => (a.activity?._id || a.activity)?.toString());
                                               const remainingActs = regionalActs.filter(a => !currentDayActIds.includes(a._id.toString()));
 
+                                              if (remainingActs.length === 0) {
+                                                return (
+                                                  <p style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '0.85rem', gridColumn: '1 / -1', margin: '10px 0', textAlign: 'center' }}>
+                                                    {lang === 'AR' ? 'لا توجد أنشطة إضافية متاحة بهذه المنطقة حالياً.' : 'No extra activities available in this region currently.'}
+                                                  </p>
+                                                );
+                                              }
+
                                               return remainingActs.map(act => {
+                                                const isSelected = newActivitySelection.activityId === act._id;
                                                 const provId = act.provider?._id || act.provider;
                                                 const matchedProv = providersList.find(p => p._id === provId);
-                                                const provName = matchedProv ? matchedProv.name : (act.provider?.name || 'Provider');
+                                                const provName = matchedProv ? matchedProv.name : (act.provider?.name || 'Local Guide');
+                                                const imgUrl = act.image || getActivityImage(act.name);
+
                                                 return (
-                                                  <option key={act._id} value={act._id}>
-                                                    {act.name} | Mover: {provName} | {act.description ? act.description.substring(0, 30) + '...' : 'No desc'} | Price: {act.price} EGP
-                                                  </option>
+                                                  <div 
+                                                    key={act._id}
+                                                    onClick={() => {
+                                                      setNewActivitySelection({
+                                                        activityId: act._id,
+                                                        price: act.price,
+                                                        providerId: provId || ''
+                                                      });
+                                                    }}
+                                                    style={{
+                                                      background: isSelected ? 'rgba(250, 204, 21, 0.05)' : '#111827',
+                                                      border: isSelected ? '2px solid #facc15' : '1px solid rgba(255,255,255,0.05)',
+                                                      borderRadius: '10px',
+                                                      overflow: 'hidden',
+                                                      cursor: 'pointer',
+                                                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                      display: 'flex',
+                                                      flexDirection: 'column',
+                                                      boxShadow: isSelected ? '0 4px 15px rgba(250,204,21,0.15)' : 'none'
+                                                    }}
+                                                    onMouseEnter={(e) => {
+                                                      if (!isSelected) {
+                                                        e.currentTarget.style.borderColor = '#facc15';
+                                                        e.currentTarget.style.transform = 'translateY(-3px)';
+                                                      }
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                      if (!isSelected) {
+                                                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)';
+                                                        e.currentTarget.style.transform = 'translateY(0)';
+                                                      }
+                                                    }}
+                                                  >
+                                                    <div style={{ position: 'relative', width: '100%', height: '100px' }}>
+                                                      <img src={imgUrl} alt={act.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                      <div style={{ position: 'absolute', bottom: '6px', right: '6px', background: 'rgba(0,0,0,0.85)', color: '#facc15', fontSize: '0.74rem', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold' }}>
+                                                        +{act.price} EGP
+                                                      </div>
+                                                    </div>
+                                                    <div style={{ padding: '10px', display: 'flex', flexDirection: 'column', gap: '5px', flexGrow: 1 }}>
+                                                      <strong style={{ color: '#fff', fontSize: '0.8rem', lineHeight: '1.3', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                                        {act.name}
+                                                      </strong>
+                                                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', fontSize: '0.7rem', color: '#9ca3af' }}>
+                                                        <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                                          <i className="fa-solid fa-parachute-box" style={{ color: '#facc15' }}></i>
+                                                          {provName.substring(0, 10)}{provName.length > 10 ? '...' : ''}
+                                                        </span>
+                                                        {isSelected && (
+                                                          <span style={{ color: '#10b981', fontWeight: 'bold' }}>
+                                                            <i className="fa-solid fa-circle-check"></i>
+                                                          </span>
+                                                        )}
+                                                      </div>
+                                                    </div>
+                                                  </div>
                                                 );
                                               });
                                             })()}
-                                          </select>
+                                          </div>
 
                                           {/* 🌟 Professional Live Preview of Selected Activity Specs */}
                                           {(() => {
@@ -1760,7 +2393,6 @@ const PackageDetails = () => {
                                       justifyContent: 'center',
                                       gap: '5px',
                                       transition: 'all 0.2s'
-                                    }}
                                     onMouseEnter={(e) => { e.currentTarget.style.background = '#f59e0b'; e.currentTarget.style.color = '#000'; }}
                                     onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(212, 175, 55, 0.1)'; e.currentTarget.style.color = '#f59e0b'; }}
                                   >
@@ -1778,6 +2410,341 @@ const PackageDetails = () => {
                     )}
                   </div>
                 </div>
+
+                {/* 📝 What's Included & Excluded Section */}
+                {(() => {
+                  const { included, excluded } = getDynamicIncludedExcluded();
+                  return (
+                    <div className="included-excluded-booking-section" style={{ 
+                      display: 'grid', 
+                      gridTemplateColumns: '1fr 1fr', 
+                      gap: '24px', 
+                      marginTop: '40px', 
+                      marginBottom: '40px' 
+                    }}>
+                      {/* Included Card */}
+                      <div style={{ 
+                        background: 'rgba(34, 197, 94, 0.03)', 
+                        border: '1px solid rgba(34, 197, 94, 0.15)', 
+                        borderRadius: '16px', 
+                        padding: '24px',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+                      }}>
+                        <h3 style={{ 
+                          color: '#22c55e', 
+                          fontSize: '1.2rem', 
+                          fontWeight: '800', 
+                          margin: '0 0 20px 0', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '10px' 
+                        }}>
+                          <i className="fa-solid fa-circle-check" style={{ fontSize: '1.3rem' }}></i> 
+                          {lang === 'AR' ? 'يشمل (رسوم خفية صفرية)' : 'Included (Zero Hidden Fees)'}
+                        </h3>
+                        <ul style={{ 
+                          listStyle: 'none', 
+                          padding: 0, 
+                          margin: 0, 
+                          display: 'flex', 
+                          flexDirection: 'column', 
+                          gap: '12px', 
+                          fontSize: '0.95rem', 
+                          color: '#cbd5e1' 
+                        }}>
+                          {included.map((item, idx) => (
+                            <li key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                              <i className="fa-solid fa-check" style={{ color: '#22c55e', marginTop: '3px', flexShrink: 0 }}></i> 
+                              <span style={{ lineHeight: '1.4' }}>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Excluded Card */}
+                      <div style={{ 
+                        background: 'rgba(239, 68, 68, 0.03)', 
+                        border: '1px solid rgba(239, 68, 68, 0.15)', 
+                        borderRadius: '16px', 
+                        padding: '24px',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+                      }}>
+                        <h3 style={{ 
+                          color: '#ef4444', 
+                          fontSize: '1.2rem', 
+                          fontWeight: '800', 
+                          margin: '0 0 20px 0', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '10px' 
+                        }}>
+                          <i className="fa-solid fa-circle-xmark" style={{ fontSize: '1.3rem' }}></i> 
+                          {lang === 'AR' ? 'لا يشمل' : 'Excluded'}
+                        </h3>
+                        <ul style={{ 
+                          listStyle: 'none', 
+                          padding: 0, 
+                          margin: 0, 
+                          display: 'flex', 
+                          flexDirection: 'column', 
+                          gap: '12px', 
+                          fontSize: '0.95rem', 
+                          color: '#cbd5e1' 
+                        }}>
+                          {excluded.map((item, idx) => (
+                            <li key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                              <i className="fa-solid fa-xmark" style={{ color: '#ef4444', marginTop: '3px', flexShrink: 0 }}></i> 
+                              <span style={{ lineHeight: '1.4' }}>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* 🎒 TRIP ESSENTIALS & SAFETY PROTOCOLS SECTION (Dynamic) */}
+                {(() => {
+                  const activePackingGuide = packingGuide || getDynamicPackingGuide(packageData, lang);
+                  return activePackingGuide && (
+                    <div className="packing-guide-section" style={{ 
+                      marginTop: '40px',
+                      marginBottom: '40px',
+                      background: 'var(--card-bg, #15171a)', 
+                      border: '1px solid var(--border-color, rgba(255,255,255,0.08))', 
+                      borderRadius: '24px', 
+                      padding: '30px',
+                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                    }}>
+                      {/* Header */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px', marginBottom: '25px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '20px' }}>
+                        <div>
+                          <h2 style={{ fontSize: '1.6rem', color: '#fff', fontWeight: '800', margin: '0 0 5px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <i className="fa-solid fa-shield-heart" style={{ color: '#f59e0b' }}></i>
+                            {lang === 'AR' ? 'أساسيات الرحلة والسلامة' : 'Trip Essentials & Safety'}
+                          </h2>
+                          <p style={{ color: '#94a3b8', margin: 0, fontSize: '0.9rem' }}>
+                            {lang === 'AR' 
+                              ? `قائمة مخصصة لنشاط "${activePackingGuide.name}" لضمان تجربة آمنة ومريحة` 
+                              : `Curated list for your "${activePackingGuide.name}" activity to ensure a safe and comfortable experience`}
+                          </p>
+                        </div>
+                        
+                        {/* Progress Bar */}
+                        {(activePackingGuide.essentials || activePackingGuide.clothing) && (
+                          <div style={{ width: '220px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '0.85rem', color: '#94a3b8', fontWeight: 'bold' }}>
+                              <span>{lang === 'AR' ? 'تقدم التجهيز' : 'Packing Progress'}</span>
+                              <span style={{ color: '#f59e0b' }}>
+                                {(() => {
+                                  const total = (activePackingGuide.essentials?.length || 0) + (activePackingGuide.clothing?.length || 0);
+                                  const checked = Object.values(checkedPackingItems).filter(Boolean).length;
+                                  return total > 0 ? Math.round((checked / total) * 100) : 0;
+                                })()}%
+                              </span>
+                            </div>
+                            <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
+                              <div style={{ 
+                                height: '100%', 
+                                background: 'linear-gradient(90deg, #f59e0b, #d4af37)', 
+                                width: `${(() => {
+                                  const total = (activePackingGuide.essentials?.length || 0) + (activePackingGuide.clothing?.length || 0);
+                                  const checked = Object.values(checkedPackingItems).filter(Boolean).length;
+                                  return total > 0 ? (checked / total) * 100 : 0;
+                                })()}%`,
+                                transition: 'width 0.4s ease'
+                              }}></div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 3-Column Grid */}
+                      <div style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
+                        gap: '30px' 
+                      }}>
+                        
+                        {/* Column 1: Essentials */}
+                        {activePackingGuide.essentials && activePackingGuide.essentials.length > 0 && (
+                          <div>
+                            <h3 style={{ fontSize: '1.15rem', color: '#fff', fontWeight: '700', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '10px' }}>
+                              <i className="fa-solid fa-list-check" style={{ color: '#f59e0b' }}></i>
+                              {lang === 'AR' ? 'الأساسيات' : 'Essentials'}
+                            </h3>
+                            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                              {activePackingGuide.essentials.map((item, idx) => {
+                                const itemKey = `ess_${idx}`;
+                                const isChecked = checkedPackingItems[itemKey];
+                                return (
+                                  <li 
+                                    key={idx} 
+                                    onClick={() => handleTogglePackingItem(itemKey)} 
+                                    style={{ 
+                                      display: 'flex', 
+                                      alignItems: 'center', 
+                                      gap: '12px', 
+                                      fontSize: '0.95rem', 
+                                      color: isChecked ? '#64748b' : '#cbd5e1', 
+                                      cursor: 'pointer', 
+                                      transition: 'all 0.2s', 
+                                      opacity: isChecked ? 0.6 : 1 
+                                    }}
+                                  >
+                                    <div style={{ 
+                                      width: '20px', 
+                                      height: '20px', 
+                                      borderRadius: '50%', 
+                                      border: `2px solid ${isChecked ? '#22c55e' : '#cbd5e1'}`, 
+                                      display: 'flex', 
+                                      alignItems: 'center', 
+                                      justifyContent: 'center', 
+                                      background: isChecked ? '#22c55e' : 'transparent', 
+                                      transition: 'all 0.2s',
+                                      flexShrink: 0
+                                    }}>
+                                      {isChecked && <i className="fa-solid fa-check" style={{ color: '#000', fontSize: '10px', fontWeight: 'bold' }}></i>}
+                                    </div>
+                                    <span style={{ fontSize: '1.2rem', flexShrink: 0 }}>{item.icon || '🎒'}</span>
+                                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                      <span style={{ textDecoration: isChecked ? 'line-through' : 'none', fontWeight: '500' }}>{item.item}</span>
+                                      {item.required && (
+                                        <span style={{ 
+                                          fontSize: '0.68rem', 
+                                          background: 'rgba(245, 158, 11, 0.15)', 
+                                          color: '#f59e0b', 
+                                          padding: '2px 6px', 
+                                          borderRadius: '4px', 
+                                          fontWeight: 'bold',
+                                          border: '1px solid rgba(245, 158, 11, 0.3)'
+                                        }}>
+                                          {lang === 'AR' ? 'مطلوب' : 'Required'}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </div>
+                        )}
+
+                        {/* Column 2: Clothing & Gear */}
+                        {activePackingGuide.clothing && activePackingGuide.clothing.length > 0 && (
+                          <div>
+                            <h3 style={{ fontSize: '1.15rem', color: '#fff', fontWeight: '700', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '10px' }}>
+                              <i className="fa-solid fa-shirt" style={{ color: '#f59e0b' }}></i>
+                              {lang === 'AR' ? 'الملابس والمعدات' : 'Clothing & Gear'}
+                            </h3>
+                            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                              {activePackingGuide.clothing.map((item, idx) => {
+                                const itemKey = `clo_${idx}`;
+                                const isChecked = checkedPackingItems[itemKey];
+                                return (
+                                  <li 
+                                    key={idx} 
+                                    onClick={() => handleTogglePackingItem(itemKey)} 
+                                    style={{ 
+                                      display: 'flex', 
+                                      alignItems: 'flex-start', 
+                                      gap: '12px', 
+                                      fontSize: '0.95rem', 
+                                      color: isChecked ? '#64748b' : '#cbd5e1', 
+                                      cursor: 'pointer', 
+                                      transition: 'all 0.2s', 
+                                      opacity: isChecked ? 0.6 : 1 
+                                    }}
+                                  >
+                                    <div style={{ 
+                                      width: '18px', 
+                                      height: '18px', 
+                                      borderRadius: '4px', 
+                                      border: `2px solid ${isChecked ? '#22c55e' : '#cbd5e1'}`, 
+                                      display: 'flex', 
+                                      alignItems: 'center', 
+                                      justifyContent: 'center', 
+                                      background: isChecked ? '#22c55e' : 'transparent', 
+                                      marginTop: '3px',
+                                      transition: 'all 0.2s',
+                                      flexShrink: 0
+                                    }}>
+                                      {isChecked && <i className="fa-solid fa-check" style={{ color: '#000', fontSize: '9px', fontWeight: 'bold' }}></i>}
+                                    </div>
+                                    <div style={{ textDecoration: isChecked ? 'line-through' : 'none' }}>
+                                      <strong style={{ display: 'block', color: isChecked ? '#64748b' : '#f59e0b' }}>• {item.item}</strong>
+                                      {item.notes && <span style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginTop: '2px' }}>{item.notes}</span>}
+                                    </div>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </div>
+                        )}
+
+                        {/* Column 3: Safety Tips & Emergency Contacts */}
+                        <div>
+                          <h3 style={{ fontSize: '1.15rem', color: '#fff', fontWeight: '700', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '10px' }}>
+                            <i className="fa-solid fa-shield-halved" style={{ color: '#ef4444' }}></i>
+                            {lang === 'AR' ? 'إرشادات السلامة' : 'Safety Tips'}
+                          </h3>
+                          
+                          {activePackingGuide.safetyTips && activePackingGuide.safetyTips.length > 0 && (
+                            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 20px 0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                              {activePackingGuide.safetyTips.map((tip, idx) => {
+                                const bulletColors = ['#ec4899', '#f97316', '#3b82f6', '#10b981', '#a855f7'];
+                                const bulletColor = bulletColors[idx % bulletColors.length];
+                                
+                                return (
+                                  <li key={idx} style={{ fontSize: '0.9rem', color: '#cbd5e1', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                                    <span style={{ 
+                                      width: '8px', 
+                                      height: '8px', 
+                                      borderRadius: '50%', 
+                                      background: bulletColor, 
+                                      marginTop: '6px',
+                                      flexShrink: 0 
+                                    }}></span>
+                                    <span style={{ lineHeight: '1.4' }}>{tip.tip}</span>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          )}
+
+                          {activePackingGuide.emergencyContacts && (
+                            <div style={{ 
+                              background: 'rgba(239, 68, 68, 0.03)', 
+                              padding: '15px', 
+                              borderRadius: '12px', 
+                              border: '1px solid rgba(239, 68, 68, 0.15)' 
+                            }}>
+                              <h4 style={{ margin: '0 0 10px 0', fontSize: '0.88rem', color: '#ef4444', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <i className="fa-solid fa-phone"></i> 
+                                {lang === 'AR' ? 'أرقام الطوارئ' : 'Emergency Contacts'}
+                              </h4>
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.78rem', color: '#cbd5e1' }}>
+                                <div><strong>{lang === 'AR' ? 'الشرطة:' : 'Police:'}</strong> {activePackingGuide.emergencyContacts.police}</div>
+                                <div><strong>{lang === 'AR' ? 'الإسعاف:' : 'Ambulance:'}</strong> {activePackingGuide.emergencyContacts.ambulance}</div>
+                                {activePackingGuide.emergencyContacts.coastGuard && (
+                                  <div style={{ gridColumn: '1 / -1' }}>
+                                    <strong>{lang === 'AR' ? 'حرس الحدود:' : 'Coast Guard:'}</strong> {activePackingGuide.emergencyContacts.coastGuard}
+                                  </div>
+                                )}
+                                {activePackingGuide.emergencyContacts.localHospital && (
+                                  <div style={{ gridColumn: '1 / -1', marginTop: '3px' }}>
+                                    <strong>{lang === 'AR' ? 'المستشفى:' : 'Hospital:'}</strong> {activePackingGuide.emergencyContacts.localHospital}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* MODULAR EXTENSIONS (ADD-ONS) */}
                 {packageData.addons && packageData.addons.length > 0 && (
@@ -1798,26 +2765,19 @@ const PackageDetails = () => {
                             }}
                             style={{ 
                               display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
-                              padding: '15px 20px', background: isSelected ? 'rgba(212,175,55,0.15)' : 'rgba(0,0,0,0.3)', 
-                              border: `1px solid ${isSelected ? '#f59e0b' : 'rgba(255,255,255,0.1)'}`, 
-                              borderRadius: '10px', cursor: 'pointer', transition: 'all 0.3s'
+                              padding: '15px', borderRadius: '10px', cursor: 'pointer',
+                              background: isSelected ? 'rgba(212,175,55,0.1)' : 'rgba(255,255,255,0.02)',
+                              border: `1px solid ${isSelected ? '#f59e0b' : 'rgba(255,255,255,0.1)'}`
                             }}
                           >
-                            <div>
-                              <strong style={{ color: isSelected ? '#f59e0b' : '#fff', fontSize: '1.1rem', display: 'block', marginBottom: '5px' }}>
-                                {addon.name}
-                              </strong>
-                              <p style={{ color: '#a4a4b4', fontSize: '0.9rem', margin: 0 }}>{addon.description}</p>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                              <span style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.1rem' }}>+{addon.price} EGP</span>
-                              <div style={{ 
-                                width: '24px', height: '24px', borderRadius: '50%', border: `2px solid ${isSelected ? '#f59e0b' : '#a4a4b4'}`,
-                                display: 'flex', justifyContent: 'center', alignItems: 'center', background: isSelected ? '#f59e0b' : 'transparent'
-                              }}>
-                                {isSelected && <i className="fa-solid fa-check" style={{ color: '#000', fontSize: '0.8rem' }}></i>}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <i className={`fa-solid ${isSelected ? 'fa-check-circle' : 'fa-circle'} `} style={{ color: isSelected ? '#f59e0b' : '#aaa' }}></i>
+                              <div>
+                                <div style={{ color: '#fff', fontWeight: '600' }}>{addon.name}</div>
+                                <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>{addon.description}</div>
                               </div>
                             </div>
+                            <div style={{ color: '#f59e0b', fontWeight: '700' }}>+{addon.price} EGP</div>
                           </div>
                         );
                       })}
@@ -1825,463 +2785,6 @@ const PackageDetails = () => {
                   </div>
                 )}
               </div>
-
-
-              {/* Right Column: Sticky Booking Card */}
-              <div className="package-sidebar">
-                <div className="tw-sticky tw-top-32 tw-bg-white/80 dark:tw-bg-[#15171a]/80 tw-backdrop-blur-xl tw-border tw-border-slate-200 dark:tw-border-slate-800/80 tw-rounded-3xl tw-p-8 tw-shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] dark:tw-shadow-2xl">
-                  {(() => {
-                    const singlePrice = isCustomizing && customTrip 
-                      ? customTrip.total_price 
-                      : (packageData ? (packageData.base_price || packageData.price || 0) : 0);
-                    
-                    const originalSinglePrice = isCustomizing && customTrip && customTrip.ai_discount_applied
-                      ? customTrip.original_price
-                      : singlePrice;
-
-                    const addonsTotal = selectedAddons.reduce((sum, addonId) => {
-                      const addon = packageData?.addons?.find(a => a._id === addonId);
-                      return sum + (addon ? addon.price : 0);
-                    }, 0);
-                    
-                    const extraActivitiesCount = selectedAddons.length + (customTrip?.extra_activities?.length || 0);
-                    const aiDiscountApplied = customTrip?.ai_discount_applied || extraActivitiesCount >= 3;
-                    
-                    let totalPrice = (singlePrice * guestCount) + addonsTotal;
-                    let originalTotalPrice = originalSinglePrice * guestCount + addonsTotal;
-                    
-                    if (!customTrip?.ai_discount_applied && extraActivitiesCount >= 3) {
-                       const discount = totalPrice * 0.10;
-                       totalPrice -= discount;
-                    }
-
-                    return (
-                      <>
-                        <div className="booking-price" style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                            <span className="price-label">{isCustomizing ? (lang === 'AR' ? 'السعر المخصص للفرد' : 'Customized price per guest') : (lang === 'AR' ? 'يبدأ سعر الفرد من' : 'Price starts at')}</span>
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                              {aiDiscountApplied && (
-                                <span style={{ textDecoration: 'line-through', color: '#64748b', fontSize: '0.9rem' }}>
-                                  {formatPrice(originalTotalPrice)}
-                                </span>
-                              )}
-                              <span className="price-amount" style={{ fontSize: '1.2rem', color: aiDiscountApplied ? '#10b981' : 'inherit' }}>
-                                {formatPrice(totalPrice)}
-                              </span>
-                            </div>
-                          </div>
-                          {aiDiscountApplied && (
-                            <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '6px 10px', borderRadius: '8px', color: '#10b981', fontSize: '0.75rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px', width: 'fit-content', alignSelf: 'flex-end' }}>
-                              <i className="fa-solid fa-wand-magic-sparkles"></i>
-                              {lang === 'AR' ? 'تم تطبيق خصم التوجيه الذكي (AI) 10%' : '10% AI Bundle Discount Applied!'}
-                            </div>
-                          )}
-                          {extraActivitiesCount === 2 && (
-                            <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px dashed rgba(245, 158, 11, 0.4)', padding: '8px 10px', borderRadius: '8px', color: '#f59e0b', fontSize: '0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
-                              <i className="fa-solid fa-gift fa-bounce"></i>
-                              {lang === 'AR' ? 'أضف نشاطاً واحداً إضافياً واحصل على خصم 10% على إجمالي رحلتك!' : 'Add just 1 more extra activity to get a 10% AI Discount!'}
-                            </div>
-                          )}
-                          
-                          <button 
-                            onClick={() => setShowBreakdown(!showBreakdown)}
-                            style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '0.85rem', textDecoration: 'underline', cursor: 'pointer', textAlign: 'left', marginTop: '5px' }}
-                          >
-                            {lang === 'AR' ? 'عرض تفاصيل السعر (شفافية كاملة)' : 'View Price Breakdown (Full Transparency)'}
-                          </button>
-                          
-                          {showBreakdown && (
-                            <div style={{ marginTop: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '12px', fontSize: '0.85rem', color: '#cbd5e1' }}>
-                              {packageData.priceBreakdown && packageData.priceBreakdown.length > 0 ? (
-                                packageData.priceBreakdown.map((item, idx) => (
-                                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                                    <span>{item.label}</span>
-                                    <span>{formatPrice(item.amount * guestCount)}</span>
-                                  </div>
-                                ))
-                              ) : (
-                                <>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                                    <span>{lang === 'AR' ? 'رسوم وتصاريح:' : 'Fees / Permits:'}</span>
-                                    <span>{formatPrice(totalPrice * 0.15)}</span>
-                                  </div>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                                    <span>{lang === 'AR' ? 'النقل (سيارة مكيفة):' : 'Transportation:'}</span>
-                                    <span>{formatPrice(totalPrice * 0.25)}</span>
-                                  </div>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                                    <span>{lang === 'AR' ? 'وجبات ومشروبات:' : 'Meals & Drinks:'}</span>
-                                    <span>{formatPrice(totalPrice * 0.15)}</span>
-                                  </div>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                                    <span>{lang === 'AR' ? 'أنشطة وتجارب:' : 'Activities & Experiences:'}</span>
-                                    <span>{formatPrice(totalPrice * 0.45)}</span>
-                                  </div>
-                                </>
-                              )}
-                              {aiDiscountApplied && (
-                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981', fontWeight: 'bold', marginTop: '5px', paddingTop: '5px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                                  <span>{lang === 'AR' ? 'خصم (10%):' : 'Discount (10%):'}</span>
-                                  <span>- {formatPrice((originalTotalPrice - totalPrice))}</span>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                          
-                          {guestCount > 1 && (
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '6px', marginTop: '4px' }}>
-                              <span className="price-label" style={{ color: '#f59e0b', fontWeight: '700' }}>
-                                {lang === 'AR' ? `الإجمالي لـ ${guestCount} مسافرين` : `Total for ${guestCount} guests`}
-                              </span>
-                              <span className="price-amount" style={{ color: '#f59e0b', fontSize: '1.4rem', fontWeight: '800' }}>
-                                {totalPrice} EGP
-                              </span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Interactive Guest Selector */}
-                        <div className="guest-selector-container" style={{
-                          margin: '15px 0',
-                          padding: '12px',
-                          background: 'rgba(255, 255, 255, 0.02)',
-                          border: '1px solid rgba(212, 175, 55, 0.15)',
-                          borderRadius: '10px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '8px'
-                        }}>
-                          <label style={{ fontSize: '0.85rem', color: '#aaa', fontWeight: '600', display: 'flex', justifyContent: 'space-between', margin: 0 }}>
-                            <span>{lang === 'AR' ? 'عدد المسافرين (الضيوف)' : 'Number of Travelers (Guests)'}</span>
-                            <span style={{ color: '#f59e0b', fontWeight: 'bold' }}>{guestCount} {guestCount === 1 ? (lang === 'AR' ? 'مسافر' : 'Guest') : (lang === 'AR' ? 'مسافرين' : 'Guests')}</span>
-                          </label>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
-                            <button 
-                              type="button"
-                              onClick={() => setGuestCount(prev => Math.max(1, prev - 1))}
-                              disabled={guestCount <= 1}
-                              style={{
-                                width: '32px',
-                                height: '32px',
-                                borderRadius: '50%',
-                                background: guestCount <= 1 ? '#333' : '#f59e0b',
-                                color: '#000',
-                                border: 'none',
-                                cursor: guestCount <= 1 ? 'not-allowed' : 'pointer',
-                                fontWeight: 'bold',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                transition: 'all 0.2s'
-                              }}
-                            >
-                              <i className="fa-solid fa-minus"></i>
-                            </button>
-                            <span style={{ fontSize: '1.15rem', fontWeight: 'bold', color: '#fff' }}>{guestCount}</span>
-                            <button 
-                              type="button"
-                              onClick={() => setGuestCount(prev => prev + 1)}
-                              style={{
-                                width: '32px',
-                                height: '32px',
-                                borderRadius: '50%',
-                                background: '#f59e0b',
-                                color: '#000',
-                                border: 'none',
-                                cursor: 'pointer',
-                                fontWeight: 'bold',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                transition: 'all 0.2s'
-                              }}
-                            >
-                              <i className="fa-solid fa-plus"></i>
-                            </button>
-                          </div>
-                        </div>
-                      </>
-                    );
-                  })()}
-                  
-                  {isCustomizing && customTrip && (
-                    <div style={{ background: 'rgba(212, 175, 55, 0.1)', border: '1px solid #f59e0b', borderRadius: '8px', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '15px', color: '#f59e0b', fontSize: '0.85rem', fontWeight: '600' }}>
-                      <i className="fa-solid fa-sparkles"></i> {lang === 'AR' ? 'الخطة المخصصة نشطة' : 'Custom Plan Active'}
-                    </div>
-                  )}
-
-                  <div className="booking-benefits">
-                    <div className="benefit-item">
-                      <i className="fa-solid fa-shield-halved"></i>
-                      <div>
-                        <strong>{lang === 'AR' ? 'إلغاء مجاني' : 'Free Cancellation'}</strong>
-                        <p>{lang === 'AR' ? 'إلغاء مرن حتى 24 ساعة مقدماً' : 'Cancel up to 24 hours in advance'}</p>
-                      </div>
-                    </div>
-                    <div className="benefit-item">
-                      <i className="fa-solid fa-bolt"></i>
-                      <div>
-                        <strong>{lang === 'AR' ? 'تأكيد فوري' : 'Instant Confirmation'}</strong>
-                        <p>{lang === 'AR' ? 'احجز مكانك مباشرة في ثوانٍ معدودة' : 'Secure your spot in seconds'}</p>
-                      </div>
-                    </div>
-                    <div className="benefit-item">
-                      <i className="fa-solid fa-headset"></i>
-                      <div>
-                        <strong>{lang === 'AR' ? 'دعم متواصل 24/7' : '24/7 Support'}</strong>
-                        <p>{lang === 'AR' ? 'فريق عمل متفاني لخدمتك طوال اليوم' : 'Dedicated customer support'}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', boxSizing: 'border-box' }}>
-                    <button 
-                      onClick={handleBookNow} 
-                      className="tw-w-full tw-flex tw-items-center tw-justify-center tw-gap-2 tw-bg-amber-500 hover:tw-bg-amber-600 tw-text-white tw-font-bold tw-py-4 tw-px-6 tw-rounded-2xl tw-transition-all tw-shadow-lg" 
-                      disabled={bookingLoading}
-                      style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer' }}
-                    >
-                      {bookingLoading ? (
-                        <><i className="fa-solid fa-spinner fa-spin"></i> {lang === 'AR' ? 'جاري إتمام الحجز...' : 'Creating Booking...'}</>
-                      ) : (
-                        <><i className="fa-solid fa-calendar-days"></i> {lang === 'AR' ? 'تخصيص واحجز الآن' : 'Customize & Book'}</>
-                      )}
-                    </button>
-                    
-                    <p style={{ textAlign: 'center', fontSize: '0.8rem', color: '#a4a4b4', margin: '5px 0 0 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                      <i className="fa-solid fa-lock" style={{ color: '#22c55e' }}></i> {lang === 'AR' ? 'الدفع آمن 100% | لا توجد رسوم خفية' : '100% Secure Payment | Zero Hidden Fees'}
-                    </p>
-                  </div>
-
-                    <button 
-                      onClick={handleWishlistToggle} 
-                      className={`btn-wishlist-toggle ${isInWishlist ? 'saved' : ''}`}
-                      disabled={wishlistLoading}
-                      style={{
-                        width: '100%',
-                        background: isInWishlist ? '#e61e4d' : '#f1f5f9',
-                        border: isInWishlist ? '2px solid #e61e4d' : '2px solid #cbd5e1',
-                        color: isInWishlist ? '#ffffff' : '#1e293b',
-                        padding: '12px',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        fontWeight: '700',
-                        fontSize: '0.95rem',
-                        transition: 'all 0.3s ease',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px',
-                        boxShadow: isInWishlist ? '0 6px 20px rgba(230, 30, 77, 0.4)' : 'none'
-                      }}
-                    >
-                      {wishlistLoading ? (
-                        <><i className="fa-solid fa-spinner fa-spin"></i> {lang === 'AR' ? 'جاري المعالجة...' : 'Processing...'}</>
-                      ) : (
-                        <>
-                          <i className={`${isInWishlist ? 'fa-solid' : 'fa-regular'} fa-heart`} style={{ color: isInWishlist ? '#ffffff' : '#e61e4d' }}></i>
-                          {isInWishlist 
-                            ? (lang === 'AR' ? 'تم الحفظ في المفضلة' : 'Saved to Wishlist')
-                            : (lang === 'AR' ? 'أضف إلى المفضلة' : 'Add to Wishlist')}
-                        </>
-                      )}
-                    </button>
-
-                    {token && (
-                      !customTrip ? (
-                        <button 
-                          onClick={handleStartCustomization} 
-                          className="btn-start-custom"
-                          style={{
-                            width: '100%',
-                            background: 'transparent',
-                            border: '1px solid #f59e0b',
-                            color: '#f59e0b',
-                            padding: '12px',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontWeight: '600',
-                            fontSize: '0.95rem',
-                            transition: 'all 0.2s',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '8px'
-                          }}
-                        >
-                          <i className="fa-solid fa-sliders"></i> {lang === 'AR' ? 'خصص هذه الخطة' : 'Customize This Plan'}
-                        </button>
-                      ) : (
-                        <button 
-                          onClick={handleToggleCustomization} 
-                          className="btn-start-custom"
-                          style={{
-                            width: '100%',
-                            background: 'transparent',
-                            border: '1px solid #f59e0b',
-                            color: '#f59e0b',
-                            padding: '12px',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontWeight: '600',
-                            fontSize: '0.95rem',
-                            transition: 'all 0.2s',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '8px'
-                          }}
-                        >
-                          <i className="fa-solid fa-rotate-left"></i> {isCustomizing ? (lang === 'AR' ? 'التحول للخطة الأساسية' : 'Switch to Standard Plan') : (lang === 'AR' ? 'التحول للخطة المخصصة' : 'Switch to Custom Plan')}
-                        </button>
-                      )
-                    )}
-                  </div>
-                </div>
-              </div>
-
-
-            {/* ============================================================== */}
-            {/* 🎒 PACKING GUIDANCE & SAFETY PROTOCOLS SECTION                */}
-            {/* ============================================================== */}
-            {packingGuide && (
-              <div className="packing-guide-section" style={{ marginTop: '50px' }}>
-                <hr className="divider" />
-                <div className="packing-header" style={{ marginBottom: '25px' }}>
-                  <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <i className="fa-solid fa-backpack" style={{ color: 'var(--brand-accent)' }}></i>
-                    {lang === 'AR' ? 'ماذا تحضر معك وإرشادات الأمان' : 'What to Pack & Safety Tips'}
-                  </h2>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-                    {lang === 'AR' 
-                      ? `بناءً على نشاط "${packingGuide.name}"، قمنا بتجهيز هذه القائمة لضمان تجربة آمنة ومريحة.` 
-                      : `Based on your "${packingGuide.name}" activity, we've curated this guide for a safe and comfortable experience.`}
-                  </p>
-                </div>
-
-                <div className="packing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-                  
-                  {/* Progress Bar */}
-                  {(packingGuide.essentials || packingGuide.clothing) && (
-                    <div style={{ gridColumn: '1 / -1', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '15px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 'bold' }}>
-                        <span>{lang === 'AR' ? 'تقدم التجهيزات' : 'Packing Progress'}</span>
-                        <span>
-                          {(() => {
-                            const total = (packingGuide.essentials?.length || 0) + (packingGuide.clothing?.length || 0);
-                            const checked = Object.values(checkedPackingItems).filter(Boolean).length;
-                            return total > 0 ? Math.round((checked / total) * 100) : 0;
-                          })()}%
-                        </span>
-                      </div>
-                      <div style={{ width: '100%', height: '8px', background: 'var(--bg-secondary)', borderRadius: '4px', overflow: 'hidden' }}>
-                        <div style={{ 
-                          height: '100%', 
-                          background: 'linear-gradient(90deg, var(--brand-color), var(--brand-accent))', 
-                          width: `${(() => {
-                            const total = (packingGuide.essentials?.length || 0) + (packingGuide.clothing?.length || 0);
-                            const checked = Object.values(checkedPackingItems).filter(Boolean).length;
-                            return total > 0 ? (checked / total) * 100 : 0;
-                          })()}%`,
-                          transition: 'width 0.4s ease'
-                        }}></div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Essentials */}
-                  {packingGuide.essentials && packingGuide.essentials.length > 0 && (
-                    <div className="packing-card" style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '20px' }}>
-                      <h3 style={{ fontSize: '1.1rem', color: 'var(--brand-color)', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <i className="fa-solid fa-list-check"></i> {lang === 'AR' ? 'الأساسيات الضرورية' : 'Essentials'}
-                      </h3>
-                      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        {packingGuide.essentials.map((item, idx) => {
-                          const itemKey = `ess_${idx}`;
-                          const isChecked = checkedPackingItems[itemKey];
-                          return (
-                            <li key={idx} onClick={() => handleTogglePackingItem(itemKey)} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', color: isChecked ? 'var(--text-secondary)' : 'var(--text-primary)', cursor: 'pointer', transition: 'all 0.2s', textDecoration: isChecked ? 'line-through' : 'none', opacity: isChecked ? 0.6 : 1 }}>
-                              <div style={{ width: '24px', height: '24px', borderRadius: '50%', border: `2px solid ${isChecked ? 'var(--success-color, #22c55e)' : 'var(--border-color)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', background: isChecked ? 'var(--success-color, #22c55e)' : 'transparent', transition: 'all 0.2s' }}>
-                                {isChecked && <i className="fa-solid fa-check" style={{ color: 'white', fontSize: '12px' }}></i>}
-                              </div>
-                              <span style={{ fontSize: '1.1rem' }}>{item.icon || '🎒'}</span>
-                              <div style={{ flex: 1 }}>
-                                <strong style={{ display: 'block' }}>{item.item}</strong>
-                                {item.required && <span style={{ fontSize: '0.7rem', background: 'rgba(212,175,55,0.2)', color: 'var(--brand-accent)', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>{lang === 'AR' ? 'مطلوب' : 'Required'}</span>}
-                              </div>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </div>
-                  )}
-
-                  {/* Clothing */}
-                  {packingGuide.clothing && packingGuide.clothing.length > 0 && (
-                    <div className="packing-card" style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '20px' }}>
-                      <h3 style={{ fontSize: '1.1rem', color: 'var(--brand-color)', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <i className="fa-solid fa-shirt"></i> {lang === 'AR' ? 'الملابس المناسبة' : 'Clothing & Gear'}
-                      </h3>
-                      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        {packingGuide.clothing.map((item, idx) => {
-                          const itemKey = `clo_${idx}`;
-                          const isChecked = checkedPackingItems[itemKey];
-                          return (
-                            <li key={idx} onClick={() => handleTogglePackingItem(itemKey)} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', fontSize: '0.9rem', color: isChecked ? 'var(--text-secondary)' : 'var(--text-primary)', cursor: 'pointer', transition: 'all 0.2s', opacity: isChecked ? 0.6 : 1 }}>
-                              <div style={{ width: '20px', height: '20px', borderRadius: '4px', border: `2px solid ${isChecked ? 'var(--success-color, #22c55e)' : 'var(--border-color)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', background: isChecked ? 'var(--success-color, #22c55e)' : 'transparent', marginTop: '2px', transition: 'all 0.2s' }}>
-                                {isChecked && <i className="fa-solid fa-check" style={{ color: 'white', fontSize: '12px' }}></i>}
-                              </div>
-                              <div style={{ textDecoration: isChecked ? 'line-through' : 'none' }}>
-                                <strong style={{ display: 'block', color: isChecked ? 'var(--text-secondary)' : 'var(--brand-accent)' }}>• {item.item}</strong>
-                                {item.notes && <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginTop: '2px' }}>{item.notes}</span>}
-                              </div>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </div>
-                  )}
-
-                  {/* Safety & Emergency */}
-                  <div className="packing-card" style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    
-                    {packingGuide.safetyTips && packingGuide.safetyTips.length > 0 && (
-                      <div>
-                        <h3 style={{ fontSize: '1.1rem', color: '#e61e4d', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <i className="fa-solid fa-triangle-exclamation"></i> {lang === 'AR' ? 'تعليمات الأمان' : 'Safety Tips'}
-                        </h3>
-                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                          {packingGuide.safetyTips.map((tip, idx) => {
-                            const iconColor = tip.severity === 'danger' ? '#e61e4d' : tip.severity === 'warning' ? '#f59e0b' : '#3b82f6';
-                            return (
-                              <li key={idx} style={{ fontSize: '0.85rem', color: 'var(--text-primary)', display: 'flex', gap: '8px' }}>
-                                <i className="fa-solid fa-circle-info" style={{ color: iconColor, marginTop: '3px' }}></i>
-                                <span>{tip.tip}</span>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      </div>
-                    )}
-
-                    {packingGuide.emergencyContacts && (
-                      <div style={{ background: 'rgba(230, 30, 77, 0.05)', padding: '15px', borderRadius: '8px', border: '1px solid rgba(230, 30, 77, 0.2)' }}>
-                        <h4 style={{ margin: '0 0 10px 0', fontSize: '0.9rem', color: '#e61e4d' }}><i className="fa-solid fa-phone"></i> {lang === 'AR' ? 'أرقام الطوارئ' : 'Emergency Contacts'}</h4>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.8rem', color: 'var(--text-primary)' }}>
-                          <div><strong>Police:</strong> {packingGuide.emergencyContacts.police}</div>
-                          <div><strong>Ambulance:</strong> {packingGuide.emergencyContacts.ambulance}</div>
-                          {packingGuide.emergencyContacts.coastGuard && <div style={{ gridColumn: '1 / -1' }}><strong>Coast Guard:</strong> {packingGuide.emergencyContacts.coastGuard}</div>}
-                          {packingGuide.emergencyContacts.localHospital && <div style={{ gridColumn: '1 / -1', marginTop: '5px' }}><strong>Hospital:</strong> {packingGuide.emergencyContacts.localHospital}</div>}
-                        </div>
-                      </div>
-                    )}
-
-                  </div>
-
-                </div>
-              </div>
-            )}
 
             {/* ============================================================== */}
             {/* 📝 REVIEWS & RATINGS INTEGRATION SECTION                       */}
@@ -2514,105 +3017,6 @@ const PackageDetails = () => {
         )}
       </main>
 
-      {/* Sticky Price Footer */}
-      {packageData && (
-        <div className="sticky-price-footer" style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          background: 'rgba(15, 15, 15, 0.95)',
-          backdropFilter: 'blur(10px)',
-          borderTop: '1px solid rgba(212, 175, 55, 0.3)',
-          padding: '15px 20px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          zIndex: 999,
-          boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.5)'
-        }}>
-          {(() => {
-            const singlePrice = isCustomizing && customTrip 
-              ? customTrip.total_price 
-              : (packageData.base_price || packageData.price || 0);
-              
-            const originalSinglePrice = isCustomizing && customTrip && customTrip.ai_discount_applied
-              ? customTrip.original_price
-              : singlePrice;
-              
-            const addonsTotal = selectedAddons.reduce((sum, addonId) => {
-              const addon = packageData?.addons?.find(a => a._id === addonId);
-              return sum + (addon ? addon.price : 0);
-            }, 0);
-            
-            const extraActivitiesCount = selectedAddons.length + (customTrip?.extra_activities?.length || 0);
-            const aiDiscountApplied = customTrip?.ai_discount_applied || extraActivitiesCount >= 3;
-            
-            let totalPrice = (singlePrice * guestCount) + addonsTotal;
-            let originalTotalPrice = (originalSinglePrice * guestCount) + addonsTotal;
-            
-            if (!customTrip?.ai_discount_applied && extraActivitiesCount >= 3) {
-               const discount = totalPrice * 0.10;
-               totalPrice -= discount;
-            }
-
-            return (
-              <>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    {aiDiscountApplied && (
-                      <span style={{ fontSize: '1rem', textDecoration: 'line-through', color: '#64748b' }}>
-                        {formatPrice(originalTotalPrice)}
-                      </span>
-                    )}
-                    <span style={{ fontSize: '1.4rem', fontWeight: 'bold', color: aiDiscountApplied ? '#10b981' : '#f59e0b' }}>{formatPrice(totalPrice)}</span>
-                    <span style={{ fontSize: '0.9rem', color: '#aaa' }}>
-                      {lang === 'AR' ? `/ ${guestCount} مسافرين` : `/ ${guestCount} guests`}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: '#22c55e', fontWeight: 'bold' }}>
-                    <i className="fa-solid fa-shield-check"></i>
-                    {lang === 'AR' ? 'سعر نهائي - لا توجد أي رسوم خفية' : 'Final Price - Zero Hidden Fees'}
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                  {/* Visual Invoice Trigger (Just an icon button for the PRD spec) */}
-                  <button style={{
-                    background: 'transparent', border: '1px solid #f59e0b', color: '#f59e0b', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
-                  }} title={lang === 'AR' ? 'الفاتورة البصرية' : 'Visual Invoice'}>
-                    <i className="fa-solid fa-receipt"></i>
-                  </button>
-                  <button 
-                    onClick={handleBookNow} 
-                    disabled={bookingLoading}
-                    style={{
-                      background: 'linear-gradient(90deg, #f59e0b, #f3e5ab)',
-                      color: '#000',
-                      border: 'none',
-                      padding: '12px 25px',
-                      borderRadius: '8px',
-                      fontWeight: 'bold',
-                      fontSize: '1rem',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      boxShadow: '0 4px 15px rgba(212, 175, 55, 0.4)'
-                    }}
-                  >
-                    {bookingLoading ? (
-                      <><i className="fa-solid fa-spinner fa-spin"></i> {lang === 'AR' ? 'جاري...' : 'Processing...'}</>
-                    ) : (
-                      <><i className="fa-solid fa-check"></i> {lang === 'AR' ? 'احجز الآن' : 'Book Now'}</>
-                    )}
-                  </button>
-                </div>
-              </>
-            );
-          })()}
-        </div>
-      )}
 
       <Footer />
     </div>
