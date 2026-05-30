@@ -70,6 +70,14 @@ router.patch(
   experienceController.assignGuide
 );
 
+// 📝 Auto-Assign Guide Yasmine (Admin)
+router.patch(
+  "/:id/auto-assign-guide",
+  authMiddleware,
+  allowTo("admin"),
+  experienceController.autoAssignGuide
+);
+
 // 🌟 Toggle Featured (Admin)
 router.patch(
   "/:id/featured",

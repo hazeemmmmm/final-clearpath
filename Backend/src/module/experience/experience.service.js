@@ -223,6 +223,8 @@ class ExperienceService {
       .populate("destination")
       .populate("supervisor", "firstName lastName email role")
       .populate("itinerary.activities.activity")
+      // Populate the linked packing/adventure guide so frontend receives full guide data
+      .populate("packingGuide")
       .sort(sort)
       .skip(skip)
       .limit(limit);
@@ -243,7 +245,9 @@ class ExperienceService {
     return await Experience.findById(id)
       .populate("destination")
       .populate("supervisor", "firstName lastName email role")
-      .populate("itinerary.activities.activity");
+      .populate("itinerary.activities.activity")
+      // Populate the linked packing/adventure guide — frontend gets full guide details
+      .populate("packingGuide");
   }
 
   // ✏️ Update (Admin)

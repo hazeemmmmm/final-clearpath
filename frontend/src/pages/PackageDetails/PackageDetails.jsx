@@ -33,7 +33,334 @@ import {
 } from '../../utils/api';
 import './PackageDetailsNew.css';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// LinkedGuideSection
+// Self-contained sub-component that renders the populated packingGuide
+// reference on the experience details page. Has its own local tab state
+// so it doesn't pollute the parent component's state.
+// ─────────────────────────────────────────────────────────────────────────────
+const GUIDE_TABS = [
+  { id: 'essentials', label: 'Essentials', icon: 'fa-box-open', color: '#73749B' },
+  { id: 'clothing',   label: 'Clothing',   icon: 'fa-shirt',    color: '#8E6B92' },
+  { id: 'safety',     label: 'Safety',     icon: 'fa-shield-halved', color: '#10b981' },
+];
+
+const DIFFICULTY_CONFIG = {
+  easy:        { color: '#10b981', bg: 'rgba(16,185,129,0.1)',  label: '🟢 Easy'        },
+  moderate:    { color: '#fbbf24', bg: 'rgba(251,191,36,0.1)',  label: '🟡 Moderate'    },
+  challenging: { color: '#f97316', bg: 'rgba(249,115,22,0.1)',  label: '🟠 Challenging' },
+  expert:      { color: '#ef4444', bg: 'rgba(239,68,68,0.1)',   label: '🔴 Expert'      },
+};
+
+const SEVERITY_CONFIG = {
+  info:    { color: '#60a5fa', bg: 'rgba(96,165,250,0.08)',  icon: 'fa-circle-info'       },
+  warning: { color: '#fbbf24', bg: 'rgba(251,191,36,0.08)',  icon: 'fa-triangle-exclamation' },
+  danger:  { color: '#ef4444', bg: 'rgba(239,68,68,0.08)',   icon: 'fa-skull-crossbones'  },
+};
+
+const LinkedGuideSection = ({ guide, lang }) => {
+  const [activeTab, setActiveTab] = React.useState('essentials');
+  const [checked, setChecked] = React.useState({});
+
+  const toggleCheck = (key) => setChecked(prev => ({ ...prev, [key]: !prev[key] }));
+
+  const diff = DIFFICULTY_CONFIG[guide.difficultyLevel] || DIFFICULTY_CONFIG.moderate;
+
+  // Determine which tabs have content
+  const hasTabs = {
+    essentials: guide.essentials?.length > 0,
+    clothing:   guide.clothing?.length > 0,
+    safety:     guide.safetyTips?.length > 0,
+  };
+
+  // Fallback to first tab with content
+  const visibleTabs = GUIDE_TABS.filter(t => hasTabs[t.id]);
+  if (visibleTabs.length === 0) return null;
+
+  return (
+    <div style={{
+      marginBottom: '40px',
+      border: '1px solid rgba(115,116,155,0.2)',
+      borderRadius: '20px',
+      overflow: 'hidden',
+      background: '#14141f',
+      boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+    }}>
+      {/* ── Header ── */}
+      <div style={{
+        background: 'linear-gradient(135deg, #1b1b27, #14141f)',
+        padding: '22px 28px',
+        borderBottom: '1px solid rgba(115,116,155,0.15)',
+        display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap',
+      }}>
+        {/* Icon */}
+        <div style={{
+          width: '48px', height: '48px', borderRadius: '14px', flexShrink: 0,
+          background: 'linear-gradient(135deg, #73749B, #8E6B92)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 0 20px rgba(142,107,146,0.3)',
+        }}>
+          <i className="fa-solid fa-backpack" style={{ color: '#fff', fontSize: '1.2rem' }}></i>
+        </div>
+
+        {/* Title */}
+        <div style={{ flex: 1 }}>
+          <h3 style={{ color: '#fff', margin: '0 0 4px', fontSize: '1.2rem', fontWeight: 800 }}>
+            {guide.name}
+          </h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <span style={{
+              fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px',
+              padding: '3px 10px', borderRadius: '4px',
+              background: 'rgba(212,175,55,0.1)', color: '#d4af37',
+            }}>
+              {guide.activityType}
+            </span>
+            {guide.difficultyLevel && (
+              <span style={{
+                fontSize: '0.75rem', fontWeight: 600, padding: '3px 10px', borderRadius: '20px',
+                background: diff.bg, color: diff.color,
+              }}>
+                {diff.label}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Stats chips */}
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          {[
+            { icon: 'fa-box-open', count: guide.essentials?.length || 0, label: 'items', color: '#73749B' },
+            { icon: 'fa-shield-halved', count: guide.safetyTips?.length || 0, label: 'tips', color: '#10b981' },
+          ].map(s => (
+            <div key={s.label} style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)',
+              borderRadius: '10px', padding: '6px 12px',
+            }}>
+              <i className={`fa-solid ${s.icon}`} style={{ color: s.color, fontSize: '0.9rem' }}></i>
+              <span style={{ color: '#fff', fontWeight: 700, fontSize: '0.9rem' }}>{s.count}</span>
+              <span style={{ color: '#94a3b8', fontSize: '0.78rem' }}>{s.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Physical Requirements banner */}
+      {guide.physicalRequirements && (
+        <div style={{
+          padding: '12px 28px',
+          background: 'rgba(115,116,155,0.06)',
+          borderBottom: '1px solid rgba(115,116,155,0.1)',
+          display: 'flex', alignItems: 'center', gap: '10px',
+        }}>
+          <i className="fa-solid fa-person-walking" style={{ color: '#73749B', fontSize: '0.95rem' }}></i>
+          <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>
+            <strong style={{ color: '#cbd5e1' }}>Physical Requirements:</strong>&nbsp;
+            {guide.physicalRequirements}
+          </span>
+        </div>
+      )}
+
+      {/* ── Tabs ── */}
+      <div style={{
+        display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.05)',
+        padding: '0 28px', gap: '4px',
+      }}>
+        {visibleTabs.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              padding: '14px 18px', fontSize: '0.88rem', fontWeight: 600,
+              color: activeTab === tab.id ? tab.color : '#64748b',
+              borderBottom: `2px solid ${activeTab === tab.id ? tab.color : 'transparent'}`,
+              display: 'flex', alignItems: 'center', gap: '7px',
+              transition: 'all 0.2s', marginBottom: '-1px',
+            }}
+          >
+            <i className={`fa-solid ${tab.icon}`}></i>
+            {tab.label}
+            <span style={{
+              fontSize: '0.7rem', padding: '1px 7px', borderRadius: '20px', fontWeight: 700,
+              background: activeTab === tab.id ? `${tab.color}22` : 'rgba(255,255,255,0.04)',
+              color: activeTab === tab.id ? tab.color : '#64748b',
+            }}>
+              {tab.id === 'essentials' ? guide.essentials?.length
+               : tab.id === 'clothing' ? guide.clothing?.length
+               : guide.safetyTips?.length}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* ── Tab Body ── */}
+      <div style={{ padding: '24px 28px' }}>
+
+        {/* Essentials Tab */}
+        {activeTab === 'essentials' && guide.essentials?.length > 0 && (
+          <div>
+            <p style={{ color: '#64748b', fontSize: '0.82rem', marginBottom: '16px' }}>
+              <i className="fa-solid fa-circle-info" style={{ marginRight: '6px' }}></i>
+              Click each item to check it off your packing list.
+            </p>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '10px' }}>
+              {guide.essentials.map((item, idx) => {
+                const key = `ess-${idx}`;
+                const done = !!checked[key];
+                return (
+                  <li
+                    key={idx}
+                    onClick={() => toggleCheck(key)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '12px',
+                      padding: '12px 16px', borderRadius: '12px', cursor: 'pointer',
+                      background: done ? 'rgba(115,116,155,0.05)' : 'rgba(255,255,255,0.03)',
+                      border: `1px solid ${done ? 'rgba(115,116,155,0.2)' : 'rgba(255,255,255,0.06)'}`,
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    <i
+                      className={`fa-solid ${done ? 'fa-square-check' : 'fa-square'}`}
+                      style={{ color: done ? '#73749B' : '#334155', fontSize: '1.15rem', flexShrink: 0, transition: 'color 0.2s' }}
+                    ></i>
+                    <div style={{ flex: 1 }}>
+                      <span style={{
+                        color: done ? '#4b5563' : '#e2e8f0',
+                        textDecoration: done ? 'line-through' : 'none',
+                        fontSize: '0.9rem', fontWeight: done ? 400 : 500,
+                        transition: 'all 0.2s',
+                      }}>
+                        {item.icon && <span style={{ marginRight: '6px' }}>{item.icon}</span>}
+                        {item.item}
+                      </span>
+                      {!item.required && (
+                        <span style={{ display: 'block', fontSize: '0.72rem', color: '#64748b', marginTop: '2px' }}>Optional</span>
+                      )}
+                    </div>
+                    {item.required && (
+                      <span style={{ fontSize: '0.68rem', color: '#8E6B92', fontWeight: 700, letterSpacing: '0.4px', textTransform: 'uppercase' }}>
+                        Required
+                      </span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+
+        {/* Clothing Tab */}
+        {activeTab === 'clothing' && guide.clothing?.length > 0 && (
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '10px' }}>
+            {guide.clothing.map((item, idx) => {
+              const key = `clo-${idx}`;
+              const done = !!checked[key];
+              return (
+                <li
+                  key={idx}
+                  onClick={() => toggleCheck(key)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '12px',
+                    padding: '12px 16px', borderRadius: '12px', cursor: 'pointer',
+                    background: done ? 'rgba(142,107,146,0.05)' : 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${done ? 'rgba(142,107,146,0.2)' : 'rgba(255,255,255,0.06)'}`,
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <i className="fa-solid fa-shirt" style={{ color: done ? '#8E6B92' : '#334155', fontSize: '1rem', flexShrink: 0, transition: 'color 0.2s' }}></i>
+                  <div>
+                    <span style={{
+                      color: done ? '#4b5563' : '#e2e8f0',
+                      textDecoration: done ? 'line-through' : 'none',
+                      fontSize: '0.9rem', fontWeight: done ? 400 : 500,
+                    }}>
+                      {item.item}
+                    </span>
+                    {item.notes && (
+                      <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>{item.notes}</span>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+
+        {/* Safety Tab */}
+        {activeTab === 'safety' && guide.safetyTips?.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {guide.safetyTips.map((tipObj, idx) => {
+              const sev = SEVERITY_CONFIG[tipObj.severity] || SEVERITY_CONFIG.warning;
+              return (
+                <div
+                  key={idx}
+                  style={{
+                    display: 'flex', alignItems: 'flex-start', gap: '14px',
+                    padding: '14px 18px', borderRadius: '12px',
+                    background: sev.bg, border: `1px solid ${sev.color}33`,
+                  }}
+                >
+                  <i className={`fa-solid ${sev.icon}`} style={{ color: sev.color, fontSize: '1.1rem', marginTop: '2px', flexShrink: 0 }}></i>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ margin: 0, color: '#e2e8f0', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                      {tipObj.tip}
+                    </p>
+                    <span style={{
+                      display: 'inline-block', marginTop: '6px',
+                      fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px',
+                      color: sev.color, padding: '1px 8px', borderRadius: '4px', background: `${sev.color}15`,
+                    }}>
+                      {tipObj.severity}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Emergency Contacts */}
+            {guide.emergencyContacts && (
+              <div style={{
+                marginTop: '8px', padding: '16px 18px', borderRadius: '12px',
+                background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)',
+              }}>
+                <h4 style={{ color: '#ef4444', margin: '0 0 12px', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  <i className="fa-solid fa-phone-volume" style={{ marginRight: '8px' }}></i>
+                  Emergency Contacts
+                </h4>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '8px' }}>
+                  {[
+                    { label: 'Police',       value: guide.emergencyContacts.police,        icon: 'fa-shield' },
+                    { label: 'Ambulance',    value: guide.emergencyContacts.ambulance,     icon: 'fa-truck-medical' },
+                    { label: 'Coast Guard',  value: guide.emergencyContacts.coastGuard,    icon: 'fa-anchor' },
+                    { label: 'Hospital',     value: guide.emergencyContacts.localHospital, icon: 'fa-hospital' },
+                  ].filter(c => c.value).map(contact => (
+                    <div key={contact.label} style={{
+                      background: 'rgba(0,0,0,0.15)', borderRadius: '8px', padding: '8px 12px',
+                      display: 'flex', alignItems: 'center', gap: '8px',
+                    }}>
+                      <i className={`fa-solid ${contact.icon}`} style={{ color: '#ef4444', fontSize: '0.85rem' }}></i>
+                      <div>
+                        <span style={{ display: 'block', fontSize: '0.68rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>{contact.label}</span>
+                        <strong style={{ color: '#fff', fontSize: '0.92rem' }}>{contact.value}</strong>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
 const PackageDetails = () => {
+
   const { id } = useParams();
   const [packageData, setPackageData] = useState(null);
   const [activeImage, setActiveImage] = useState('');
@@ -803,66 +1130,18 @@ const PackageDetails = () => {
                   </div>
                 </div>
 
-                {/* 🎒 Smart Packing Guide Integration */}
-                {packingGuide && (packingGuide.itemsToBring?.length > 0 || packingGuide.itemsNotToBring?.length > 0) && (
-                  <div className="packing-guide-section" style={{ marginBottom: '40px', background: 'var(--card-bg)', border: '1px solid var(--border-light)', borderRadius: '16px', overflow: 'hidden', boxShadow: 'var(--box-shadow-soft)' }}>
-                    <div style={{ background: 'linear-gradient(90deg, #1e293b, #0f172a)', padding: '20px 25px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                      <div style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#f59e0b', width: '45px', height: '45px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem' }}>
-                        <i className="fa-solid fa-suitcase-rolling"></i>
-                      </div>
-                      <div>
-                        <h3 style={{ color: '#fff', margin: '0 0 5px 0', fontSize: '1.25rem', fontWeight: '700' }}>{lang === 'AR' ? 'دليل التحضير للرحلة' : 'Smart Packing Guide'}</h3>
-                        <p style={{ color: '#94a3b8', margin: 0, fontSize: '0.9rem' }}>{lang === 'AR' ? 'ما يجب إحضاره وما يفضل تركه' : 'What to bring and what to leave behind'}</p>
-                      </div>
-                    </div>
-                    
-                    <div style={{ padding: '25px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
-                      {/* What to Bring */}
-                      {packingGuide.itemsToBring?.length > 0 && (
-                        <div>
-                          <h4 style={{ color: '#22c55e', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '15px', fontSize: '1.05rem' }}>
-                            <i className="fa-solid fa-check-circle"></i> {lang === 'AR' ? 'يجب إحضاره' : 'Essential to Bring'}
-                          </h4>
-                          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            {packingGuide.itemsToBring.map((item, idx) => (
-                              <li key={idx} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', background: 'var(--bg-main)', padding: '10px 15px', borderRadius: '8px', border: '1px solid var(--border-light)', cursor: 'pointer', transition: 'all 0.2s' }} onClick={() => handleTogglePackingItem(`bring-${idx}`)}>
-                                <div style={{ color: checkedPackingItems[`bring-${idx}`] ? '#22c55e' : '#cbd5e1', fontSize: '1.1rem', transition: 'color 0.2s' }}>
-                                  <i className={`fa-solid ${checkedPackingItems[`bring-${idx}`] ? 'fa-square-check' : 'fa-square'}`}></i>
-                                </div>
-                                <span style={{ color: checkedPackingItems[`bring-${idx}`] ? '#94a3b8' : 'var(--text-dark)', textDecoration: checkedPackingItems[`bring-${idx}`] ? 'line-through' : 'none', fontSize: '0.95rem', fontWeight: '500' }}>{item}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      
-                      {/* What NOT to Bring */}
-                      {packingGuide.itemsNotToBring?.length > 0 && (
-                        <div>
-                          <h4 style={{ color: '#ef4444', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '15px', fontSize: '1.05rem' }}>
-                            <i className="fa-solid fa-ban"></i> {lang === 'AR' ? 'ممنوع إحضاره' : 'Leave Behind'}
-                          </h4>
-                          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            {packingGuide.itemsNotToBring.map((item, idx) => (
-                              <li key={idx} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', background: '#fef2f2', padding: '10px 15px', borderRadius: '8px', border: '1px solid #fee2e2' }}>
-                                <div style={{ color: '#ef4444', fontSize: '1rem', marginTop: '2px' }}>
-                                  <i className="fa-solid fa-xmark"></i>
-                                </div>
-                                <span style={{ color: '#7f1d1d', fontSize: '0.95rem', fontWeight: '500' }}>{item}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                    {packingGuide.tips && (
-                      <div style={{ padding: '15px 25px', background: '#fef3c7', borderTop: '1px solid #fde68a', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                        <i className="fa-solid fa-lightbulb" style={{ color: '#d97706', fontSize: '1.1rem', marginTop: '3px' }}></i>
-                        <p style={{ margin: 0, color: '#92400e', fontSize: '0.9rem', lineHeight: '1.5' }}><strong>Pro Tip:</strong> {packingGuide.tips}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
+
+                {/* ─────────────────────────────────────────────────────
+                    📖 LINKED ADVENTURE / PACKING GUIDE
+                    Populated from packageData.packingGuide via MongoDB
+                    Document Referencing (.populate('packingGuide')).
+                    Rendered ONLY when the experience has a linked guide.
+                ───────────────────────────────────────────────────── */}
+                {packageData.packingGuide && (() => {
+                  const guide = packageData.packingGuide;
+                  // Local tab state — declared inline with a wrapper component trick
+                  return <LinkedGuideSection guide={guide} lang={lang} />;
+                })()}
 
                 {/* Itinerary Section */}
                 <div className="itinerary-section">

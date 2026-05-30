@@ -16,12 +16,15 @@ import PaymentSuccess from './pages/Payment/PaymentSuccess'
 import PaymentCancel from './pages/Payment/PaymentCancel'
 import AdminDashboard from './pages/Admin/AdminDashboard'
 import PackingGuidesAdmin from './pages/Admin/PackingGuidesAdmin'
+import CreateGuide from './pages/Admin/CreateGuide'
 import SupervisorDashboard from './pages/Supervisor/SupervisorDashboard'
 import Destinations from './pages/Destinations/Destinations'
 import Experiences from './pages/Experiences/Experiences'
 import Verify from './pages/Verify/Verify'
 import ForgotPassword from './pages/ForgotPassword/ForgotPassword'
 import Chatbot from './components/Chatbot'
+import CreateDestination from './pages/Admin/CreateDestination'
+import CreateProvider from './pages/Admin/CreateProvider'
 
 // Protected Route Component
 const ProtectedRoute = ({ children, roles = [] }) => {
@@ -68,6 +71,10 @@ function App() {
         <Route path="/payment/cancel" element={<ProtectedRoute><PaymentCancel /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
         <Route path="/admin/packing-guides" element={<ProtectedRoute roles={['admin']}><PackingGuidesAdmin /></ProtectedRoute>} />
+        {/* Dedicated full-page form for creating a new packing guide */}
+        <Route path="/admin/guides/new" element={<ProtectedRoute roles={['admin']}><CreateGuide /></ProtectedRoute>} />
+        <Route path="/admin/destinations/new" element={<ProtectedRoute roles={['admin']}><CreateDestination /></ProtectedRoute>} />
+        <Route path="/admin/providers/new" element={<ProtectedRoute roles={['admin']}><CreateProvider /></ProtectedRoute>} />
         <Route path="/supervisor" element={<ProtectedRoute roles={['supervisor', 'provider']}><SupervisorDashboard /></ProtectedRoute>} />
 
         {/* Auth Routes */}

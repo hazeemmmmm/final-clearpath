@@ -153,6 +153,19 @@ const experienceSchema = new mongoose.Schema(
       default: false,
     },
 
+    /**
+     * 📖 Linked Packing / Adventure Guide
+     * References an existing PackingGuide document by ObjectId.
+     * Populated automatically when the experience is fetched, so the
+     * frontend receives the full guide object (essentials, safetyTips,
+     * clothing, difficultyLevel, etc.) without extra API calls.
+     */
+    packingGuide: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'PackingGuide',
+      default: null,
+    },
+
     itinerary: [itineraryDaySchema],
   },
   {

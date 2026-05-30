@@ -6,7 +6,7 @@ import Footer from '../../components/Footer';
 import {
   getUserProfile, getMyReviews, deleteReview, updateReview,
   updateProfile, changePassword, deleteAccount,
-  getUserBookings, getMyCustomTrips
+  getUserBookings
 } from '../../utils/api';
 import { LanguageContext } from '../../context/LanguageContext';
 import './Profile.css';
@@ -18,14 +18,12 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Tabs: 'info' | 'reviews' | 'trips' | 'bookings'
+  // Tabs: 'info' | 'reviews' | 'bookings'
   const [activeTab, setActiveTab] = useState('info');
   const [myReviews, setMyReviews] = useState([]);
   const [loadingReviews, setLoadingReviews] = useState(false);
   const [myBookings, setMyBookings] = useState([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
-  const [myTrips, setMyTrips] = useState([]);
-  const [loadingTrips, setLoadingTrips] = useState(false);
 
   // Edit Review state
   const [editingReview, setEditingReview] = useState(null); // { id, rating, comment }
@@ -70,16 +68,6 @@ const Profile = () => {
     finally { setLoadingBookings(false); }
   };
 
-  const fetchTrips = async () => {
-    try {
-      setLoadingTrips(true);
-      const res = await getMyCustomTrips();
-      const list = res.data || res.customTrips || res || [];
-      setMyTrips(Array.isArray(list) ? list : []);
-    } catch (err) { console.error('Failed to load custom trips', err); }
-    finally { setLoadingTrips(false); }
-  };
-
   useEffect(() => {
     if (profile) {
       setEditForm({
@@ -97,7 +85,6 @@ const Profile = () => {
     const tabParam = params.get('tab');
     if (tabParam === 'reviews') { setTimeout(() => setActiveTab('reviews'), 0); fetchReviews(); }
     else if (tabParam === 'bookings') { setTimeout(() => setActiveTab('bookings'), 0); fetchBookings(); }
-    else if (tabParam === 'trips') { setTimeout(() => setActiveTab('trips'), 0); fetchTrips(); }
     else if (tabParam === 'info') { setTimeout(() => setActiveTab('info'), 0); }
   }, [location.search]);
 
@@ -220,7 +207,6 @@ const Profile = () => {
                     { key: 'info', icon: 'fa-address-card', labelAR: 'بياناتي الشخصية', labelEN: 'Personal Info' },
                     { key: 'reviews', icon: 'fa-comment-dots', labelAR: 'تقييماتي', labelEN: 'My Reviews', badge: myReviews.length },
                     { key: 'bookings', icon: 'fa-calendar-check', labelAR: 'سجل الحجوزات', labelEN: 'Booking History' },
-                    { key: 'trips', icon: 'fa-route', labelAR: 'رحلاتي المخصصة', labelEN: 'My Custom Trips' },
                   ].map(tab => (
                     <button
                       key={tab.key}
@@ -229,7 +215,6 @@ const Profile = () => {
                         setActiveTab(tab.key);
                         if (tab.key === 'reviews') fetchReviews();
                         if (tab.key === 'bookings') fetchBookings();
-                        if (tab.key === 'trips') fetchTrips();
                       }}
                     >
                       <div className="tw-flex tw-items-center">
@@ -476,37 +461,6 @@ const Profile = () => {
                 </div>
               )}
 
-              {/* ───── TAB: My Custom Trips ───── */}
-              {activeTab === 'trips' && (
-                <div className="tw-bg-white dark:tw-bg-[#15171a] tw-rounded-3xl tw-p-8 sm:tw-p-10 tw-shadow-sm tw-border tw-border-slate-200/50 dark:tw-border-slate-800/50">
-                  <h2 className="tw-text-2xl tw-font-serif tw-font-bold tw-text-slate-900 dark:tw-text-white tw-mb-1">{lang === 'AR' ? 'رحلاتي المخصصة' : 'My Custom Trips'}</h2>
-                  <p className="tw-text-slate-500 dark:tw-text-slate-400 tw-text-sm tw-mb-8">{lang === 'AR' ? 'الرحلات التي قمت بتخصيصها وبنائها.' : 'All custom itineraries you have built and saved.'}</p>
-
-                  {loadingTrips ? (
-                    <div className="tw-flex tw-justify-center tw-py-12 tw-text-slate-400"><i className="fa-solid fa-spinner fa-spin tw-text-2xl tw-mr-2"></i></div>
-                  ) : myTrips.length === 0 ? (
-                    <div className="tw-text-center tw-py-16">
-                      <div className="tw-w-24 tw-h-24 tw-bg-[#dcae44]/10 tw-text-[#dcae44] tw-rounded-full tw-flex tw-items-center tw-justify-center tw-mx-auto tw-mb-6 tw-text-4xl"><i className="fa-solid fa-route"></i></div>
-                      <h4 className="tw-text-xl tw-font-bold tw-text-slate-900 dark:tw-text-white tw-mb-2">{lang === 'AR' ? 'لم تبنِ أي رحلة مخصصة بعد' : 'No custom trips yet'}</h4>
-                      <Link to="/trips" className="tw-bg-[#dcae44] hover:tw-bg-[#e5c35b] tw-text-black tw-font-bold tw-px-8 tw-py-3 tw-rounded-full tw-transition-all">{lang === 'AR' ? 'ابدأ رحلتك المخصصة' : 'Start Customizing'}</Link>
-                    </div>
-                  ) : (
-                    <div className="tw-flex tw-flex-col tw-gap-4">
-                      {myTrips.map(trip => (
-                        <div key={trip._id} className="tw-bg-slate-50 dark:tw-bg-[#0a0b0d] tw-border tw-border-slate-200 dark:tw-border-slate-800 tw-rounded-2xl tw-p-5 tw-flex tw-flex-col sm:tw-flex-row tw-justify-between tw-items-start sm:tw-items-center tw-gap-4">
-                          <div>
-                            <h4 className="tw-font-bold tw-text-slate-900 dark:tw-text-white">{trip.experience?.name || (lang === 'AR' ? 'رحلة مخصصة' : 'Custom Trip')}</h4>
-                            <p className="tw-text-xs tw-text-slate-500 dark:tw-text-slate-400 tw-mt-1">{trip.itinerary?.length || 0} {lang === 'AR' ? 'أيام · ' : ' Days · '} {trip.extra_activities?.length || 0} {lang === 'AR' ? 'أنشطة إضافية' : 'Extra Activities'}</p>
-                          </div>
-                          <Link to={`/package-details/${trip.experience?._id || trip.experience}`} className="tw-bg-[#dcae44]/10 tw-text-[#dcae44] tw-font-bold tw-px-4 tw-py-2 tw-rounded-xl hover:tw-bg-[#dcae44]/20 tw-transition-all tw-text-sm tw-flex tw-items-center tw-gap-2">
-                            <i className="fa-solid fa-eye"></i> {lang === 'AR' ? 'عرض' : 'View'}
-                          </Link>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
 
             </section>
           </div>

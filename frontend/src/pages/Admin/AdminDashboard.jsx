@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import {
   createExperience,
@@ -24,6 +25,7 @@ import ProvidersAdmin from './ProvidersAdmin';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview'); // overview, packages, forecast, bookings, users, supervisors, reviews, settings
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
@@ -41,11 +43,20 @@ const AdminDashboard = () => {
   const [loadingData, setLoadingData] = useState(true);
   const [submittingPkg, setSubmittingPkg] = useState(false);
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
+
+  // Edit Package Modal
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingPackage, setEditingPackage] = useState(null);
   
   // Search & Filters
   const [userSearch, setUserSearch] = useState('');
   const [bookingFilter, setBookingFilter] = useState('All'); // All, Pending, Confirmed, Cancelled
   const [bookingSearch, setBookingSearch] = useState('');
+
+  // Active Inventory Search & Pagination
+  const [inventorySearch, setInventorySearch] = useState('');
+  const [inventoryPage, setInventoryPage] = useState(0);
+  const INVENTORY_PAGE_SIZE = 6;
 
   // Dynamic builders lists
   const [destinationsList, setDestinationsList] = useState([]);
@@ -411,14 +422,8 @@ const AdminDashboard = () => {
   };
 
   const handleEditPackage = (pkg) => {
-    setPkgFormData({
-      ...pkg,
-      destination: pkg.destination?._id || pkg.destination,
-      supervisor: pkg.supervisor?._id || pkg.supervisor,
-      addons: pkg.addons || []
-    });
-    setPkgItinerary(pkg.itinerary || []);
-    setIsPublishModalOpen(true);
+    setEditingPackage(pkg);
+    setIsEditModalOpen(true);
   };
 
   const handleDeleteUser = async (id, name) => {
@@ -1034,57 +1039,163 @@ const AdminDashboard = () => {
                       activitiesList={activitiesList}
                       submittingPkg={submittingPkg}
                       calculateEstimatedPackagePrice={calculateEstimatedPackagePrice}
+                      providersList={providersList}
                     />
 
                     {/* Inventory Grid View */}
                     <div className="packages-inventory-view">
-                      <h3>Active Inventory ({packages.length} items)</h3>
-                      {packages.length === 0 ? (
-                        <div className="inventory-empty">
-                          <i className="fa-solid fa-box-open"></i>
-                          <p>No active experiences found. Use the editor to publish your first offering.</p>
+                      {/* Inventory Header: title + search bar */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                        <h3 style={{ margin: 0 }}>
+                          Active Inventory
+                          <span style={{ marginLeft: '10px', fontSize: '0.9rem', fontWeight: 500, color: '#d4af37', background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.25)', padding: '2px 10px', borderRadius: '20px' }}>
+                            {(() => {
+                              const filtered = packages.filter(p =>
+                                p.name?.toLowerCase().includes(inventorySearch.toLowerCase()) ||
+                                (p.destination?.name || p.destination || '').toLowerCase().includes(inventorySearch.toLowerCase())
+                              );
+                              return `${filtered.length} of ${packages.length} experiences`;
+                            })()}
+                          </span>
+                        </h3>
+                        {/* Search Bar */}
+                        <div style={{ position: 'relative', minWidth: '260px', maxWidth: '360px', flex: '1' }}>
+                          <i className="fa-solid fa-magnifying-glass" style={{ position: 'absolute', left: '13px', top: '50%', transform: 'translateY(-50%)', color: '#71717a', fontSize: '0.82rem', pointerEvents: 'none' }}></i>
+                          <input
+                            type="text"
+                            placeholder="Search by name or destination..."
+                            value={inventorySearch}
+                            onChange={e => { setInventorySearch(e.target.value); setInventoryPage(0); }}
+                            style={{ width: '100%', padding: '9px 14px 9px 36px', backgroundColor: '#0d0d11', border: '1px solid #1f1f2a', borderRadius: '8px', color: '#fff', fontSize: '0.85rem', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s' }}
+                            onFocus={e => e.target.style.borderColor = '#d4af37'}
+                            onBlur={e => e.target.style.borderColor = '#1f1f2a'}
+                          />
+                          {inventorySearch && (
+                            <button
+                              onClick={() => { setInventorySearch(''); setInventoryPage(0); }}
+                              style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#71717a', cursor: 'pointer', fontSize: '1rem', padding: 0, lineHeight: 1 }}
+                              title="Clear search"
+                            >×</button>
+                          )}
                         </div>
-                      ) : (
-                        <div className="inventory-cards-grid">
-                          {packages.map(pkg => (
-                            <div key={pkg._id} className="inventory-card animate-scale-up">
-                              <div className="card-decor-header">
-                                <span className="type-tag-badge">{pkg.type}</span>
-                                <div style={{ display: 'flex', gap: '8px' }}>
-                                  <button 
-                                    className="card-feature-icon" 
-                                    onClick={() => handleToggleFeatured(pkg._id, pkg.isFeatured)} 
-                                    title={pkg.isFeatured ? "Unfeature Experience" : "Feature Experience"}
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: pkg.isFeatured ? '#fbbf24' : '#64748b', fontSize: '1.2rem' }}
-                                  >
-                                    <i className={pkg.isFeatured ? "fa-solid fa-star" : "fa-regular fa-star"}></i>
-                                  </button>
-                                  <button 
-                                    className="card-edit-icon" 
-                                    onClick={() => handleEditPackage(pkg)} 
-                                    title="Edit Experience"
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#fbbf24', fontSize: '1.2rem' }}
-                                  >
-                                    <i className="fa-solid fa-pen-to-square"></i>
-                                  </button>
-                                  <button className="card-delete-icon" onClick={() => handleDeletePackage(pkg._id, pkg.name)} title="Remove Experience">
-                                    <i className="fa-solid fa-trash-can"></i>
-                                  </button>
-                                </div>
-                              </div>
-                              <div className="card-body-details">
-                                <h4>{pkg.name}</h4>
-                                <span className="location"><i className="fa-solid fa-location-dot"></i> {pkg.destination?.name || pkg.destination || 'Global'}</span>
-                                <p className="desc-truncated">{pkg.description}</p>
-                                <div className="card-stats-footer">
-                                  <span className="price-tag-large">${pkg.base_price}</span>
-                                  <span className="badge-duration">{pkg.duration_days} Days</span>
-                                </div>
-                              </div>
+                      </div>
+
+                      {/* Inventory Cards */}
+                      {(() => {
+                        const filtered = packages.filter(p =>
+                          p.name?.toLowerCase().includes(inventorySearch.toLowerCase()) ||
+                          (p.destination?.name || p.destination || '').toLowerCase().includes(inventorySearch.toLowerCase())
+                        );
+                        const totalPages = Math.ceil(filtered.length / INVENTORY_PAGE_SIZE);
+                        const safePage = Math.min(inventoryPage, Math.max(totalPages - 1, 0));
+                        const paginated = filtered.slice(safePage * INVENTORY_PAGE_SIZE, (safePage + 1) * INVENTORY_PAGE_SIZE);
+
+                        if (filtered.length === 0) {
+                          return (
+                            <div className="inventory-empty">
+                              <i className="fa-solid fa-magnifying-glass" style={{ fontSize: '2.5rem', opacity: 0.2, marginBottom: '12px' }}></i>
+                              <p style={{ color: '#71717a', fontSize: '0.9rem' }}>
+                                {packages.length === 0
+                                  ? 'No active experiences found. Use the editor to publish your first offering.'
+                                  : `No experiences match "${inventorySearch}". Try a different name or destination.`
+                                }
+                              </p>
                             </div>
-                          ))}
-                        </div>
-                      )}
+                          );
+                        }
+
+                        return (
+                          <>
+                            <div className="inventory-cards-grid">
+                              {paginated.map(pkg => (
+                                <div key={pkg._id} className="inventory-card animate-scale-up">
+                                  <div className="card-decor-header">
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                      <span className="type-tag-badge">{pkg.type}</span>
+                                      {pkg.isFeatured && (
+                                        <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#fbbf24', background: 'rgba(251,191,36,0.1)', padding: '2px 7px', borderRadius: '10px', border: '1px solid rgba(251,191,36,0.25)' }}>FEATURED</span>
+                                      )}
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                      <button
+                                        className="card-feature-icon"
+                                        onClick={() => handleToggleFeatured(pkg._id, pkg.isFeatured)}
+                                        title={pkg.isFeatured ? 'Unfeature Experience' : 'Feature Experience'}
+                                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: pkg.isFeatured ? '#fbbf24' : '#64748b', fontSize: '1.1rem', padding: '4px', borderRadius: '4px', transition: 'color 0.2s' }}
+                                      >
+                                        <i className={pkg.isFeatured ? 'fa-solid fa-star' : 'fa-regular fa-star'}></i>
+                                      </button>
+                                      <button
+                                        className="card-edit-icon"
+                                        onClick={() => handleEditPackage(pkg)}
+                                        title="Edit Experience"
+                                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#fbbf24', fontSize: '1.1rem', padding: '4px', borderRadius: '4px', transition: 'color 0.2s' }}
+                                      >
+                                        <i className="fa-solid fa-pen-to-square"></i>
+                                      </button>
+                                      <button
+                                        className="card-delete-icon"
+                                        onClick={() => handleDeletePackage(pkg._id, pkg.name)}
+                                        title="Remove Experience"
+                                        style={{ padding: '4px', borderRadius: '4px' }}
+                                      >
+                                        <i className="fa-solid fa-trash-can"></i>
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <div className="card-body-details">
+                                    <h4 style={{ marginBottom: '6px' }}>{pkg.name}</h4>
+                                    <span className="location" style={{ marginBottom: '8px', display: 'block' }}>
+                                      <i className="fa-solid fa-location-dot"></i> {pkg.destination?.name || pkg.destination || 'Global'}
+                                    </span>
+                                    <p className="desc-truncated" style={{ fontSize: '0.82rem', color: '#94a3b8', lineHeight: '1.5', marginBottom: '14px' }}>{pkg.description}</p>
+                                    <div className="card-stats-footer">
+                                      <span className="price-tag-large">${pkg.base_price?.toLocaleString()}</span>
+                                      <span className="badge-duration">{pkg.duration_days} Days</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Pagination Navigation */}
+                            {totalPages > 1 && (
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', padding: '16px 20px', background: '#0d0d11', border: '1px solid #1f1f2a', borderRadius: '12px' }}>
+                                <button
+                                  onClick={() => setInventoryPage(p => Math.max(p - 1, 0))}
+                                  disabled={safePage === 0}
+                                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 18px', borderRadius: '8px', border: '1px solid #1f1f2a', background: safePage === 0 ? 'transparent' : 'rgba(212,175,55,0.08)', color: safePage === 0 ? '#3f3f46' : '#d4af37', cursor: safePage === 0 ? 'not-allowed' : 'pointer', fontSize: '0.85rem', fontWeight: 600, transition: 'all 0.2s' }}
+                                >
+                                  <i className="fa-solid fa-chevron-left"></i> Previous
+                                </button>
+
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  {Array.from({ length: totalPages }, (_, i) => (
+                                    <button
+                                      key={i}
+                                      onClick={() => setInventoryPage(i)}
+                                      style={{ width: '32px', height: '32px', borderRadius: '6px', border: '1px solid', borderColor: i === safePage ? '#d4af37' : '#1f1f2a', background: i === safePage ? '#d4af37' : 'transparent', color: i === safePage ? '#000' : '#71717a', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', transition: 'all 0.2s' }}
+                                    >{i + 1}</button>
+                                  ))}
+                                </div>
+
+                                <button
+                                  onClick={() => setInventoryPage(p => Math.min(p + 1, totalPages - 1))}
+                                  disabled={safePage >= totalPages - 1}
+                                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 18px', borderRadius: '8px', border: '1px solid #1f1f2a', background: safePage >= totalPages - 1 ? 'transparent' : 'rgba(212,175,55,0.08)', color: safePage >= totalPages - 1 ? '#3f3f46' : '#d4af37', cursor: safePage >= totalPages - 1 ? 'not-allowed' : 'pointer', fontSize: '0.85rem', fontWeight: 600, transition: 'all 0.2s' }}
+                                >
+                                  Next <i className="fa-solid fa-chevron-right"></i>
+                                </button>
+                              </div>
+                            )}
+
+                            {/* Showing X–Y of Z */}
+                            <p style={{ textAlign: 'center', color: '#52525b', fontSize: '0.78rem', marginTop: '10px' }}>
+                              Showing {safePage * INVENTORY_PAGE_SIZE + 1}–{Math.min((safePage + 1) * INVENTORY_PAGE_SIZE, filtered.length)} of {filtered.length} experiences
+                            </p>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -1742,6 +1853,29 @@ const AdminDashboard = () => {
           )}
         </main>
       </div>
+
+      {/* ── Edit Package Modal ── */}
+      {isEditModalOpen && editingPackage && (
+        <EditPackageModal
+          experience={editingPackage}
+          onClose={() => { setIsEditModalOpen(false); setEditingPackage(null); }}
+          onUpdate={async () => {
+            setIsEditModalOpen(false);
+            setEditingPackage(null);
+            // Reload packages list after edit
+            try {
+              const pkgsRes = await getTrips();
+              setPackages(pkgsRes.data || pkgsRes || []);
+              setSuccessMsg(`Package updated successfully!`);
+              setTimeout(() => setSuccessMsg(''), 4000);
+            } catch {}
+          }}
+          activitiesList={activitiesList}
+          providersList={providersList}
+          destinationsList={destinationsList}
+          supervisorsList={getSupervisorsList()}
+        />
+      )}
     </div>
   );
 };

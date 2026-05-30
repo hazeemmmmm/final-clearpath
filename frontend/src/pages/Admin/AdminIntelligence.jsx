@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getIntelligenceDashboard, flagUser, unflagUser, getPriceOptimization, applyPriceOptimization } from '../../utils/api'; 
+import { getIntelligenceDashboard, flagUser, unflagUser, getPriceOptimization, applyPriceOptimization, autoAssignGuide } from '../../utils/api'; 
 
 const AdminIntelligence = () => {
   const [data, setData] = useState({ demandAlerts: [], fraudAlerts: [], trustScores: [] });
@@ -15,6 +15,8 @@ const AdminIntelligence = () => {
   const [error, setError] = useState(null);
   const [toast, setToast] = useState(null);
   const [processing, setProcessing] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [carouselIndex, setCarouselIndex] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -121,10 +123,18 @@ const AdminIntelligence = () => {
           if (refresh && refresh.success) setData(refresh.data);
         }
       } else {
-        // Standard local dismissal for demand
-        setToast(`Success: ${message}`);
         if (actionType === 'demand') {
+          if (id.toString().startsWith('demo-')) {
+            setToast(`✅ Success: Guide Yasmine auto-assigned to simulated package.`);
+          } else {
+            const res = await autoAssignGuide(id);
+            if (res && res.success) {
+              setToast(`✅ Guide Yasmine successfully assigned!`);
+            }
+          }
           setData(prev => ({ ...prev, demandAlerts: prev.demandAlerts.filter(a => a.experienceId !== id) }));
+        } else {
+          setToast(`Success: ${message}`);
         }
       }
     } catch (err) {
@@ -219,6 +229,118 @@ const AdminIntelligence = () => {
     );
   }
 
+  const filteredAlerts = (data.demandAlerts || []).filter(alert => 
+    alert.experienceName?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const nextAlert = () => {
+    if (filteredAlerts.length <= 1) return;
+    setCarouselIndex(prev => (prev + 1) % filteredAlerts.length);
+  };
+
+  const prevAlert = () => {
+    if (filteredAlerts.length <= 1) return;
+    setCarouselIndex(prev => (prev - 1 + filteredAlerts.length) % filteredAlerts.length);
+  };
+
+  const handleSelectAlert = (e) => {
+    const selectedId = e.target.value;
+    const foundIndex = filteredAlerts.findIndex(a => String(a.experienceId) === String(selectedId));
+    if (foundIndex !== -1) {
+      setCarouselIndex(foundIndex);
+    }
+  };
+
+  // Filter out invalid or empty/inactive providers
+  const activeTrustScores = (data.trustScores || []).filter(
+    p => p.providerName && p.providerName !== 'undefined' && p.providerName.trim() !== ''
+  );
+
+  if (loading) {
+    return (
+      <div className="intel-loading-screen">
+        <div className="intel-spinner-container">
+          <i className="fa-solid fa-brain fa-3x intel-brain-icon"></i>
+          <div className="intel-spinner"></div>
+        </div>
+        <h3>Initializing Neural Engine...</h3>
+        <p>Running diagnostic algorithms and processing real-time metrics.</p>
+        <style>{`
+          .intel-loading-screen {
+            background-color: #0b0b0e;
+            color: #ffffff;
+            min-height: 70vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Poppins', sans-serif;
+          }
+          .intel-spinner-container {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+          }
+          .intel-brain-icon {
+            color: #d5b266;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+          }
+          .intel-spinner {
+            position: absolute;
+            inset: 0;
+            border: 4px solid rgba(213, 178, 102, 0.1);
+            border-top: 4px solid #d5b266;
+            border-radius: 50%;
+            animation: intel-spin 1.2s linear infinite;
+          }
+          .intel-loading-screen h3 {
+            margin: 10px 0;
+            font-weight: 600;
+            color: #ffffff;
+          }
+          .intel-loading-screen p {
+            color: #71717a;
+            font-size: 0.9rem;
+          }
+          @keyframes intel-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="intel-error-container">
+        <i className="fa-solid fa-circle-exclamation fa-2x"></i>
+        <span>{error}</span>
+        <style>{`
+          .intel-error-container {
+            margin: 20px;
+            padding: 20px;
+            border-radius: 12px;
+            background-color: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-family: 'Poppins', sans-serif;
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  const activeAlert = filteredAlerts[carouselIndex];
+
   return (
     <div className="intel-dashboard-theme">
       {/* Toast Notification */}
@@ -229,59 +351,40 @@ const AdminIntelligence = () => {
         </div>
       )}
 
-      {/* Top Header Section */}
-      <div className="intel-header">
-        <div className="intel-header-left">
-          <div className="intel-title-icon-box">
-            <i className="fa-solid fa-chart-line"></i>
-          </div>
-          <div className="intel-title-texts">
-            <div className="intel-title-row">
-              <h2>AI Demand Forecasting</h2>
-              <span className="intel-pill-badge">Q3 2026 PROJECTIONS</span>
-            </div>
-            <span className="intel-subtitle">STRATEGIC PREDICTIVE ANALYSIS</span>
-          </div>
+      {/* Centered Top Header Section (Presentation controls removed) */}
+      <div className="intel-header" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '40px', gap: '12px', borderBottom: '1px solid #1c1c24', paddingBottom: '30px' }}>
+        <div className="intel-title-icon-box" style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(213, 178, 102, 0.1)', border: '1px solid rgba(213, 178, 102, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', color: '#d5b266', marginBottom: '8px' }}>
+          <i className="fa-solid fa-chart-line"></i>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.3)', padding: '8px 16px', borderRadius: '25px', cursor: 'pointer', transition: 'all 0.3s' }} onClick={() => setIsDemo(!isDemo)}>
-          <i className={`fa-solid ${isDemo ? 'fa-toggle-on' : 'fa-toggle-off'}`} style={{ color: '#d4af37', fontSize: '1.6rem' }}></i>
-          <span style={{ color: '#fff', fontSize: '0.85rem', fontWeight: 'bold' }}>
+        <div className="intel-title-texts" style={{ alignItems: 'center' }}>
+          <div className="intel-title-row" style={{ justifyContent: 'center', gap: '15px', flexWrap: 'wrap' }}>
+            <h2 style={{ fontSize: '2.5rem', fontWeight: 800, margin: 0 }}>AI Demand Forecasting</h2>
+            <span className="intel-pill-badge" style={{ fontSize: '0.8rem', padding: '4px 14px' }}>Q3 2026 PROJECTIONS</span>
+          </div>
+          <span className="intel-subtitle" style={{ fontSize: '0.8rem', color: '#d5b266', letterSpacing: '3px', marginTop: '8px', display: 'block' }}>
+            STRATEGIC DECISION-SUPPORT SYSTEM (DSS)
+          </span>
+        </div>
+        
+        <p className="intel-description" style={{ margin: '15px auto 0 auto', textAlign: 'center', fontSize: '1rem', color: '#a1a1aa', maxWidth: '750px', lineHeight: '1.6' }}>
+          Predictive analysis engine combining historical booking data, wishlist velocity trends, and real-time page views to forecast destination demand for the upcoming luxury season.
+        </p>
+
+        {/* Presentation/Demo toggle button - centered & styled premium */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(212,175,55,0.06)', border: '1px solid rgba(212,175,55,0.2)', padding: '6px 14px', borderRadius: '25px', cursor: 'pointer', transition: 'all 0.3s', marginTop: '10px' }} onClick={() => { setIsDemo(!isDemo); setCarouselIndex(0); }}>
+          <i className={`fa-solid ${isDemo ? 'fa-toggle-on' : 'fa-toggle-off'}`} style={{ color: '#d4af37', fontSize: '1.4rem' }}></i>
+          <span style={{ color: '#a1a1aa', fontSize: '0.8rem', fontWeight: '600' }}>
             {isDemo ? 'Academic Demo Mode: Active / وضع العرض الأكاديمي: نشط' : 'Presentation Mode / وضع العرض الأكاديمي'}
           </span>
         </div>
-
-        <div className="intel-header-right">
-          <div className="intel-icon-btn">
-            <i className="fa-regular fa-bell"></i>
-            <span className="intel-badge-dot"></span>
-          </div>
-          <div className="intel-icon-btn">
-            <i className="fa-solid fa-sliders"></i>
-          </div>
-          <div className="intel-user-badge">
-            <span>Manage Account</span>
-            <img 
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150" 
-              alt="User profile" 
-              className="intel-user-avatar"
-            />
-          </div>
-        </div>
       </div>
 
-      {/* Description */}
-      <p className="intel-description">
-        Predictive analysis engine combining historical booking data, wishlist velocity trends, and real-time page views to forecast destination demand for the upcoming luxury season.
-      </p>
-
-      {/* Core Grid System */}
-      <div className="intel-grid-container">
-        
-        {/* Left Side: Projected Booking Volume Graph */}
-        <div className="intel-card intel-chart-card">
+      {/* 1) Prominent Centered AI Demand Forecasting Component */}
+      <div className="intel-centered-focus-container" style={{ maxWidth: '1000px', margin: '0 auto 40px auto', width: '100%' }}>
+        <div className="intel-card intel-chart-card" style={{ border: '1px solid rgba(213, 178, 102, 0.25)', boxShadow: '0 15px 50px rgba(0, 0, 0, 0.5)', background: 'linear-gradient(135deg, #111115, #0c0c0f)' }}>
           <div className="intel-card-header">
             <div className="intel-card-header-left">
-              <h3>Projected Booking Volume</h3>
+              <h3 style={{ fontSize: '1.4rem' }}>Projected Booking Volume</h3>
               <span className="intel-card-subtitle">SUMMER SEASON (MAY – AUGUST 2026)</span>
             </div>
             <div className="intel-chart-legend">
@@ -297,7 +400,7 @@ const AdminIntelligence = () => {
           </div>
 
           {/* SVG Vector Chart Area */}
-          <div className="intel-svg-wrapper">
+          <div className="intel-svg-wrapper" style={{ marginTop: '15px' }}>
             <svg viewBox="0 0 520 220" className="intel-svg-chart">
               <defs>
                 <linearGradient id="intelGoldGrad" x1="0" y1="0" x2="0" y2="1">
@@ -332,48 +435,84 @@ const AdminIntelligence = () => {
             </svg>
           </div>
         </div>
+      </div>
 
-        {/* Right Side: Automated Actions List */}
+      {/* Core Grid System for secondary details */}
+      <div className="intel-grid-container">
+        
+        {/* Left Grid Card: Automated Actions List with Search & Carousel */}
         <div className="intel-card intel-actions-card">
-          <h3 className="intel-actions-header">
+          <h3 className="intel-actions-header" style={{ marginBottom: '15px' }}>
             <i className="fa-solid fa-wand-magic-sparkles"></i> AUTOMATED ACTIONS
           </h3>
+
+          {/* Search and Select Tool Area */}
+          <div className="intel-search-select-box" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+            <div style={{ position: 'relative', width: '100%' }}>
+              <i className="fa-solid fa-magnifying-glass" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '0.8rem', color: '#71717a' }}></i>
+              <input 
+                type="text" 
+                placeholder="Search packages..." 
+                value={searchTerm} 
+                onChange={e => { setSearchTerm(e.target.value); setCarouselIndex(0); }} 
+                className="intel-search-input"
+                style={{ width: '100%', padding: '10px 10px 10px 32px', backgroundColor: '#0c0c0f', border: '1px solid #1f1f2a', borderRadius: '8px', color: '#fff', fontSize: '0.85rem', outline: 'none' }}
+              />
+            </div>
+            {filteredAlerts.length > 0 && (
+              <select 
+                onChange={handleSelectAlert} 
+                value={activeAlert?.experienceId || ''} 
+                className="intel-select-dropdown"
+                style={{ width: '100%', padding: '10px', backgroundColor: '#0c0c0f', border: '1px solid #1f1f2a', borderRadius: '8px', color: '#d5b266', fontSize: '0.82rem', outline: 'none', cursor: 'pointer' }}
+              >
+                {filteredAlerts.map(a => (
+                  <option key={a.experienceId} value={a.experienceId}>
+                    {a.experienceName.replace(" (Simulated)", "")} ({a.type})
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
           
-          <div className="intel-actions-list">
-            {data.demandAlerts.map((alert, idx) => {
-              const isWarning = alert.type === "High Demand";
-              const badgeClass = isWarning ? "intel-badge-warning" : "intel-badge-opportunity";
-              
-              return (
-                <div key={idx} className="intel-action-item">
+          <div className="intel-actions-list" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            {filteredAlerts.length === 0 ? (
+              <div style={{ textAlign: 'center', color: '#71717a', padding: '30px 10px', fontSize: '0.85rem' }}>
+                <i className="fa-solid fa-folder-open" style={{ fontSize: '2rem', display: 'block', marginBottom: '10px', opacity: 0.3 }}></i>
+                No automated actions matching search query.
+              </div>
+            ) : (
+              <div>
+                {/* Carousel Card Slider View */}
+                <div className="intel-action-item intel-carousel-item" style={{ transition: 'all 0.3s ease' }}>
                   <div className="intel-item-title-row">
-                    <h4>{alert.experienceName.replace(" (Simulated)", "")}</h4>
-                    <span className={`intel-status-badge ${badgeClass}`}>
-                      {isWarning ? "HIGH DEMAND" : "CONVERSION DROP"}
+                    <h4 style={{ fontSize: '1.05rem', fontWeight: 700 }}>{activeAlert.experienceName.replace(" (Simulated)", "")}</h4>
+                    <span className={`intel-status-badge ${activeAlert.type === "High Demand" ? "intel-badge-warning" : "intel-badge-opportunity"}`}>
+                      {activeAlert.type === "High Demand" ? "HIGH DEMAND" : "CONVERSION DROP"}
                     </span>
                   </div>
-                  <p className="intel-item-desc">{alert.message}</p>
+                  <p className="intel-item-desc" style={{ fontSize: '0.82rem', margin: '8px 0 20px 0', minHeight: '44px' }}>{activeAlert.message}</p>
                   
-                  {isWarning ? (
+                  {activeAlert.type === "High Demand" ? (
                     <button 
-                      onClick={() => handleAction(alert.experienceId, 'demand', `Action performed for ${alert.experienceName}`)}
-                      disabled={processing === alert.experienceId}
+                      onClick={() => handleAction(activeAlert.experienceId, 'demand', `Action performed for ${activeAlert.experienceName}`)}
+                      disabled={processing === activeAlert.experienceId}
                       className="intel-btn-solid"
                     >
-                      {processing === alert.experienceId ? (
+                      {processing === activeAlert.experienceId ? (
                         <i className="fa-solid fa-circle-notch fa-spin"></i>
                       ) : (
                         <i className="fa-solid fa-user-plus"></i>
                       )}
-                      <span>{alert.actionRecommended}</span>
+                      <span>{activeAlert.actionRecommended}</span>
                     </button>
                   ) : (
                     <button 
-                      onClick={() => handleOpenOptimize(alert.experienceId, alert.experienceName)}
-                      disabled={processing === alert.experienceId}
+                      onClick={() => handleOpenOptimize(activeAlert.experienceId, activeAlert.experienceName)}
+                      disabled={processing === activeAlert.experienceId}
                       className="intel-btn-outline"
                     >
-                      {processing === alert.experienceId ? (
+                      {processing === activeAlert.experienceId ? (
                         <i className="fa-solid fa-circle-notch fa-spin"></i>
                       ) : (
                         <i className="fa-solid fa-wand-magic-sparkles" style={{ color: '#d4af37' }}></i>
@@ -382,109 +521,150 @@ const AdminIntelligence = () => {
                     </button>
                   )}
                 </div>
-              );
-            })}
+
+                {/* Carousel Navigation Controller */}
+                {filteredAlerts.length > 1 && (
+                  <div className="intel-carousel-controls" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
+                    <button onClick={prevAlert} className="intel-carousel-nav-btn" style={{ background: '#16161c', border: '1px solid #1f1f2a', color: '#a1a1aa', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
+                      <i className="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <span style={{ fontSize: '0.78rem', color: '#71717a', fontWeight: 600 }}>
+                      {carouselIndex + 1} of {filteredAlerts.length}
+                    </span>
+                    <button onClick={nextAlert} className="intel-carousel-nav-btn" style={{ background: '#16161c', border: '1px solid #1f1f2a', color: '#a1a1aa', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
+                      <i className="fa-solid fa-chevron-right"></i>
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Bottom Left Card: Fraud & Scam Risk */}
-        <div className="intel-card intel-half-card">
-          <div className="intel-card-header">
+        {/* Right Grid Card: Fraud Anomaly & Account Security */}
+        <div className="intel-card intel-security-card" style={{ border: '1px solid rgba(239, 68, 68, 0.2)', backgroundColor: 'rgba(239, 68, 68, 0.01)' }}>
+          <div className="intel-card-header" style={{ marginBottom: '18px' }}>
             <div className="intel-card-title-block">
-              <div className="intel-card-icon-box box-red">
-                <i className="fa-solid fa-shield-virus"></i>
+              <div className="intel-card-icon-box box-red" style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444' }}>
+                <i className="fa-solid fa-shield-halved" style={{ animation: 'pulse 3s infinite' }}></i>
               </div>
               <div className="intel-card-header-texts">
-                <h3>Fraud & Scam Detection</h3>
-                <span className="intel-card-subtitle">Behavioral anomaly and risk monitoring.</span>
+                <h3>Fraud Anomaly & Security</h3>
+                <span className="intel-card-subtitle" style={{ color: '#ef4444', fontWeight: 600 }}>Real-time user behavioral tracking</span>
               </div>
             </div>
-            <span className="intel-threat-pill">1 THREAT DETECTED</span>
+            <span className="intel-threat-pill" style={{ backgroundColor: '#ef4444', color: '#fff', padding: '4px 12px', fontWeight: 700 }}>
+              {data.fraudAlerts.length} ANOMALIES
+            </span>
           </div>
 
-          <div className="intel-threats-list">
+          <div className="intel-threats-grid" style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxHeight: '350px', overflowY: 'auto', paddingRight: '5px' }}>
             {data.fraudAlerts.map((alert, idx) => (
-              <div key={idx} className="intel-threat-item" style={{ borderLeftColor: alert.isFlagged ? '#22c55e' : '#ef4444' }}>
-                <div className="intel-threat-header-row">
-                  <span className="intel-threat-name">
-                    <i className="fa-solid fa-user-slash"></i> {alert.userName.replace(" (Simulated Alert)", "")}
+              <div key={idx} className="intel-threat-item" style={{ borderLeft: `4px solid ${alert.isFlagged ? '#22c55e' : '#ef4444'}`, backgroundColor: '#131318', border: '1px solid #1c1c24', padding: '16px', borderRadius: '10px', display: 'flex', flexDirection: 'column', gap: '10px', boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}>
+                <div className="intel-threat-header-row" style={{ margin: 0 }}>
+                  <span className="intel-threat-name" style={{ color: '#fff', fontSize: '0.88rem', fontWeight: 700 }}>
+                    <i className="fa-solid fa-user-shield" style={{ color: alert.isFlagged ? '#22c55e' : '#ef4444' }}></i> 
+                    {alert.userName.replace(" (Simulated Alert)", "")}
                   </span>
-                  <span className="intel-risk-badge" style={{ background: alert.isFlagged ? '#22c55e' : '#ef4444' }}>
-                    {alert.isFlagged ? "FLAGGED / مجمّد" : "HIGH RISK / خطر عالي"}
+                  <span className="intel-risk-badge" style={{ background: alert.isFlagged ? '#22c55e' : '#ef4444', color: '#fff', fontSize: '0.62rem', fontWeight: 800, padding: '2px 8px', borderRadius: '4px' }}>
+                    {alert.isFlagged ? "BLOCKED" : "HIGH RISK"}
                   </span>
                 </div>
-                <p className="intel-threat-desc">{alert.message}</p>
-                <button 
-                  onClick={() => handleAction(alert.userId, 'fraud', alert.isFlagged ? `${alert.userName} Restrictions Lifted` : `${alert.userName} Account Flagged`, alert.isFlagged)}
-                  disabled={processing === alert.userId}
-                  className="intel-btn-dark"
-                  style={{ borderColor: alert.isFlagged ? '#22c55e' : '', color: alert.isFlagged ? '#22c55e' : '' }}
-                >
-                  {processing === alert.userId ? (
-                    <i className="fa-solid fa-circle-notch fa-spin"></i>
-                  ) : (
-                    <i className={alert.isFlagged ? "fa-solid fa-user-check" : "fa-solid fa-gavel"}></i>
-                  )}
-                  <span style={{ marginLeft: '5px' }}>{alert.isFlagged ? "Unflag Account / إلغاء التقييد" : "Flag Account / تقييد الحساب"}</span>
-                </button>
+                <p className="intel-threat-desc" style={{ fontSize: '0.8rem', color: '#a1a1aa', margin: 0, minHeight: '38px', lineHeight: '1.5' }}>{alert.message}</p>
+                
+                <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
+                  <button 
+                    onClick={() => handleAction(alert.userId, 'fraud', alert.isFlagged ? `${alert.userName} Restrictions Lifted` : `${alert.userName} Account Flagged`, alert.isFlagged)}
+                    disabled={processing === alert.userId}
+                    className="intel-btn-solid"
+                    style={{ 
+                      flexGrow: 1, 
+                      padding: '8px 12px', 
+                      fontSize: '0.78rem',
+                      background: alert.isFlagged ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #ef4444, #dc2626)', 
+                      color: '#fff',
+                      boxShadow: 'none'
+                    }}
+                  >
+                    {processing === alert.userId ? (
+                      <i className="fa-solid fa-circle-notch fa-spin"></i>
+                    ) : (
+                      <i className={alert.isFlagged ? "fa-solid fa-user-check" : "fa-solid fa-user-slash"}></i>
+                    )}
+                    <span>{alert.isFlagged ? "Unblock Account" : "Block User"}</span>
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Bottom Right Card: Provider Trust Matrix */}
-        <div className="intel-card intel-half-card">
-          <div className="intel-card-title-block">
-            <div className="intel-card-icon-box box-gold">
-              <i className="fa-solid fa-star-half-stroke"></i>
+        {/* Full-Width Row: Provider Trust Matrix (Dynamic DB Integration) */}
+        <div className="intel-card intel-full-width-card" style={{ gridColumn: '1 / -1' }}>
+          <div className="intel-card-header" style={{ marginBottom: '18px' }}>
+            <div className="intel-card-title-block">
+              <div className="intel-card-icon-box box-gold">
+                <i className="fa-solid fa-star-half-stroke"></i>
+              </div>
+              <div className="intel-card-header-texts">
+                <h3>Provider Trust & Performance Matrix</h3>
+                <span className="intel-card-subtitle">Automated rating indexes calculated from live customer booking scores</span>
+              </div>
             </div>
-            <div className="intel-card-header-texts">
-              <h3>Provider Trust Matrix</h3>
-              <span className="intel-card-subtitle">Automated quality assurance rating index.</span>
-            </div>
+            <span style={{ fontSize: '0.85rem', color: '#d5b266', fontWeight: 'bold' }}>
+              {activeTrustScores.length} ACTIVE PARTNERS
+            </span>
           </div>
 
-          <div className="intel-providers-list">
-            {data.trustScores.map((provider, idx) => {
-              const isPremium = provider.trustScore >= 80;
-              const initials = provider.providerName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-              
-              return (
-                <div key={idx} className="intel-provider-row">
-                  <div className="intel-provider-left">
-                    <div className={`intel-provider-avatar-badge ${isPremium ? 'avatar-gold' : 'avatar-red'}`}>
-                      {initials}
+          {activeTrustScores.length === 0 ? (
+            <div style={{ textAlign: 'center', color: '#71717a', padding: '40px', fontSize: '0.9rem' }}>
+              <i className="fa-solid fa-handshake-slash" style={{ fontSize: '2.5rem', display: 'block', marginBottom: '12px', opacity: 0.3 }}></i>
+              No active certified providers found in database.
+            </div>
+          ) : (
+            <div className="intel-providers-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px', marginTop: '10px' }}>
+              {activeTrustScores.map((provider, idx) => {
+                const isPremium = provider.trustScore >= 80;
+                const initials = provider.providerName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                
+                return (
+                  <div key={idx} className="intel-provider-row" style={{ margin: 0, boxShadow: '0 4px 15px rgba(0,0,0,0.15)' }}>
+                    <div className="intel-provider-left">
+                      <div className={`intel-provider-avatar-badge ${isPremium ? 'avatar-gold' : 'avatar-red'}`}>
+                        {initials}
+                      </div>
+                      <div className="intel-provider-meta">
+                        <h4 style={{ margin: '0 0 3px 0', fontSize: '0.9rem' }}>{provider.providerName}</h4>
+                        <span className={`intel-tier-text ${isPremium ? 'text-gold' : 'text-red'}`} style={{ fontSize: '0.62rem' }}>
+                          {isPremium && <i className="fa-solid fa-crown" style={{ marginRight: '3px' }}></i>} 
+                          {provider.tier.toUpperCase()}
+                        </span>
+                      </div>
                     </div>
-                    <div className="intel-provider-meta">
-                      <h4>{provider.providerName}</h4>
-                      <span className={`intel-tier-text ${isPremium ? 'text-gold' : 'text-red'}`}>
-                        {isPremium && <i className="fa-solid fa-crown"></i>} {provider.tier.toUpperCase()}
-                      </span>
-                    </div>
-                  </div>
 
-                  {/* Circular SVG Progress Gauge */}
-                  <div className="intel-gauge-wrapper">
-                    <svg viewBox="0 0 36 36" className="intel-gauge-svg">
-                      <path 
-                        className="intel-gauge-bg" 
-                        strokeWidth="3" 
-                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" 
-                      />
-                      <path 
-                        className={`intel-gauge-value ${isPremium ? 'gauge-gold' : 'gauge-red'}`}
-                        strokeWidth="3" 
-                        strokeDasharray={`${provider.trustScore}, 100`} 
-                        strokeLinecap="round" 
-                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" 
-                      />
-                    </svg>
-                    <div className="intel-gauge-text">{provider.trustScore}</div>
+                    {/* Circular SVG Progress Gauge */}
+                    <div className="intel-gauge-wrapper">
+                      <svg viewBox="0 0 36 36" className="intel-gauge-svg">
+                        <path 
+                          className="intel-gauge-bg" 
+                          strokeWidth="3" 
+                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" 
+                        />
+                        <path 
+                          className={`intel-gauge-value ${isPremium ? 'gauge-gold' : 'gauge-red'}`}
+                          strokeWidth="3" 
+                          strokeDasharray={`${provider.trustScore}, 100`} 
+                          strokeLinecap="round" 
+                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" 
+                        />
+                      </svg>
+                      <div className="intel-gauge-text" style={{ fontSize: '0.78rem' }}>{provider.trustScore}%</div>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
       </div>
@@ -724,11 +904,12 @@ const AdminIntelligence = () => {
           margin: 0 0 32px 0;
         }
 
-        /* Grid */
         .intel-grid-container {
           display: grid;
-          grid-template-columns: 2fr 1fr;
+          grid-template-columns: 1fr 1fr;
           gap: 24px;
+          max-width: 1000px;
+          margin: 0 auto;
         }
 
         /* Cards Base */

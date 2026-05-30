@@ -267,3 +267,16 @@ export const applyPriceOptimization = async (id, price) =>
     headers: getHeaders(true),
     body: JSON.stringify({ price })
   });
+
+export const autoAssignGuide = async (id) =>
+  apiCall(`${BASE_URL}/experience/${id}/auto-assign-guide`, {
+    method: 'PATCH',
+    headers: getHeaders(true)
+  });
+
+export const recommendSupervisors = async (payload) =>
+  apiCall(`${BASE_URL}/supervisors/recommend`, {
+    method: 'POST',
+    headers: getHeaders(true),
+    body: JSON.stringify(payload)
+  });

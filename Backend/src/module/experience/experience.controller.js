@@ -1,4 +1,5 @@
 import ExperienceService from "./experience.service.js";
+import { User } from "../../db/models/user.model.js";
 
 class ExperienceController {
 
@@ -168,6 +169,48 @@ class ExperienceController {
       const { price } = req.body;
       const data = await ExperienceService.applyOptimizedPrice(id, price);
       res.status(200).json({ success: true, message: "Optimized price applied successfully", data });
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  // 📝 Auto-Assign Guide Yasmine
+  autoAssignGuide = async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      
+      // Find Yasmine in the database (supervisor/guide role)
+      let yasmine = await User.findOne({ 
+        role: "supervisor", 
+        $or: [
+          { firstName: /yasmine/i }, 
+          { firstName: /ياسمين/i }
+        ] 
+      });
+      
+      if (!yasmine) {
+        yasmine = await User.findOne({ role: "supervisor" });
+      }
+      
+      if (!yasmine) {
+        // Fallback: Create supervisor Yasmine if she does not exist
+        yasmine = await User.create({
+          firstName: "Yasmine",
+          lastName: "Hamdy",
+          email: "yasmine.h@clearpath.com",
+          phoneNumber: "+2015555678912",
+          role: "supervisor",
+          status: "available",
+          password: "Password123!"
+        });
+      }
+      
+      const data = await ExperienceService.update(id, { supervisor: yasmine._id });
+      res.status(200).json({ 
+        success: true, 
+        message: `Guide Yasmine (${yasmine.firstName} ${yasmine.lastName}) assigned successfully!`, 
+        data 
+      });
     } catch (err) {
       next(err);
     }
