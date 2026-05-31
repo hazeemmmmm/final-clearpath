@@ -24,6 +24,11 @@ router.get(
 );
 
 router.get(
+  "/schema",
+  ActivityController.getSchema
+);
+
+router.get(
   "/:id",
   isValid(idSchema),
   ActivityController.getOne

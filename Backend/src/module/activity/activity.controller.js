@@ -89,6 +89,18 @@ class ActivityController {
       next(err);
     }
   };
+  // Get Schema
+  getSchema = async (req, res, next) => {
+    try {
+      const data = ActivityService.getSchema();
+      res.status(200).json({
+        success: true,
+        data,
+      });
+    } catch (err) {
+      next(err);
+    }
+  };
 }
 
 export default new ActivityController();

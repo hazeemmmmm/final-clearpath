@@ -50,6 +50,22 @@ class ActivityService {
   async delete(id) {
     return await Activity.findByIdAndDelete(id);
   }
+  // Get Activity Schema Paths dynamically
+  getSchema() {
+    const schemaFields = [];
+    Object.keys(Activity.schema.paths).forEach(path => {
+      if (['_id', '__v', 'createdAt', 'updatedAt'].includes(path)) return;
+      const field = Activity.schema.paths[path];
+      schemaFields.push({
+        name: path,
+        instance: field.instance, // e.g. "String", "Number", "Boolean", "ObjectID"
+        required: !!field.isRequired,
+        enumValues: field.enumValues || [],
+        ref: field.options.ref || null
+      });
+    });
+    return schemaFields;
+  }
 }
 
 export default new ActivityService();

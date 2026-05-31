@@ -33,6 +33,12 @@ export const forgotPassword = async (data) => authForgotPassword(data);
 export const resetPassword = async (data) => authResetPassword(data);
 
 export const getActivities = async (query = {}) => fetchAllActivities(query);
+export const createActivity = async (data) =>
+  apiCall(`${BASE_URL}/activity`, { method: 'POST', headers: getHeaders(true), body: JSON.stringify(data) });
+export const updateActivity = async (id, data) =>
+  apiCall(`${BASE_URL}/activity/${id}/update`, { method: 'PATCH', headers: getHeaders(true), body: JSON.stringify(data) });
+export const deleteActivity = async (id) =>
+  apiCall(`${BASE_URL}/activity/${id}/delete`, { method: 'DELETE', headers: getHeaders(true) });
 export const getProviders = async (query = {}) => fetchAllProviders(query);
 
 export const getUserProfile = async () =>

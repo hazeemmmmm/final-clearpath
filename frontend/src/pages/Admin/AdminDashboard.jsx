@@ -13,6 +13,9 @@ import {
   deleteExperience,
   getDestinations,
   getActivities,
+  createActivity,
+  updateActivity,
+  deleteActivity,
   getProviders,
   adminCreateSupervisor
 } from '../../utils/api';
@@ -22,6 +25,7 @@ import EditPackageModal from './EditPackageModal';
 import PackingGuidesAdmin from './PackingGuidesAdmin';
 import DestinationsAdmin from './DestinationsAdmin';
 import ProvidersAdmin from './ProvidersAdmin';
+import ActivityFormModal from './ActivityFormModal';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -62,6 +66,12 @@ const AdminDashboard = () => {
   const [destinationsList, setDestinationsList] = useState([]);
   const [activitiesList, setActivitiesList] = useState([]);
   const [providersList, setProvidersList] = useState([]);
+
+  // Activities Tab States
+  const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState(null);
+  const [isViewActivityDetailsOpen, setIsViewActivityDetailsOpen] = useState(false);
+  const [activitySearchQuery, setActivitySearchQuery] = useState('');
 
   // Supervisors Tab States
   const [showAddSupervisorModal, setShowAddSupervisorModal] = useState(false);
@@ -449,6 +459,38 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleCreateOrUpdateActivity = async (payload) => {
+    try {
+      if (selectedActivity) {
+        await updateActivity(selectedActivity._id, payload);
+        setSuccessMsg(`Activity "${payload.name}" updated successfully.`);
+      } else {
+        await createActivity(payload);
+        setSuccessMsg(`Activity "${payload.name}" created successfully.`);
+      }
+      const actsRes = await getActivities({ limit: 100 });
+      if (actsRes?.data) {
+        setActivitiesList(actsRes.data);
+      }
+      setIsActivityModalOpen(false);
+      setSelectedActivity(null);
+    } catch (err) {
+      alert(err.message || 'Failed to save activity');
+    }
+  };
+
+  const handleDeleteActivity = async (id, name) => {
+    if (window.confirm(`Are you sure you want to delete activity "${name}"?`)) {
+      try {
+        await deleteActivity(id);
+        setActivitiesList(prev => prev.filter(a => a._id !== id));
+        setSuccessMsg(`Deleted activity "${name}" successfully.`);
+      } catch (err) {
+        alert(err.message || 'Failed to delete activity');
+      }
+    }
+  };
+
   const handleUpdateBookingStatus = async (bookingId, status, isDemo = false) => {
     if (isDemo) {
       // Offline mock state update to let the UI react immediately
@@ -607,6 +649,158 @@ const AdminDashboard = () => {
     .filter(b => b.status === 'Confirmed')
     .reduce((sum, b) => sum + (b.total_amount || 0), 0) || 54200;
 
+  const renderActivitiesTab = () => {
+    const filteredActivities = activitiesList.filter(act => 
+      act.name?.toLowerCase().includes(activitySearchQuery.toLowerCase()) ||
+      act.type?.toLowerCase().includes(activitySearchQuery.toLowerCase())
+    );
+
+    return (
+      <div className="tab-pane animate-fade-in">
+        <div className="pane-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+          <div>
+            <h2>Manage Activities</h2>
+            <p className="pane-subtitle">Register and oversee various database activities, types, pricing, and active providers.</p>
+          </div>
+          <button 
+            className="btn-primary" 
+            onClick={() => {
+              setSelectedActivity(null);
+              setIsActivityModalOpen(true);
+            }}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px', borderRadius: '8px', border: 'none', background: '#d4af37', color: '#000', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 15px rgba(212,175,55,0.2)' }}
+          >
+            <i className="fa-solid fa-plus"></i> Add Activity
+          </button>
+        </div>
+
+        {/* Search controls */}
+        <div style={{ marginBottom: '25px', display: 'flex', gap: '15px' }}>
+          <div style={{ flex: 1, position: 'relative' }}>
+            <i className="fa-solid fa-magnifying-glass" style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}></i>
+            <input 
+              type="text" 
+              placeholder="Search activities by name or type..." 
+              value={activitySearchQuery} 
+              onChange={(e) => setActivitySearchQuery(e.target.value)} 
+              style={{ width: '100%', padding: '12px 15px 12px 45px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '8px', outline: 'none' }}
+            />
+          </div>
+        </div>
+
+        {/* Activities Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+          {filteredActivities.map(act => {
+            const actImage = act.image || getActivityImage(act.name);
+            return (
+              <div 
+                key={act._id} 
+                style={{ 
+                  background: '#14141f', 
+                  borderRadius: '16px', 
+                  overflow: 'hidden', 
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  boxShadow: '0 10px 20px rgba(0,0,0,0.2)',
+                  transition: 'all 0.3s ease',
+                  position: 'relative',
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}
+                className="activity-card-hover"
+              >
+                <img 
+                  src={actImage} 
+                  alt={act.name} 
+                  style={{ width: '100%', height: '180px', objectFit: 'cover' }}
+                  onError={(e) => {
+                    e.target.src = 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=300&q=80';
+                  }}
+                />
+                
+                {/* Active Availability Badge */}
+                <span style={{
+                  position: 'absolute', top: '15px', right: '15px',
+                  background: act.isAvailable !== false ? 'rgba(16,185,129,0.9)' : 'rgba(239,68,68,0.9)',
+                  color: '#fff', padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 'bold'
+                }}>
+                  {act.isAvailable !== false ? 'Active' : 'Inactive'}
+                </span>
+
+                <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <span style={{ 
+                    fontSize: '0.72rem', fontWeight: 'bold', textTransform: 'uppercase', 
+                    letterSpacing: '1px', color: '#d4af37', display: 'inline-block' 
+                  }}>
+                    {act.type?.toUpperCase()}
+                  </span>
+                  
+                  <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#fff' }}>{act.name}</h3>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.85rem', color: '#94a3b8' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <i className="fa-solid fa-map-location-dot" style={{ width: '16px', color: '#d4af37' }}></i>
+                      <span>Destination: {act.destination?.name || 'Local Platform'}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <i className="fa-solid fa-handshake" style={{ width: '16px', color: '#d4af37' }}></i>
+                      <span>Provider: {act.provider?.name || 'Platform Admin'}</span>
+                    </div>
+                    {act.duration && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <i className="fa-regular fa-clock" style={{ width: '16px', color: '#d4af37' }}></i>
+                        <span>Duration: {act.duration} Hrs</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ 
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
+                    marginTop: 'auto', paddingTop: '15px', borderTop: '1px solid rgba(255,255,255,0.06)' 
+                  }}>
+                    <strong style={{ fontSize: '1.2rem', color: '#10b981' }}>EGP {act.price}</strong>
+                    
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          setSelectedActivity(act);
+                          setIsViewActivityDetailsOpen(true);
+                        }}
+                        style={{ background: 'rgba(255,255,255,0.05)', color: '#fff', border: 'none', width: '36px', height: '36px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        title="View Details"
+                      >
+                        <i className="fa-regular fa-eye"></i>
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          setSelectedActivity(act);
+                          setIsActivityModalOpen(true);
+                        }}
+                        style={{ background: 'rgba(212,175,55,0.1)', color: '#d4af37', border: 'none', width: '36px', height: '36px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        title="Edit Activity"
+                      >
+                        <i className="fa-regular fa-pen-to-square"></i>
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => handleDeleteActivity(act._id, act.name)}
+                        style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'none', width: '36px', height: '36px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        title="Delete Activity"
+                      >
+                        <i className="fa-regular fa-trash-can"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="premium-admin-theme">
       <Navbar dashboardMode={true} />
@@ -624,6 +818,10 @@ const AdminDashboard = () => {
             <li className={activeTab === 'packages' ? 'active' : ''} onClick={() => setActiveTab('packages')}>
               <i className="fa-solid fa-box"></i>
               <span>Experiences</span>
+            </li>
+            <li className={activeTab === 'activities' ? 'active' : ''} onClick={() => setActiveTab('activities')}>
+              <i className="fa-solid fa-person-running"></i>
+              <span>Manage Activities</span>
             </li>
             <li className={activeTab === 'forecast' ? 'active' : ''} onClick={() => setActiveTab('forecast')}>
               <i className="fa-solid fa-chart-line" style={{ color: '#06b6d4' }}></i>
@@ -1834,6 +2032,9 @@ const AdminDashboard = () => {
                 </div>
               )}
 
+              {/* TAB: ACTIVITIES */}
+              {activeTab === 'activities' && renderActivitiesTab()}
+
               {/* TAB: PACKING GUIDES */}
               {activeTab === 'packing-guides' && (
                 <PackingGuidesAdmin />
@@ -1875,6 +2076,95 @@ const AdminDashboard = () => {
           destinationsList={destinationsList}
           supervisorsList={getSupervisorsList()}
         />
+      )}
+
+      {/* ── Dynamic Activity Form Modal ── */}
+      <ActivityFormModal
+        isOpen={isActivityModalOpen}
+        onClose={() => { setIsActivityModalOpen(false); setSelectedActivity(null); }}
+        onSubmit={handleCreateOrUpdateActivity}
+        activity={selectedActivity}
+        destinationsList={destinationsList}
+        providersList={providersList}
+      />
+
+      {/* ── Activity Details Modal ── */}
+      {isViewActivityDetailsOpen && selectedActivity && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', 
+          background: 'rgba(0,0,0,0.8)', zIndex: 10000, display: 'flex', 
+          justifyContent: 'center', alignItems: 'center', padding: '20px',
+          backdropFilter: 'blur(8px)', animation: 'fadeIn 0.2s ease-out'
+        }}>
+          <div style={{
+            background: '#14141f', borderRadius: '16px', width: '500px', maxWidth: '95%',
+            border: '1px solid rgba(212,175,55,0.3)', padding: '30px', position: 'relative',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
+          }}>
+            <button onClick={() => { setIsViewActivityDetailsOpen(false); setSelectedActivity(null); }} style={{
+              position: 'absolute', top: '15px', right: '20px', background: 'transparent',
+              border: 'none', color: '#fff', fontSize: '1.8rem', cursor: 'pointer'
+            }}>×</button>
+
+            <h3 style={{ color: '#d4af37', marginBottom: '20px', fontSize: '1.4rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <i className="fa-regular fa-eye"></i> Activity Details
+            </h3>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', color: '#cbd5e1' }}>
+              <img 
+                src={selectedActivity.image || getActivityImage(selectedActivity.name)} 
+                alt={selectedActivity.name} 
+                style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '8px' }}
+                onError={(e) => {
+                  e.target.src = 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=300&q=80';
+                }}
+              />
+              <div>
+                <strong style={{ color: '#a4a4b4', fontSize: '0.85rem' }}>NAME</strong>
+                <p style={{ margin: '4px 0 0 0', color: '#fff', fontSize: '1.1rem', fontWeight: 'bold' }}>{selectedActivity.name}</p>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                <div>
+                  <strong style={{ color: '#a4a4b4', fontSize: '0.85rem' }}>TYPE</strong>
+                  <p style={{ margin: '4px 0 0 0', color: '#fff', textTransform: 'capitalize' }}>{selectedActivity.type}</p>
+                </div>
+                <div>
+                  <strong style={{ color: '#a4a4b4', fontSize: '0.85rem' }}>PRICE</strong>
+                  <p style={{ margin: '4px 0 0 0', color: '#10b981', fontWeight: 'bold' }}>EGP {selectedActivity.price}</p>
+                </div>
+              </div>
+              <div>
+                <strong style={{ color: '#a4a4b4', fontSize: '0.85rem' }}>DESTINATION</strong>
+                <p style={{ margin: '4px 0 0 0', color: '#fff' }}>{selectedActivity.destination?.name || 'Local Platform'}</p>
+              </div>
+              <div>
+                <strong style={{ color: '#a4a4b4', fontSize: '0.85rem' }}>PROVIDER</strong>
+                <p style={{ margin: '4px 0 0 0', color: '#fff' }}>{selectedActivity.provider?.name || 'Platform Admin'}</p>
+              </div>
+              {selectedActivity.duration && (
+                <div>
+                  <strong style={{ color: '#a4a4b4', fontSize: '0.85rem' }}>DURATION</strong>
+                  <p style={{ margin: '4px 0 0 0', color: '#fff' }}>{selectedActivity.duration} Hours</p>
+                </div>
+              )}
+              <div>
+                <strong style={{ color: '#a4a4b4', fontSize: '0.85rem' }}>AVAILABILITY STATUS</strong>
+                <p style={{ margin: '4px 0 0 0', color: selectedActivity.isAvailable !== false ? '#10b981' : '#ef4444', fontWeight: 'bold' }}>
+                  {selectedActivity.isAvailable !== false ? 'Active & Available' : 'Inactive'}
+                </p>
+              </div>
+            </div>
+
+            <div style={{ marginTop: '25px', display: 'flex', justifyContent: 'flex-end' }}>
+              <button 
+                onClick={() => { setIsViewActivityDetailsOpen(false); setSelectedActivity(null); }}
+                style={{ padding: '10px 20px', background: '#333', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                Close View
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
