@@ -332,21 +332,6 @@ const Navbar = ({ isScrolled, dashboardMode }) => {
             </button>
           </div>
 
-          {/* Glowing Trip Chain / Cart Button */}
-          <button 
-            type="button"
-            onClick={() => setIsChainOpen(!isChainOpen)}
-            className="tw-relative tw-w-9 tw-h-9 tw-rounded-full tw-border tw-border-slate-300 dark:tw-border-slate-700 tw-bg-white/50 dark:tw-bg-transparent tw-flex tw-items-center tw-justify-center tw-text-slate-600 dark:tw-text-slate-300 hover:tw-text-amber-500 dark:hover:tw-text-amber-500 hover:tw-border-amber-500 dark:hover:tw-border-amber-500 tw-transition-colors tw-cursor-pointer"
-            title={lang === 'AR' ? 'سلسلة الرحلات' : 'My Trip Chain'}
-          >
-            <i className="fa-solid fa-link"></i>
-            {tripChain.length > 0 && (
-              <span className="tw-absolute -tw-top-1.5 -tw-right-1.5 tw-w-5 tw-h-5 tw-bg-amber-500 tw-text-black tw-text-[10px] tw-font-extrabold tw-rounded-full tw-flex tw-items-center tw-justify-center tw-animate-pulse tw-shadow-[0_0_8px_rgba(245,158,11,0.8)]">
-                {tripChain.length}
-              </span>
-            )}
-          </button>
-
           {/* User Button / Auth Links */}
           {isAuthenticated ? (
             <div 
@@ -413,96 +398,6 @@ const Navbar = ({ isScrolled, dashboardMode }) => {
             </div>
           )}
         </div>
-
-        {/* Trip Chain Drawer Dropdown Panel */}
-        {isChainOpen && (
-          <div className={`tw-absolute tw-top-[calc(100%+10px)] ${lang === 'AR' ? 'tw-left-4' : 'tw-right-4'} tw-w-80 md:tw-w-96 tw-bg-white dark:tw-bg-[#111215] tw-border tw-border-slate-200 dark:tw-border-slate-800 tw-rounded-2xl tw-shadow-2xl tw-py-4 tw-px-5 tw-z-[9999] tw-animate-in tw-fade-in tw-slide-in-from-top-3`}>
-            
-            {/* Header */}
-            <div className="tw-flex tw-items-center tw-justify-between tw-pb-3 tw-border-b tw-border-slate-100 dark:tw-border-slate-800">
-              <h4 className="tw-text-base tw-font-bold tw-text-slate-900 dark:tw-text-white tw-flex tw-items-center tw-gap-2">
-                <i className="fa-solid fa-route tw-text-amber-500"></i>
-                {lang === 'AR' ? 'مسار سلسلة الرحلات' : 'My Trip Chain'}
-              </h4>
-              <button 
-                onClick={() => setIsChainOpen(false)}
-                className="tw-bg-transparent tw-border-none tw-text-slate-400 hover:tw-text-slate-600 dark:hover:tw-text-slate-200 tw-cursor-pointer"
-              >
-                <i className="fa-solid fa-xmark"></i>
-              </button>
-            </div>
-
-            {/* Items List */}
-            <div className="tw-py-3 tw-flex tw-flex-col tw-gap-4 tw-max-h-72 tw-overflow-y-auto tw-pr-1">
-              {tripChain.length === 0 ? (
-                <div className="tw-text-center tw-py-6 tw-text-slate-400 dark:tw-text-slate-500">
-                  <i className="fa-solid fa-link-slash tw-text-3xl tw-mb-2"></i>
-                  <p className="tw-text-xs">{lang === 'AR' ? 'سلسلتك فارغة حالياً. أضف باقات لبناء سلسلة رحلات متكاملة!' : 'Your trip chain is currently empty. Add packages to build your journey!'}</p>
-                </div>
-              ) : (
-                tripChain.map((item, idx) => (
-                  <div key={idx} className="tw-flex tw-gap-3 tw-pb-3 tw-border-b tw-border-slate-50/50 dark:tw-border-slate-800/40 last:tw-border-none">
-                    {/* Image */}
-                    <img 
-                      src={item.image || '/logo-dark.png'} 
-                      alt={item.name} 
-                      className="tw-w-16 tw-h-16 tw-object-cover tw-rounded-lg tw-border tw-border-slate-100 dark:tw-border-slate-800"
-                    />
-                    {/* Details */}
-                    <div className="tw-flex-1 tw-flex tw-flex-col tw-justify-between">
-                      <div>
-                        <h5 className="tw-text-xs tw-font-bold tw-text-slate-800 dark:tw-text-white tw-line-clamp-1 tw-mb-0.5">{item.name}</h5>
-                        <span className="tw-text-[10px] tw-text-slate-500 dark:tw-text-slate-400">
-                          {item.guestCount} {item.guestCount === 1 ? (lang === 'AR' ? 'مسافر' : 'Guest') : (lang === 'AR' ? 'مسافرين' : 'Guests')}
-                          {item.isCustomizing && ` | ${lang === 'AR' ? 'خطة مخصصة' : 'Customized'}`}
-                        </span>
-                      </div>
-                      <span className="tw-text-xs tw-font-extrabold tw-text-amber-500">
-                        {formatPrice ? formatPrice(item.totalPrice) : `${item.totalPrice} EGP`}
-                      </span>
-                    </div>
-                    {/* Delete */}
-                    <button 
-                      onClick={() => handleDeleteChainItem(idx)}
-                      className="tw-bg-transparent tw-border-none tw-text-rose-500 hover:tw-text-rose-600 dark:hover:tw-text-rose-400 tw-cursor-pointer tw-h-fit tw-p-1 tw-mt-1"
-                      title={lang === 'AR' ? 'حذف من السلسلة' : 'Remove from chain'}
-                    >
-                      <i className="fa-solid fa-trash-can"></i>
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
-
-            {/* Total & Checkout */}
-            {tripChain.length > 0 && (
-              <div className="tw-pt-3 tw-border-t tw-border-slate-100 dark:tw-border-slate-800 tw-flex tw-flex-col tw-gap-3">
-                <div className="tw-flex tw-justify-between tw-items-center">
-                  <span className="tw-text-xs tw-font-semibold tw-text-slate-500 dark:tw-text-slate-400">{lang === 'AR' ? 'المجموع الكلي للسلسلة' : 'Trip Chain Total'}</span>
-                  <span className="tw-text-base tw-font-extrabold tw-text-amber-500">
-                    {formatPrice 
-                      ? formatPrice(tripChain.reduce((sum, item) => sum + item.totalPrice, 0)) 
-                      : `${tripChain.reduce((sum, item) => sum + item.totalPrice, 0)} EGP`}
-                  </span>
-                </div>
-
-                <button
-                  onClick={handleChainCheckout}
-                  disabled={checkoutLoading}
-                  className="tw-w-full tw-bg-amber-500 hover:tw-bg-amber-600 tw-text-black tw-font-extrabold tw-py-2.5 tw-px-4 tw-rounded-xl tw-transition-colors tw-shadow-md tw-flex tw-items-center tw-justify-center tw-gap-2 tw-border-none tw-cursor-pointer tw-text-sm"
-                >
-                  {checkoutLoading ? (
-                    <><i className="fa-solid fa-circle-notch fa-spin"></i> {lang === 'AR' ? 'جاري إتمام الحجز...' : 'Creating bookings...'}</>
-                  ) : (
-                    <><i className="fa-solid fa-wallet"></i> {lang === 'AR' ? 'تأكيد السلسلة والدفع' : 'Proceed to Checkout & Pay'}</>
-                  )}
-                </button>
-              </div>
-            )}
-
-          </div>
-        )}
-
       </div>
     </nav>
   );

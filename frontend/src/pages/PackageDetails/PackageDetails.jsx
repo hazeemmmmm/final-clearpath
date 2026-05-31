@@ -753,53 +753,7 @@ const PackageDetails = () => {
     }
   };
 
-  const handleAddToTripChain = () => {
-    try {
-      const chainStr = localStorage.getItem('clearpath_trip_chain') || '[]';
-      const currentChain = JSON.parse(chainStr);
-      
-      const isAlreadyChained = currentChain.some(item => item.packageId === packageData._id);
-      if (isAlreadyChained) {
-        alert(lang === 'AR' ? 'هذه الرحلة مضافة بالفعل في سلسلة رحلتك.' : 'This experience is already in your trip chain.');
-        return;
-      }
 
-      const singlePrice = isCustomizing && customTrip 
-        ? customTrip.total_price 
-        : (packageData.base_price || packageData.price || 0);
-
-      const addonsTotal = selectedAddons.reduce((sum, addonId) => {
-        const addon = packageData?.addons?.find(a => a._id === addonId);
-        return sum + (addon ? addon.price : 0);
-      }, 0);
-
-      const extraActivitiesCount = selectedAddons.length + (customTrip?.extra_activities?.length || 0);
-      let totalPrice = (singlePrice * guestCount) + addonsTotal;
-      if (!customTrip?.ai_discount_applied && extraActivitiesCount >= 3) {
-         const discount = totalPrice * 0.10;
-         totalPrice -= discount;
-      }
-
-      const chainItem = {
-        packageId: packageData._id,
-        name: packageData.name || packageData.title,
-        image: activeImage || packageData.image || '',
-        guests: guestCount,
-        selectedAddons: selectedAddons,
-        totalPrice: totalPrice,
-        isCustomized: !!customTrip
-      };
-
-      currentChain.push(chainItem);
-      localStorage.setItem('clearpath_trip_chain', JSON.stringify(currentChain));
-      
-      window.dispatchEvent(new Event('cartUpdate'));
-      
-      alert(lang === 'AR' ? 'تمت إضافة الرحلة إلى سلسلة رحلتك بنجاح!' : 'Experience added to your trip chain successfully!');
-    } catch (err) {
-      console.error('Failed to add to trip chain:', err);
-    }
-  };
 
   const fetchUserProfile = async () => {
     try {
@@ -2436,6 +2390,7 @@ const PackageDetails = () => {
                                       justifyContent: 'center',
                                       gap: '5px',
                                       transition: 'all 0.2s'
+                                    }}
                                     onMouseEnter={(e) => { e.currentTarget.style.background = '#f59e0b'; e.currentTarget.style.color = '#000'; }}
                                     onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(212, 175, 55, 0.1)'; e.currentTarget.style.color = '#f59e0b'; }}
                                   >
