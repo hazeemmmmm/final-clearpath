@@ -80,7 +80,13 @@ const PublishPackageModal = ({
 
   // Itinerary Handlers
   const addDay = () => {
+    const newDayNum = itinerary.length + 1;
+    setItinerary(prev => [
+      ...prev,
+      { day_number: newDayNum, title: `Day ${newDayNum}`, description: '', activities: [] }
+    ]);
     setFormData(prev => ({ ...prev, duration_days: (Number(prev.duration_days) || 0) + 1 }));
+    setExpandedDay(newDayNum);
   };
 
   const removeDay = (index) => {
