@@ -8,15 +8,22 @@ class PackingGuideService {
   // Priority: experience → destination → activityType → general
   // ─────────────────────────────────────────────
   async getForExperience(experienceId) {
-    // 1. Exact match by experience ID
+    // 1. Get the experience to know its explicitly linked guide, destination & type
+    const exp = await Experience.findById(experienceId).populate('destination');
+    if (!exp) return null;
+
+    if (exp.packingGuide) {
+      const guide = await PackingGuide.findById(exp.packingGuide)
+        .populate('experience', 'name')
+        .populate('destination', 'name');
+      if (guide) return guide;
+    }
+
+    // 2. Match by experience ID
     let guide = await PackingGuide.findOne({ experience: experienceId })
       .populate('experience', 'name')
       .populate('destination', 'name');
     if (guide) return guide;
-
-    // 2. Get the experience to know its destination & type
-    const exp = await Experience.findById(experienceId).populate('destination');
-    if (!exp) return null;
 
     const destId = exp.destination?._id || exp.destination;
 
