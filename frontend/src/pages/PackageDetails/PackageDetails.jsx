@@ -1060,7 +1060,7 @@ const PackageDetails = () => {
                 {/* Booking Card (relocated above Itinerary) */}
                 <div className="booking-card" style={{ marginTop: '20px' }}>
                   <div className="booking-card-inner">
-                    {/* Left Side: Pricing, Guests, Breakdown, Discounts */}
+                    {/* Left Side: Pricing, Breakdown, Discounts & Benefits */}
                     <div>
                       {(() => {
                         const singlePrice = isCustomizing && customTrip 
@@ -1089,28 +1089,30 @@ const PackageDetails = () => {
 
                         return (
                           <>
-                            <div className="booking-price" style={{ display: 'flex', flexDirection: 'column', gap: '5px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '15px', marginBottom: '15px' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                                <span className="price-label" style={{ fontSize: '0.85rem', color: '#a4a4b4', fontWeight: 'bold' }}>{isCustomizing ? (lang === 'AR' ? 'السعر المخصص للفرد' : 'Customized price per guest') : (lang === 'AR' ? 'يبدأ سعر الفرد من' : 'Price starts at')}</span>
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                            <div className="booking-price" style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start', width: '100%' }}>
+                                <span className="price-label" style={{ fontSize: '0.8rem', color: '#a4a4b4', fontWeight: '800', letterSpacing: '0.5px' }}>
+                                  {isCustomizing ? (lang === 'AR' ? 'السعر المخصص للفرد' : 'CUSTOMIZED PRICE PER GUEST') : (lang === 'AR' ? 'يبدأ سعر الفرد من' : 'PRICE STARTS AT')}
+                                </span>
+                                <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
+                                  <span className="price-amount" style={{ fontSize: '2.4rem', color: '#f59e0b', fontWeight: 'bold' }}>
+                                    {formatPrice(totalPrice)}
+                                  </span>
                                   {aiDiscountApplied && (
-                                    <span style={{ textDecoration: 'line-through', color: '#64748b', fontSize: '0.9rem' }}>
+                                    <span style={{ textDecoration: 'line-through', color: '#64748b', fontSize: '1rem', marginLeft: '5px' }}>
                                       {formatPrice(originalTotalPrice)}
                                     </span>
                                   )}
-                                  <span className="price-amount" style={{ fontSize: '2rem', color: aiDiscountApplied ? '#10b981' : '#f59e0b', fontWeight: 'bold' }}>
-                                    {formatPrice(totalPrice)}
-                                  </span>
                                 </div>
                               </div>
                               {aiDiscountApplied && (
-                                <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '6px 10px', borderRadius: '8px', color: '#10b981', fontSize: '0.75rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px', width: 'fit-content', alignSelf: 'flex-end' }}>
+                                <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '6px 10px', borderRadius: '8px', color: '#10b981', fontSize: '0.75rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px', width: 'fit-content' }}>
                                   <i className="fa-solid fa-wand-magic-sparkles"></i>
                                   {lang === 'AR' ? 'تم تطبيق خصم التوجيه الذكي (AI) 10%' : '10% AI Bundle Discount Applied!'}
                                 </div>
                               )}
                               {extraActivitiesCount === 2 && (
-                                <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px dashed rgba(245, 158, 11, 0.4)', padding: '8px 10px', borderRadius: '8px', color: '#f59e0b', fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', width: 'fit-content', alignSelf: 'flex-end' }}>
+                                <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px dashed rgba(245, 158, 11, 0.4)', padding: '8px 10px', borderRadius: '8px', color: '#f59e0b', fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', width: 'fit-content' }}>
                                   <i className="fa-solid fa-gift fa-bounce"></i>
                                   {lang === 'AR' ? 'أضف نشاطاً واحداً إضافياً واحصل على خصم 10% على إجمالي رحلتك!' : 'Add just 1 more extra activity to get a 10% AI Discount!'}
                                 </div>
@@ -1118,13 +1120,13 @@ const PackageDetails = () => {
                               
                               <button 
                                 onClick={() => setShowBreakdown(!showBreakdown)}
-                                style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '0.85rem', textDecoration: 'underline', cursor: 'pointer', textAlign: 'left', marginTop: '5px', width: 'fit-content' }}
+                                style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '0.85rem', textDecoration: 'underline', cursor: 'pointer', textAlign: 'left', marginTop: '6px', padding: 0, width: 'fit-content' }}
                               >
-                                {lang === 'AR' ? 'عرض تفاصيل السعر (شفافية كاملة)' : 'View Price Breakdown (Full Transparency)'}
+                                {lang === 'AR' ? 'عرض تفاصيل السعر (شفافية كاملة) ←' : 'View Price Breakdown (Full Transparency) →'}
                               </button>
                               
                               {showBreakdown && (
-                                <div style={{ marginTop: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '12px', fontSize: '0.85rem', color: '#cbd5e1' }}>
+                                <div style={{ marginTop: '10px', background: 'rgba(255,255,255,0.04)', borderRadius: '8px', padding: '12px', fontSize: '0.85rem', color: '#cbd5e1', width: '90%' }}>
                                   {packageData.priceBreakdown && packageData.priceBreakdown.length > 0 ? (
                                     packageData.priceBreakdown.map((item, idx) => (
                                       <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
@@ -1162,74 +1164,39 @@ const PackageDetails = () => {
                               )}
                               
                               {guestCount > 1 && (
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '10px', marginTop: '10px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '90%', borderTop: '1px dashed rgba(255,255,255,0.08)', paddingTop: '10px', marginTop: '10px' }}>
                                   <span className="price-label" style={{ color: '#f59e0b', fontWeight: '700' }}>
                                     {lang === 'AR' ? `الإجمالي لـ ${guestCount} مسافرين` : `Total for ${guestCount} guests`}
                                   </span>
-                                  <span className="price-amount" style={{ color: '#f59e0b', fontSize: '1.4rem', fontWeight: '800' }}>
+                                  <span className="price-amount" style={{ color: '#f59e0b', fontSize: '1.3rem', fontWeight: '800' }}>
                                     {totalPrice} EGP
                                   </span>
                                 </div>
                               )}
                             </div>
 
-                            {/* Interactive Guest Selector */}
-                            <div className="guest-selector-container" style={{
-                              padding: '12px',
-                              background: 'rgba(255, 255, 255, 0.02)',
-                              border: '1px solid rgba(212, 175, 55, 0.15)',
-                              borderRadius: '10px',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: '8px'
-                            }}>
-                              <label style={{ fontSize: '0.85rem', color: '#aaa', fontWeight: '600', display: 'flex', justifyContent: 'space-between', margin: 0 }}>
-                                <span>{lang === 'AR' ? 'عدد المسافرين (الضيوف)' : 'Number of Travelers (Guests)'}</span>
-                                <span style={{ color: '#f59e0b', fontWeight: 'bold' }}>{guestCount} {guestCount === 1 ? (lang === 'AR' ? 'مسافر' : 'Guest') : (lang === 'AR' ? 'مسافرين' : 'Guests')}</span>
-                              </label>
-                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
-                                <button 
-                                  type="button"
-                                  onClick={() => setGuestCount(prev => Math.max(1, prev - 1))}
-                                  disabled={guestCount <= 1}
-                                  style={{
-                                    width: '32px',
-                                    height: '32px',
-                                    borderRadius: '50%',
-                                    background: guestCount <= 1 ? '#333' : '#f59e0b',
-                                    color: '#000',
-                                    border: 'none',
-                                    cursor: guestCount <= 1 ? 'not-allowed' : 'pointer',
-                                    fontWeight: 'bold',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    transition: 'all 0.2s'
-                                  }}
-                                >
-                                  <i className="fa-solid fa-minus"></i>
-                                </button>
-                                <span style={{ fontSize: '1.15rem', fontWeight: 'bold', color: '#fff' }}>{guestCount}</span>
-                                <button 
-                                  type="button"
-                                  onClick={() => setGuestCount(prev => prev + 1)}
-                                  style={{
-                                    width: '32px',
-                                    height: '32px',
-                                    borderRadius: '50%',
-                                    background: '#f59e0b',
-                                    color: '#000',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    fontWeight: 'bold',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    transition: 'all 0.2s'
-                                  }}
-                                >
-                                  <i className="fa-solid fa-plus"></i>
-                                </button>
+                            {/* Premium Benefits List Under Price (Shield, Bolt, 24/7 Support) */}
+                            <div className="booking-benefits" style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '25px', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '20px', width: '90%' }}>
+                              <div className="benefit-item" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                <i className="fa-solid fa-shield-halved" style={{ color: '#f59e0b', fontSize: '1rem', background: 'rgba(245, 158, 11, 0.08)', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}></i>
+                                <div>
+                                  <strong style={{ display: 'block', fontSize: '0.9rem', fontWeight: 'bold', color: '#fff' }}>{lang === 'AR' ? 'إلغاء مجاني' : 'Free Cancellation'}</strong>
+                                  <span style={{ fontSize: '0.78rem', color: '#a4a4b4', display: 'block', marginTop: '1px' }}>{lang === 'AR' ? 'إلغاء مرن حتى 24 ساعة مقدماً' : 'Cancel up to 24 hours in advance'}</span>
+                                </div>
+                              </div>
+                              <div className="benefit-item" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                <i className="fa-solid fa-bolt" style={{ color: '#f59e0b', fontSize: '1rem', background: 'rgba(245, 158, 11, 0.08)', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}></i>
+                                <div>
+                                  <strong style={{ display: 'block', fontSize: '0.9rem', fontWeight: 'bold', color: '#fff' }}>{lang === 'AR' ? 'تأكيد فوري' : 'Instant Confirmation'}</strong>
+                                  <span style={{ fontSize: '0.78rem', color: '#a4a4b4', display: 'block', marginTop: '1px' }}>{lang === 'AR' ? 'احجز مكانك مباشرة في ثوانٍ معدودة' : 'Secure your spot in seconds'}</span>
+                                </div>
+                              </div>
+                              <div className="benefit-item" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                <i className="fa-solid fa-headset" style={{ color: '#f59e0b', fontSize: '1rem', background: 'rgba(245, 158, 11, 0.08)', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}></i>
+                                <div>
+                                  <strong style={{ display: 'block', fontSize: '0.9rem', fontWeight: 'bold', color: '#fff' }}>{lang === 'AR' ? 'دعم 24/7' : '24/7 Support'}</strong>
+                                  <span style={{ fontSize: '0.78rem', color: '#a4a4b4', display: 'block', marginTop: '1px' }}>{lang === 'AR' ? 'دعم عملاء مخصص طوال اليوم' : 'Dedicated customer support'}</span>
+                                </div>
                               </div>
                             </div>
                           </>
@@ -1237,110 +1204,149 @@ const PackageDetails = () => {
                       })()}
                     </div>
 
-                    {/* Right Side: Action Buttons & Benefits */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', justifyContent: 'space-between' }}>
-                      
-                      <div className="booking-benefits" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px', margin: 0 }}>
-                        <div className="benefit-item">
-                          <i className="fa-solid fa-shield-halved" style={{ color: '#f59e0b' }}></i>
-                          <div>
-                            <strong>{lang === 'AR' ? 'إلغاء مجاني' : 'Free Cancellation'}</strong>
-                            <p style={{ margin: 0 }}>{lang === 'AR' ? 'إلغاء مرن حتى 24 ساعة مقدماً' : 'Cancel up to 24 hours in advance'}</p>
-                          </div>
-                        </div>
-                        <div className="benefit-item">
-                          <i className="fa-solid fa-bolt" style={{ color: '#f59e0b' }}></i>
-                          <div>
-                            <strong>{lang === 'AR' ? 'تأكيد فوري' : 'Instant Confirmation'}</strong>
-                            <p style={{ margin: 0 }}>{lang === 'AR' ? 'احجز مكانك مباشرة في ثوانٍ معدودة' : 'Secure your spot in seconds'}</p>
-                          </div>
+                    {/* Right Side: Guest Selector & Actions */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      {/* Interactive Guest Selector */}
+                      <div className="guest-selector-container" style={{
+                        padding: '16px 20px',
+                        background: 'rgba(255, 255, 255, 0.02)',
+                        border: '1px solid rgba(255, 255, 255, 0.06)',
+                        borderRadius: '16px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px'
+                      }}>
+                        <label style={{ fontSize: '0.85rem', color: '#aaa', fontWeight: '700', display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: 0 }}>
+                          <span style={{ color: '#a4a4b4' }}>{lang === 'AR' ? 'عدد المسافرين (الضيوف)' : 'Number of Travelers (Guests)'}</span>
+                          <span style={{ color: '#f59e0b', fontWeight: '800' }}>{guestCount} {guestCount === 1 ? (lang === 'AR' ? 'مسافر' : 'Guest') : (lang === 'AR' ? 'مسافرين' : 'Guests')}</span>
+                        </label>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
+                          <button 
+                            type="button"
+                            onClick={() => setGuestCount(prev => Math.max(1, prev - 1))}
+                            disabled={guestCount <= 1}
+                            style={{
+                              width: '34px',
+                              height: '34px',
+                              borderRadius: '50%',
+                              background: guestCount <= 1 ? 'rgba(255,255,255,0.02)' : '#f59e0b',
+                              color: guestCount <= 1 ? '#555' : '#000',
+                              border: 'none',
+                              cursor: guestCount <= 1 ? 'not-allowed' : 'pointer',
+                              fontWeight: 'bold',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'all 0.2s',
+                              fontSize: '1.1rem'
+                            }}
+                          >
+                            <i className="fa-solid fa-minus"></i>
+                          </button>
+                          <span style={{ fontSize: '1.25rem', fontWeight: '800', color: '#fff' }}>{guestCount}</span>
+                          <button 
+                            type="button"
+                            onClick={() => setGuestCount(prev => prev + 1)}
+                            style={{
+                              width: '34px',
+                              height: '34px',
+                              borderRadius: '50%',
+                              background: '#f59e0b',
+                              color: '#000',
+                              border: 'none',
+                              cursor: 'pointer',
+                              fontWeight: 'bold',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'all 0.2s',
+                              fontSize: '1.1rem'
+                            }}
+                          >
+                            <i className="fa-solid fa-plus"></i>
+                          </button>
                         </div>
                       </div>
 
                       {isCustomizing && customTrip && (
-                        <div style={{ background: 'rgba(212, 175, 55, 0.1)', border: '1px solid #f59e0b', borderRadius: '8px', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px', color: '#f59e0b', fontSize: '0.85rem', fontWeight: '600' }}>
-                          <i className="fa-solid fa-sparkles"></i> {lang === 'AR' ? 'الخطة المخصصة نشطة' : 'Custom Plan Active'}
+                        <div style={{ background: 'rgba(245, 158, 11, 0.08)', border: '1px solid #f59e0b', borderRadius: '12px', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: '8px', color: '#f59e0b', fontSize: '0.88rem', fontWeight: '700' }}>
+                          <i className="fa-solid fa-wand-magic-sparkles"></i> {lang === 'AR' ? 'الخطة المخصصة نشطة' : 'Custom Plan Active'}
                         </div>
                       )}
 
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {/* Book Adventure Button */}
                         <button 
                           onClick={handleBookNow} 
-                          className="tw-w-full tw-flex tw-items-center tw-justify-center tw-gap-2 tw-bg-amber-500 hover:tw-bg-amber-600 tw-text-white tw-font-bold tw-py-4 tw-px-6 tw-rounded-2xl tw-transition-all tw-shadow-lg" 
                           disabled={bookingLoading}
-                          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', border: 'none', borderRadius: '12px', padding: '14px 20px', background: '#f59e0b', color: '#000', fontWeight: 'bold', fontSize: '1rem', transition: 'all 0.2s' }}
+                          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', cursor: 'pointer', border: 'none', borderRadius: '14px', padding: '16px 20px', background: '#f59e0b', color: '#000', fontWeight: '800', fontSize: '1.05rem', transition: 'all 0.2s' }}
                         >
                           {bookingLoading ? (
                             <><i className="fa-solid fa-spinner fa-spin"></i> {lang === 'AR' ? 'جاري إتمام الحجز...' : 'Creating Booking...'}</>
                           ) : (
-                            <><i className="fa-solid fa-calendar-days"></i> {lang === 'AR' ? 'احجز الباقة الآن' : 'Book Experience Now'}</>
+                            <><i className="fa-solid fa-calendar-days"></i> {lang === 'AR' ? 'احجز هذه المغامرة' : 'Book This Adventure'}</>
                           )}
                         </button>
 
-                        {/* Modular Chain Cart Button */}
+                        {/* Add to Trip Chain Button */}
                         <button 
                           onClick={handleAddToTripChain}
                           style={{
                             width: '100%',
-                            background: 'rgba(212, 175, 55, 0.05)',
-                            border: '2px dashed #d4af37',
-                            color: '#d4af37',
+                            background: 'rgba(255, 255, 255, 0.02)',
+                            border: '1.5px dashed rgba(245, 158, 11, 0.4)',
+                            color: '#f59e0b',
                             padding: '14px 20px',
-                            borderRadius: '16px',
-                            fontWeight: '800',
+                            borderRadius: '14px',
+                            fontWeight: '700',
                             fontSize: '1rem',
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             gap: '10px',
-                            transition: 'all 0.3s ease',
-                            boxShadow: '0 4px 15px rgba(212, 175, 55, 0.1)',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.5px'
+                            transition: 'all 0.3s ease'
                           }}
                           onMouseOver={(e) => {
-                            e.currentTarget.style.background = '#d4af37';
-                            e.currentTarget.style.color = '#000';
-                            e.currentTarget.style.boxShadow = '0 6px 20px rgba(212, 175, 55, 0.3)';
+                            e.currentTarget.style.background = 'rgba(245, 158, 11, 0.08)';
+                            e.currentTarget.style.borderColor = '#f59e0b';
                           }}
                           onMouseOut={(e) => {
-                            e.currentTarget.style.background = 'rgba(212, 175, 55, 0.05)';
-                            e.currentTarget.style.color = '#d4af37';
-                            e.currentTarget.style.boxShadow = '0 4px 15px rgba(212, 175, 55, 0.1)';
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
+                            e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.4)';
                           }}
                         >
-                          <i className="fa-solid fa-link"></i> {lang === 'AR' ? 'أضف إلى سلسلة الرحلة (تجميع)' : 'Add to Trip Chain'}
+                          <i className="fa-solid fa-link"></i> {lang === 'AR' ? 'أضف إلى سلسلة الرحلة' : 'Add to Trip Chain'}
                         </button>
                         
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                          {/* Wishlist Button */}
+                        {/* Wishlist and Customize side-by-side */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '12px' }}>
+                          {/* Saved Button */}
                           <button 
                             onClick={handleWishlistToggle} 
-                            className={`btn-wishlist-toggle ${isInWishlist ? 'saved' : ''}`}
                             disabled={wishlistLoading}
                             style={{
-                              background: isInWishlist ? '#e61e4d' : 'rgba(255,255,255,0.05)',
-                              border: isInWishlist ? '1px solid #e61e4d' : '1px solid rgba(255,255,255,0.1)',
-                              color: isInWishlist ? '#ffffff' : '#cbd5e1',
-                              padding: '10px',
-                              borderRadius: '10px',
+                              background: isInWishlist ? 'rgba(230, 30, 77, 0.1)' : 'rgba(255,255,255,0.02)',
+                              border: isInWishlist ? '1px solid #e61e4d' : '1px solid rgba(230, 30, 77, 0.3)',
+                              color: isInWishlist ? '#ff4b72' : '#ff4b72',
+                              padding: '12px 10px',
+                              borderRadius: '12px',
                               cursor: 'pointer',
                               fontWeight: '700',
-                              fontSize: '0.85rem',
+                              fontSize: '0.9rem',
                               transition: 'all 0.3s ease',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              gap: '6px'
+                              gap: '8px'
                             }}
                           >
                             {wishlistLoading ? (
-                              <><i className="fa-solid fa-spinner fa-spin"></i></>
+                              <i className="fa-solid fa-spinner fa-spin"></i>
                             ) : (
                               <>
-                                <i className={`${isInWishlist ? 'fa-solid' : 'fa-regular'} fa-heart`} style={{ color: isInWishlist ? '#ffffff' : '#e61e4d' }}></i>
-                                {isInWishlist ? (lang === 'AR' ? 'محفوظ' : 'Saved') : (lang === 'AR' ? 'المفضلة' : 'Wishlist')}
+                                <i className={`${isInWishlist ? 'fa-solid' : 'fa-regular'} fa-heart`} style={{ color: '#e61e4d', fontSize: '1rem' }}></i>
+                                {isInWishlist ? (lang === 'AR' ? 'تم الحفظ' : 'Saved') : (lang === 'AR' ? 'المفضلة' : 'Save')}
                               </>
                             )}
                           </button>
@@ -1350,53 +1356,52 @@ const PackageDetails = () => {
                             !customTrip ? (
                               <button 
                                 onClick={handleStartCustomization} 
-                                className="btn-start-custom"
                                 style={{
-                                  background: 'transparent',
-                                  border: '1px solid #f59e0b',
-                                  color: '#f59e0b',
-                                  padding: '10px',
-                                  borderRadius: '10px',
+                                  background: 'rgba(255,255,255,0.02)',
+                                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                                  color: '#fff',
+                                  padding: '12px 10px',
+                                  borderRadius: '12px',
                                   cursor: 'pointer',
                                   fontWeight: '600',
-                                  fontSize: '0.85rem',
+                                  fontSize: '0.9rem',
                                   transition: 'all 0.2s',
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
-                                  gap: '6px'
+                                  gap: '8px'
                                 }}
                               >
-                                <i className="fa-solid fa-sliders"></i> {lang === 'AR' ? 'تخصيص' : 'Customize'}
+                                <i className="fa-solid fa-sliders" style={{ color: '#f59e0b' }}></i> {lang === 'AR' ? 'تخصيص الخطة' : 'Customize Plan'}
                               </button>
                             ) : (
                               <button 
                                 onClick={handleToggleCustomization} 
-                                className="btn-start-custom"
                                 style={{
-                                  background: 'transparent',
-                                  border: '1px solid #f59e0b',
-                                  color: '#f59e0b',
-                                  padding: '10px',
-                                  borderRadius: '10px',
+                                  background: 'rgba(255,255,255,0.02)',
+                                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                                  color: '#fff',
+                                  padding: '12px 10px',
+                                  borderRadius: '12px',
                                   cursor: 'pointer',
                                   fontWeight: '600',
-                                  fontSize: '0.85rem',
+                                  fontSize: '0.9rem',
                                   transition: 'all 0.2s',
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
-                                  gap: '6px'
+                                  gap: '8px'
                                 }}
                               >
-                                <i className="fa-solid fa-rotate-left"></i> {isCustomizing ? (lang === 'AR' ? 'الأساسي' : 'Standard') : (lang === 'AR' ? 'المخصص' : 'Custom')}
+                                <i className="fa-solid fa-sliders" style={{ color: '#f59e0b' }}></i> {isCustomizing ? (lang === 'AR' ? 'الخطة الأساسية' : 'Standard Plan') : (lang === 'AR' ? 'تخصيص الخطة' : 'Customize Plan')}
                               </button>
                             )
                           )}
                         </div>
 
-                        <p style={{ textAlign: 'center', fontSize: '0.78rem', color: '#a4a4b4', margin: '8px 0 0 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                          <i className="fa-solid fa-lock" style={{ color: '#22c55e' }}></i> {lang === 'AR' ? 'دفع آمن 100% | بدون رسوم خفية' : '100% Secure Payment | No Hidden Fees'}
+                        {/* Secure Payment Text */}
+                        <p style={{ textAlign: 'center', fontSize: '0.8rem', color: '#2dd4bf', margin: '12px 0 0 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontWeight: '600' }}>
+                          <i className="fa-solid fa-lock" style={{ color: '#2dd4bf' }}></i> {lang === 'AR' ? 'دفع آمن 100% | بدون رسوم خفية' : '100% Secure Payment | Zero Hidden Fees'}
                         </p>
                       </div>
 
@@ -2852,41 +2857,48 @@ const PackageDetails = () => {
 
                       <form onSubmit={handleReviewSubmit} className="review-form">
                         
-                        {/* Rating Emojis Selector */}
-                        <div className="form-group-emojis" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '20px 0', padding: '20px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(212,175,55,0.2)' }}>
-                          <label style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '15px', color: 'var(--text-primary)' }}>{lang === 'AR' ? 'كيف كانت رحلتك؟' : 'How was your trip?'}</label>
-                          <div className="emojis-selector" style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
-                            {[
-                              { val: 1, emoji: '😠', label: lang === 'AR' ? 'سيئة' : 'Terrible' },
-                              { val: 2, emoji: '🙁', label: lang === 'AR' ? 'مقبولة' : 'Poor' },
-                              { val: 3, emoji: '😐', label: lang === 'AR' ? 'جيدة' : 'Okay' },
-                              { val: 4, emoji: '🙂', label: lang === 'AR' ? 'ممتازة' : 'Good' },
-                              { val: 5, emoji: '😍', label: lang === 'AR' ? 'رائعة' : 'Amazing' }
-                            ].map((item) => (
-                              <button
-                                key={item.val}
-                                type="button"
-                                onClick={() => setUserRating(item.val)}
-                                onMouseEnter={() => setHoverRating(item.val)}
-                                onMouseLeave={() => setHoverRating(0)}
-                                style={{
-                                  background: 'transparent',
-                                  border: 'none',
-                                  cursor: 'pointer',
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                  alignItems: 'center',
-                                  gap: '8px',
-                                  opacity: (hoverRating || userRating) ? ((hoverRating || userRating) === item.val ? 1 : 0.4) : 1,
-                                  transform: (hoverRating || userRating) === item.val ? 'scale(1.2)' : 'scale(1)',
-                                  transition: 'all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
-                                }}
-                              >
-                                <span style={{ fontSize: '2.5rem', filter: (hoverRating || userRating) === item.val ? 'drop-shadow(0 4px 8px rgba(212,175,55,0.4))' : 'none' }}>{item.emoji}</span>
-                                <span style={{ fontSize: '0.8rem', color: (hoverRating || userRating) === item.val ? '#f59e0b' : 'var(--text-secondary)', fontWeight: (hoverRating || userRating) === item.val ? 'bold' : 'normal' }}>{item.label}</span>
-                              </button>
-                            ))}
+                        {/* Premium Star Rating Selector */}
+                        <div className="form-group-stars" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '20px 0', padding: '25px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(245,158,11,0.15)' }}>
+                          <label style={{ fontSize: '1.1rem', fontWeight: '800', marginBottom: '10px', color: '#fff', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                            {lang === 'AR' ? 'كيف تقيم رحلتك؟' : 'RATE YOUR ADVENTURE'}
+                          </label>
+                          <div className="stars-selector" style={{ display: 'flex', gap: '10px', justifyContent: 'center', margin: '10px 0' }}>
+                            {[1, 2, 3, 4, 5].map((val) => {
+                              const isFilled = (hoverRating || userRating) >= val;
+                              return (
+                                <button
+                                  key={val}
+                                  type="button"
+                                  onClick={() => setUserRating(val)}
+                                  onMouseEnter={() => setHoverRating(val)}
+                                  onMouseLeave={() => setHoverRating(0)}
+                                  style={{
+                                    background: 'transparent',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    fontSize: '2.5rem',
+                                    color: isFilled ? '#f59e0b' : '#334155',
+                                    transition: 'all 0.15s ease',
+                                    transform: (hoverRating || userRating) === val ? 'scale(1.25)' : 'scale(1)',
+                                    padding: '5px'
+                                  }}
+                                >
+                                  <i className={`${isFilled ? 'fa-solid' : 'fa-regular'} fa-star`} style={{ filter: isFilled ? 'drop-shadow(0 0 10px rgba(245,158,11,0.5))' : 'none' }}></i>
+                                </button>
+                              );
+                            })}
                           </div>
+                          <span style={{ fontSize: '0.95rem', color: '#f59e0b', fontWeight: 'bold', minHeight: '20px', transition: 'all 0.2s' }}>
+                            {(() => {
+                              const activeVal = hoverRating || userRating;
+                              if (activeVal === 1) return lang === 'AR' ? 'سيئة جداً (Terrible)' : 'Terrible';
+                              if (activeVal === 2) return lang === 'AR' ? 'مقبولة (Poor)' : 'Poor';
+                              if (activeVal === 3) return lang === 'AR' ? 'جيدة (Okay)' : 'Okay';
+                              if (activeVal === 4) return lang === 'AR' ? 'ممتازة (Good)' : 'Good';
+                              if (activeVal === 5) return lang === 'AR' ? 'استثنائية (Amazing)' : 'Amazing';
+                              return lang === 'AR' ? 'اختر عدد النجوم' : 'Select your rating';
+                            })()}
+                          </span>
                         </div>
 
                         {/* Comment Text */}
