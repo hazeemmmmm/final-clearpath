@@ -148,54 +148,39 @@ const PackageDetails = () => {
       };
     }
     
-    // 2. Otherwise generate dynamically based on trip keywords
-    const name = (packageData?.name || packageData?.title || '').toLowerCase();
-    
-    const isWaterTrip = name.includes('beach') || name.includes('snorkeling') || name.includes('sea') || name.includes('boat') || name.includes('water') || name.includes('island') || name.includes('ocean') || name.includes('yacht') || name.includes('marina') || name.includes('الغردقة') || name.includes('بحر') || name.includes('شاطئ') || name.includes('يخت');
-    
-    const isDesertHistoryTrip = name.includes('pyramids') || name.includes('temple') || name.includes('luxor') || name.includes('cairo') || name.includes('aswan') || name.includes('history') || name.includes('museum') || name.includes('safari') || name.includes('desert') || name.includes('أهرامات') || name.includes('معبد') || name.includes('الأقصر') || name.includes('أسوان') || name.includes('تاريخ') || name.includes('متحف') || name.includes('سفاري') || name.includes('صحراء');
-
-    if (isWaterTrip) {
-      return {
-        included: [
-          lang === 'AR' ? 'دخول خاص للشاطئ أو اليخت' : 'Private beach or yacht entry pass',
-          lang === 'AR' ? 'معدات سنوركلينج عالية الجودة مجاناً' : 'Complimentary high-quality snorkeling gear',
-          lang === 'AR' ? 'مدرب ألعاب مائية مرخص ومحترف' : 'Professional licensed water sports instructor',
-          lang === 'AR' ? 'وجبة غداء خفيفة أو مياه معدنية مثلجة طوال الرحلة' : 'Light lunch or cold mineral water on board'
-        ],
-        excluded: [
-          lang === 'AR' ? 'المشروبات الفاخرة والعصائر الطبيعية' : 'Premium beverages & natural juices',
-          lang === 'AR' ? 'جلسة تصوير خاصة تحت الماء (إضافة اختيارية)' : 'Private underwater photography (optional)',
-          lang === 'AR' ? 'التوصيل من وإلى الفندق البعيد' : 'Round-trip transfer from remote hotels'
-        ]
-      };
-    } else if (isDesertHistoryTrip) {
-      return {
-        included: [
-          lang === 'AR' ? 'مرشد سياحي خبير بالآثار والقصص المحلية' : 'Expert tour guide fluent in history & local stories',
-          lang === 'AR' ? 'تذاكر دخول المعالم السياحية المحددة بالبرنامج' : 'Entry tickets to scheduled archaeological sights',
-          lang === 'AR' ? 'انتقالات فاخرة مكيفة طوال اليوم' : 'Premium modern air-conditioned vehicle transfers',
-          lang === 'AR' ? 'مياه معدنية باردة ومرطبات' : 'Cold bottled mineral water & refreshments'
-        ],
-        excluded: [
-          lang === 'AR' ? 'تذاكر دخول المقابر الداخلية الخاصة (كالهرم الأكبر)' : 'Entry tickets to special interior chambers (e.g. Great Pyramid)',
-          lang === 'AR' ? 'المشاروات الشخصية والهدايا التذكارية' : 'Personal shopping, souvenirs & local bazaar finds',
-          lang === 'AR' ? 'الوجبات الإضافية غير المذكورة' : 'Extra meals or snacks not listed in the itinerary'
-        ]
-      };
-    } else {
-      return {
-        included: [
-          lang === 'AR' ? 'انتقالات حديثة ومكيفة' : 'Modern air-conditioned vehicle transfers',
-          lang === 'AR' ? 'منسق رحلات محترف ومتحدث بلغات متعددة' : 'Professional multilingual trip coordinator',
-          lang === 'AR' ? 'مياه شرب باردة طوال اليوم' : 'Chilled drinking water throughout the experience'
-        ],
-        excluded: [
-          lang === 'AR' ? 'المصاريف الشخصية والمشتريات' : 'Personal expenses & shopping',
-          lang === 'AR' ? 'الإكراميات الاختيارية لطاقم العمل' : 'Optional tipping for the crew'
-        ]
-      };
+    // 2. Otherwise dynamically generate based on activities in this package's itinerary!
+    const activitiesInItinerary = [];
+    if (packageData?.itinerary && Array.isArray(packageData.itinerary)) {
+      packageData.itinerary.forEach(day => {
+        if (day.activities && Array.isArray(day.activities)) {
+          day.activities.forEach(act => {
+            const actName = act.activity?.name || act.activity || '';
+            if (actName && !activitiesInItinerary.includes(actName)) {
+              activitiesInItinerary.push(actName);
+            }
+          });
+        }
+      });
     }
+
+    const dynamicIncluded = [
+      lang === 'AR' ? 'جميع الانتقالات طوال الرحلة بسيارة حديثة ومكيفة' : 'All scheduled transfers in modern air-conditioned vehicles',
+      lang === 'AR' ? 'منسق رحلات ومساعد محلي مخصص للجروب' : 'Dedicated multilingual trip coordinator & assistant',
+      ...activitiesInItinerary.map(actName => 
+        lang === 'AR' ? `تذاكر دخول وتكاليف نشاط "${actName}"` : `Entry tickets & fees for "${actName}"`
+      )
+    ];
+
+    const dynamicExcluded = [
+      lang === 'AR' ? 'المصاريف الشخصية والمشتريات الخاصة' : 'Personal expenses and private shopping',
+      lang === 'AR' ? 'الوجبات والمشروبات الإضافية غير المذكورة بالبرنامج' : 'Additional meals & beverages not in the itinerary',
+      lang === 'AR' ? 'الإكراميات الاختيارية لطاقم العمل والمنسقين' : 'Optional tipping for local crew & coordinators'
+    ];
+
+    return {
+      included: dynamicIncluded,
+      excluded: dynamicExcluded
+    };
   };
 
   const getDynamicPackingGuide = (packageData, lang) => {
