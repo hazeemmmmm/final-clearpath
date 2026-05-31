@@ -35,6 +35,24 @@ import './PackageDetailsNew.css';
 
 const PackageDetails = () => {
   const { id } = useParams();
+
+  const getActivityImage = (actName = '') => {
+    const name = actName.toLowerCase();
+    if (name.includes('snorkel') || name.includes('beach') || name.includes('sea') || name.includes('boat') || name.includes('water') || name.includes('island')) {
+      return 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=300&q=80';
+    }
+    if (name.includes('pyramid') || name.includes('temple') || name.includes('luxor') || name.includes('cairo') || name.includes('history') || name.includes('museum') || name.includes('mummy')) {
+      return 'https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=300&q=80';
+    }
+    if (name.includes('quad') || name.includes('safari') || name.includes('desert') || name.includes('sand') || name.includes('folklore')) {
+      return 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=300&q=80';
+    }
+    if (name.includes('lunch') || name.includes('dinner') || name.includes('feast') || name.includes('food') || name.includes('bbq') || name.includes('tea') || name.includes('culinary')) {
+      return 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=300&q=80';
+    }
+    return 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=300&q=80';
+  };
+
   const [packageData, setPackageData] = useState(null);
   const [activeImage, setActiveImage] = useState('');
   const [loading, setLoading] = useState(true);
@@ -1580,6 +1598,47 @@ const PackageDetails = () => {
                                   }}>
                                     {day.title || (lang === 'AR' ? `مخطط اليوم ${day.day_number}` : `Day ${day.day_number} Itinerary Plan`)}
                                   </h3>
+
+                                  {/* 🗑️ Delete / Restore Day Button — visible only when expanded */}
+                                  {expandedDay === day.day_number && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleToggleDayCheckbox(day.day_number);
+                                      }}
+                                      title={isDayRemoved
+                                        ? (lang === 'AR' ? 'استعادة اليوم' : 'Restore Day')
+                                        : (lang === 'AR' ? 'حذف اليوم' : 'Delete Day')}
+                                      style={{
+                                        position: 'absolute',
+                                        bottom: '15px',
+                                        right: '15px',
+                                        background: isDayRemoved ? 'rgba(34,197,94,0.85)' : 'rgba(239,68,68,0.85)',
+                                        color: '#fff',
+                                        border: 'none',
+                                        borderRadius: '10px',
+                                        padding: '7px 14px',
+                                        fontSize: '0.82rem',
+                                        fontWeight: '700',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        zIndex: 10,
+                                        backdropFilter: 'blur(4px)',
+                                        boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                                        transition: 'all 0.2s ease',
+                                        letterSpacing: '0.3px'
+                                      }}
+                                      onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                                      onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                                    >
+                                      <i className={isDayRemoved ? 'fa-solid fa-rotate-left' : 'fa-solid fa-trash'}></i>
+                                      {isDayRemoved
+                                        ? (lang === 'AR' ? 'استعادة' : 'Restore')
+                                        : (lang === 'AR' ? 'حذف اليوم' : 'Delete Day')}
+                                    </button>
+                                  )}
                                 </div>
                               )}
                               
@@ -1621,8 +1680,12 @@ const PackageDetails = () => {
                                 {day.activities && day.activities.length > 0 ? (
                                   <ul className="activity-list" style={{ paddingLeft: 0, listStyle: 'none', margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                     {day.activities.map((act, index) => {
-                                      const actObj = act.activity;
-                                      const customAct = customDay?.activities?.find(a => (a.activity?._id || a.activity) === (actObj?._id || actObj));
+                                      const actId = act.activity?._id || act.activity;
+                                      const resolvedAct = (typeof act.activity === 'object' && act.activity !== null) 
+                                        ? act.activity 
+                                        : activitiesList.find(a => a._id === actId);
+                                      const actObj = resolvedAct || act.activity;
+                                      const customAct = customDay?.activities?.find(a => (a.activity?._id || a.activity) === actId);
                                       const isActRemoved = customAct ? customAct.status === 'removed' : false;
                                       const isDisabled = isDayRemoved;
 
@@ -2393,6 +2456,7 @@ const PackageDetails = () => {
                                       justifyContent: 'center',
                                       gap: '5px',
                                       transition: 'all 0.2s'
+                                     }}
                                     onMouseEnter={(e) => { e.currentTarget.style.background = '#f59e0b'; e.currentTarget.style.color = '#000'; }}
                                     onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(212, 175, 55, 0.1)'; e.currentTarget.style.color = '#f59e0b'; }}
                                   >

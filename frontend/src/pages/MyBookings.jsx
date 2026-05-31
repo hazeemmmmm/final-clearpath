@@ -20,6 +20,10 @@ const MyBookings = () => {
   const [offlineChain, setOfflineChain] = useState([]);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
 
+  // Cancellation Modal
+  const [cancelModalBooking, setCancelModalBooking] = useState(null);
+  const [cancelConfirming, setCancelConfirming] = useState(false);
+
   const loadOfflineChain = () => {
     const chainStr = localStorage.getItem('clearpath_trip_chain');
     if (chainStr) {
@@ -156,6 +160,23 @@ const MyBookings = () => {
       } finally {
         setActionLoadingId(null);
       }
+    }
+  };
+
+  const handleConfirmCancellation = async () => {
+    if (!cancelModalBooking) return;
+    setCancelConfirming(true);
+    try {
+      await cancelBooking(cancelModalBooking._id);
+      await fetchBookings();
+      setCancelModalBooking(null);
+    } catch (err) {
+      const errorMsg = lang === 'AR'
+        ? 'فشل إلغاء الحجز. حاول مرة أخرى أو تواصل مع الدعم.'
+        : (err.message || 'Failed to cancel booking. Try again or contact support.');
+      alert(errorMsg);
+    } finally {
+      setCancelConfirming(false);
     }
   };
 
@@ -345,7 +366,7 @@ const MyBookings = () => {
                                 <button 
                                   className="tw-bg-transparent tw-border tw-border-slate-300 dark:tw-border-[#333333] tw-text-slate-700 dark:tw-text-[#aaaaaa] hover:tw-border-red-500 hover:tw-text-red-500 dark:hover:tw-border-red-500 dark:hover:tw-text-red-500 tw-font-medium tw-py-2.5 tw-px-8 tw-rounded-sm tw-text-sm tw-transition-colors tw-ml-auto tw-cursor-pointer"
                                   disabled={actionLoadingId === booking._id}
-                                  onClick={() => navigate(`/booking/${booking._id}/cancel`)}
+                                  onClick={() => setCancelModalBooking(booking)}
                                 >
                                   {actionLoadingId === booking._id ? (
                                     <><i className="fa-solid fa-spinner fa-spin tw-mr-2"></i> {lang === 'AR' ? 'جاري الإلغاء...' : 'Cancelling...'}</>
@@ -531,6 +552,12 @@ const MyBookings = () => {
                                 >
                                   {lang === 'AR' ? 'الدعم الفني' : 'Support'}
                                 </button>
+                                <button 
+                                  className="tw-bg-transparent tw-border tw-border-slate-300 dark:tw-border-[#333333] tw-text-slate-700 dark:tw-text-[#aaaaaa] hover:tw-border-red-500 hover:tw-text-red-500 dark:hover:tw-border-red-500 dark:hover:tw-text-red-500 tw-font-medium tw-py-2.5 tw-px-8 tw-rounded-sm tw-text-sm tw-transition-colors tw-ml-auto tw-cursor-pointer"
+                                  onClick={() => setCancelModalBooking(booking)}
+                                >
+                                  {lang === 'AR' ? 'إلغاء الحجز' : 'Cancel'}
+                                </button>
                               </>
                             )}
                             {status === 'Cancelled' && (
@@ -578,6 +605,154 @@ const MyBookings = () => {
       </main>
 
       <Footer />
+
+      {/* ====== CANCELLATION POLICY MODAL ====== */}
+      {cancelModalBooking && (
+        <div
+          onClick={(e) => { if (e.target === e.currentTarget) setCancelModalBooking(null); }}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 9999,
+            background: 'rgba(0,0,0,0.75)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '20px'
+          }}
+        >
+          <div style={{
+            background: 'linear-gradient(145deg, #0f1523, #141c2e)',
+            border: '1px solid rgba(239,68,68,0.25)',
+            borderRadius: '24px',
+            padding: '40px 36px',
+            maxWidth: '520px',
+            width: '100%',
+            boxShadow: '0 30px 80px rgba(0,0,0,0.7)',
+            position: 'relative',
+            fontFamily: "'Outfit','Inter',sans-serif"
+          }}>
+
+            {/* Close */}
+            <button
+              onClick={() => setCancelModalBooking(null)}
+              style={{ position: 'absolute', top: '16px', right: '18px', background: 'none', border: 'none', color: '#64748b', fontSize: '1.2rem', cursor: 'pointer' }}
+            >
+              <i className="fa-solid fa-xmark"></i>
+            </button>
+
+            {/* Header */}
+            <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+              <div style={{
+                width: '64px', height: '64px',
+                background: 'radial-gradient(circle, rgba(239,68,68,0.15) 0%, transparent 70%)',
+                border: '1px dashed rgba(239,68,68,0.35)',
+                borderRadius: '50%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                margin: '0 auto 16px'
+              }}>
+                <i className="fa-solid fa-triangle-exclamation" style={{ fontSize: '1.7rem', color: '#ef4444' }}></i>
+              </div>
+              <h2 style={{ margin: '0 0 6px', fontSize: '1.5rem', fontWeight: '800', color: '#fff' }}>
+                {lang === 'AR' ? 'سياسة الإلغاء' : 'Cancellation Policy'}
+              </h2>
+              <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.88rem', lineHeight: '1.5' }}>
+                {lang === 'AR'
+                  ? `إلغاء حجز: ${cancelModalBooking.experience?.name || cancelModalBooking.customTrip?.experience?.name || (lang === 'AR' ? 'باقة سياحية' : 'Package')}`
+                  : `Cancelling: ${cancelModalBooking.experience?.name || cancelModalBooking.customTrip?.experience?.name || 'Your Booking'}`}
+              </p>
+            </div>
+
+            {/* Policy Tiers */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '28px' }}>
+
+              {/* Tier 1 — Free */}
+              <div style={{ background: 'rgba(16,185,129,0.07)', border: '1px solid rgba(16,185,129,0.25)', borderRadius: '14px', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{ width: '40px', height: '40px', flexShrink: 0, background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <i className="fa-solid fa-check" style={{ color: '#10b981', fontSize: '1rem' }}></i>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: '#10b981', fontWeight: '800', fontSize: '0.9rem', marginBottom: '2px' }}>
+                    {lang === 'AR' ? '⏱️ خلال أول 24 ساعة من الحجز' : '⏱️ Within First 24 Hours'}
+                  </div>
+                  <div style={{ color: '#94a3b8', fontSize: '0.82rem' }}>
+                    {lang === 'AR' ? 'إلغاء مجاني — لن يُخصم أي مبلغ من رسومك' : 'Full refund — no charges at all'}
+                  </div>
+                </div>
+                <div style={{ background: 'rgba(16,185,129,0.15)', color: '#10b981', padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '800', whiteSpace: 'nowrap' }}>
+                  {lang === 'AR' ? 'مجاناً' : 'FREE'}
+                </div>
+              </div>
+
+              {/* Tier 2 — 10% */}
+              <div style={{ background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.25)', borderRadius: '14px', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{ width: '40px', height: '40px', flexShrink: 0, background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <i className="fa-solid fa-clock" style={{ color: '#f59e0b', fontSize: '1rem' }}></i>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: '#f59e0b', fontWeight: '800', fontSize: '0.9rem', marginBottom: '2px' }}>
+                    {lang === 'AR' ? '📅 بعد أسبوع من تاريخ الحجز' : '📅 After 1 Week of Booking'}
+                  </div>
+                  <div style={{ color: '#94a3b8', fontSize: '0.82rem' }}>
+                    {lang === 'AR' ? 'سيُخصم 10% من إجمالي المبلغ المدفوع' : '10% deduction from total paid amount'}
+                  </div>
+                </div>
+                <div style={{ background: 'rgba(245,158,11,0.15)', color: '#f59e0b', padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '800', whiteSpace: 'nowrap' }}>
+                  -10%
+                </div>
+              </div>
+
+              {/* Tier 3 — 50% */}
+              <div style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '14px', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{ width: '40px', height: '40px', flexShrink: 0, background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <i className="fa-solid fa-calendar-xmark" style={{ color: '#ef4444', fontSize: '0.95rem' }}></i>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: '#ef4444', fontWeight: '800', fontSize: '0.9rem', marginBottom: '2px' }}>
+                    {lang === 'AR' ? '🚨 قبل يومين من موعد الرحلة' : '🚨 2 Days Before Trip'}
+                  </div>
+                  <div style={{ color: '#94a3b8', fontSize: '0.82rem' }}>
+                    {lang === 'AR' ? 'سيُخصم 50% من إجمالي المبلغ (نصف المبلغ)' : '50% deduction from total amount (half the price)'}
+                  </div>
+                </div>
+                <div style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '800', whiteSpace: 'nowrap' }}>
+                  -50%
+                </div>
+              </div>
+            </div>
+
+            {/* Refund Notice */}
+            <div style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: '10px', padding: '11px 15px', marginBottom: '24px', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+              <i className="fa-solid fa-circle-info" style={{ color: '#818cf8', marginTop: '2px', flexShrink: 0 }}></i>
+              <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.8rem', lineHeight: '1.5' }}>
+                {lang === 'AR'
+                  ? 'سيتم استرداد المبلغ إلى نفس وسيلة الدفع الأصلية خلال 5-10 أيام عمل بعد تأكيد الإلغاء.'
+                  : 'Refunds will be credited to your original payment method within 5-10 business days after confirmation.'}
+              </p>
+            </div>
+
+            {/* Buttons */}
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                onClick={() => setCancelModalBooking(null)}
+                style={{ flex: 1, padding: '13px', background: 'transparent', border: '1.5px solid rgba(255,255,255,0.12)', color: '#94a3b8', borderRadius: '12px', fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'; e.currentTarget.style.color = '#fff'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = '#94a3b8'; }}
+              >
+                {lang === 'AR' ? 'رجوع' : 'Go Back'}
+              </button>
+              <button
+                onClick={handleConfirmCancellation}
+                disabled={cancelConfirming}
+                style={{ flex: 1, padding: '13px', background: cancelConfirming ? '#7f1d1d' : 'linear-gradient(135deg,#ef4444,#b91c1c)', border: 'none', color: '#fff', borderRadius: '12px', fontWeight: '800', fontSize: '0.9rem', cursor: cancelConfirming ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 6px 20px rgba(239,68,68,0.3)', transition: 'all 0.3s' }}
+              >
+                {cancelConfirming ? (
+                  <><i className="fa-solid fa-circle-notch fa-spin"></i> {lang === 'AR' ? 'جاري الإلغاء...' : 'Cancelling...'}</>
+                ) : (
+                  <><i className="fa-solid fa-circle-check"></i> {lang === 'AR' ? 'تأكيد الإلغاء' : 'Confirm Cancellation'}</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
