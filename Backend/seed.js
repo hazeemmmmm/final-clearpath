@@ -1,8 +1,9 @@
 import mongoose from 'mongoose';
 import { Destination } from './src/db/models/destination.model.js';
 import { Experience } from './src/db/models/experience.model.js';
+import { devConfig } from './src/config/env/dev.config.js';
 
-const DB_URL = 'mongodb://127.0.0.1:27017/clearpath';
+const DB_URL = devConfig.DB_URL;
 
 const destinations = [
   { name: 'Cairo',     location: 'Cairo, Egypt',      description: 'The heart of Egypt – ancient wonders, bustling bazaars, and iconic pyramids.' },
@@ -32,6 +33,8 @@ const tripsData = [
       { date: new Date('2026-06-10'), availableSeats: 12 },
       { date: new Date('2026-06-20'), availableSeats: 10 },
     ],
+    included: ['Certified Egyptologist Guide', 'Entry Tickets to Giza Plateau & Sphinx', 'Traditional 30-min camel ride', 'Bottled mineral water'],
+    excluded: ['Entry inside the Great Pyramid chamber', 'Lunch & drinks', 'Tipping for driver & guide'],
   },
   {
     name: 'Islamic Cairo & Khan El-Khalili Heritage Walk',
@@ -49,6 +52,8 @@ const tripsData = [
     availableDates: [
       { date: new Date('2026-06-12'), availableSeats: 8 },
     ],
+    included: ['Certified Historical Tour Guide', 'Entry fees to Saladin Citadel & Mosque', 'Traditional Bedouin mint tea', 'Khan El-Khalili guided walk'],
+    excluded: ['Personal purchases & souvenirs', 'Citadel military museum ticket', 'Lunch & local snacks'],
   },
   {
     name: 'Egyptian Museum & Old Cairo Private Tour',
@@ -67,6 +72,8 @@ const tripsData = [
       { date: new Date('2026-06-15'), availableSeats: 5 },
       { date: new Date('2026-07-01'), availableSeats: 6 },
     ],
+    included: ['Private Egyptologist guide', 'VIP Egyptian Museum tickets', 'Coptic Cairo churches entry', 'Comfortable AC private transfers'],
+    excluded: ['Mummy Room tickets', 'Lunch & personal expenses', 'Gratuities'],
   },
 
   // ── Hurghada ────────────────────────────────────────────────
@@ -88,6 +95,8 @@ const tripsData = [
       { date: new Date('2026-06-08'), availableSeats: 18 },
       { date: new Date('2026-06-22'), availableSeats: 20 },
     ],
+    included: ['Giftun Island national park fees', 'Snorkeling equipment & life jackets', 'Vibrant coral reef dives', 'Open-buffet BBQ lunch on board'],
+    excluded: ['Parasailing & Jet Ski rides', 'Personal photography service', 'Tips for the crew'],
   },
   {
     name: 'Hurghada Deep Diving PADI Certification Trip',
@@ -105,6 +114,8 @@ const tripsData = [
     availableDates: [
       { date: new Date('2026-06-14'), availableSeats: 6 },
     ],
+    included: ['PADI professional instructor', 'Full diving equipment rental', 'Daily boat dives & training', 'PADI official certificate & booklet'],
+    excluded: ['Hotel accommodation', 'Photos & videos under water', 'Tips'],
   },
   {
     name: 'Hurghada Desert Safari & Quad Bike Adventure',
@@ -123,6 +134,8 @@ const tripsData = [
       { date: new Date('2026-06-18'), availableSeats: 14 },
       { date: new Date('2026-07-05'), availableSeats: 16 },
     ],
+    included: ['Premium quad bike rental', 'Sunset camel ride', 'Traditional Bedouin camp dinner', 'Bedouin folklore show & fire dance'],
+    excluded: ['Sand boarding equipment', 'Personal purchases', 'Tips'],
   },
 
   // ── Luxor ──────────────────────────────────────────────────
@@ -144,6 +157,8 @@ const tripsData = [
       { date: new Date('2026-06-17'), availableSeats: 8 },
       { date: new Date('2026-07-02'), availableSeats: 10 },
     ],
+    included: ['Valley of the Kings entry (3 royal tombs)', 'Karnak Temple entry ticket', 'Expert licensed Egyptologist guide', 'Luxury A/C transfers'],
+    excluded: ['King Tutankhamun tomb ticket', 'Felucca sail ride', 'Meals & beverages'],
   },
   {
     name: 'Luxor Hot Air Balloon & Nile Felucca Cruise',
@@ -161,6 +176,8 @@ const tripsData = [
     availableDates: [
       { date: new Date('2026-06-25'), availableSeats: 4 },
     ],
+    included: ['Sunrise hot air balloon ride', 'Private Nile felucca sailing', 'West Bank temples entry', 'Traditional Egyptian lunch'],
+    excluded: ['Balloon video/photography', 'Valley of the Kings entry', 'Tips'],
   },
   {
     name: 'Upper Egypt Discovery: Luxor to Aswan Nile Cruise',
@@ -179,6 +196,8 @@ const tripsData = [
       { date: new Date('2026-06-19'), availableSeats: 16 },
       { date: new Date('2026-07-10'), availableSeats: 20 },
     ],
+    included: ['5-Day luxury 5-star Nile cruise ship', 'Edfu & Kom Ombo temples entry', 'Philae Island & High Dam entry', 'All meals on board'],
+    excluded: ['Abu Simbel private tour', 'Drinks & beverages', 'Tipping for crew'],
   },
 
   // ── Alexandria ──────────────────────────────────────────────
@@ -198,6 +217,8 @@ const tripsData = [
     availableDates: [
       { date: new Date('2026-06-11'), availableSeats: 12 },
     ],
+    included: ['Catacombs of Kom el Shoqafa entry', 'Bibliotheca Alexandrina entry ticket', 'Stanley Beach walk', 'AC transport from Cairo'],
+    excluded: ['Seafood lunch at Stanley Beach', 'Pompey\'s Pillar entry ticket', 'Tips'],
   },
 ];
 
@@ -220,6 +241,8 @@ const dayuseData = [
       { date: new Date('2026-06-07'), availableSeats: 25 },
       { date: new Date('2026-06-14'), availableSeats: 30 },
     ],
+    included: ['5-star Nile-view resort pool pass', 'Nile Corniche lounge chair', 'Afternoon tea with Pyramid view', 'Open-buffet dinner'],
+    excluded: ['Spa massage treatments', 'Private cabin rental', 'Additional drinks'],
   },
   {
     name: 'Cairo Desert Escape: Spa & Wellness Day',
@@ -237,6 +260,8 @@ const dayuseData = [
     availableDates: [
       { date: new Date('2026-06-09'), availableSeats: 12 },
     ],
+    included: ['Desert view heated pool pass', 'Full-body wellness massage', 'Sunrise yoga overlooking plateau', 'Organic healthy lunch'],
+    excluded: ['Additional spa therapies', 'Pyramids camel safari', 'Personal purchases'],
   },
 
   // ── Hurghada Dayuse ─────────────────────────────────────────
@@ -258,6 +283,8 @@ const dayuseData = [
       { date: new Date('2026-06-07'), availableSeats: 35 },
       { date: new Date('2026-06-21'), availableSeats: 40 },
     ],
+    included: ['Private beach club entry', 'Snorkeling equipment', 'Jet ski ride & Parasailing', 'Seafood BBQ buffet lunch'],
+    excluded: ['Giftun Island boat trip', 'Premium drinks', 'Tips'],
   },
   {
     name: 'Hurghada Luxury Marina Resort Day Pass',
@@ -275,6 +302,8 @@ const dayuseData = [
     availableDates: [
       { date: new Date('2026-06-13'), availableSeats: 20 },
     ],
+    included: ['5-star Marina resort private beach', 'Infinity pool pass', '3-course Mediterranean lunch', 'Water sports trials'],
+    excluded: ['Spa & massage sessions', 'Scuba diving trials', 'Private beach cabana'],
   },
 
   // ── Dahab Dayuse (extra) ─────────────────────────────────────
@@ -295,6 +324,8 @@ const dayuseData = [
       { date: new Date('2026-06-10'), availableSeats: 10 },
       { date: new Date('2026-06-24'), availableSeats: 12 },
     ],
+    included: ['Beachfront sunrise yoga session', 'Snorkeling in Dahab Canyon', 'Traditional Bedouin lunch', 'Guided sunset meditation'],
+    excluded: ['Dahab Blue Hole diving', 'AC transfers from Sharm', 'Souvenirs'],
   },
 
   // ── Luxor Dayuse ─────────────────────────────────────────────
@@ -314,6 +345,8 @@ const dayuseData = [
     availableDates: [
       { date: new Date('2026-06-12'), availableSeats: 15 },
     ],
+    included: ['Luxury Nile-front hotel pool pass', 'Traditional Egyptian mezze lunch', 'Private sunset Nile felucca cruise', 'Bedouin tea on board'],
+    excluded: ['Luxor Temple entry ticket', 'West Bank tour', 'Tips'],
   },
 ];
 
@@ -321,6 +354,11 @@ async function seed() {
   console.log('🌱 Connecting to MongoDB...');
   await mongoose.connect(DB_URL);
   console.log('✅ Connected!\n');
+
+  console.log('🧹 Wiping existing destinations and experiences...');
+  await Destination.deleteMany({});
+  await Experience.deleteMany({});
+  console.log('✅ Collections wiped successfully!\n');
 
   // Upsert destinations
   console.log('📍 Creating destinations...');

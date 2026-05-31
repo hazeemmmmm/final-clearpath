@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { updateExperience, duplicateExperience } from '../../utils/api';
+import './PublishPackageModal.css';
 
 const EditPackageModal = ({ experience, onClose, onUpdate, activitiesList, providersList, destinationsList, supervisorsList }) => {
   const [formData, setFormData] = useState({
@@ -23,6 +24,26 @@ const EditPackageModal = ({ experience, onClose, onUpdate, activitiesList, provi
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [expandedDay, setExpandedDay] = useState(1);
+  const [showAddActDayIndex, setShowAddActDayIndex] = useState(null);
+  const [editingActivityKey, setEditingActivityKey] = useState(null);
+
+  const getActivityImage = (actName = '') => {
+    const name = actName.toLowerCase();
+    if (name.includes('snorkel') || name.includes('beach') || name.includes('sea') || name.includes('boat') || name.includes('water') || name.includes('island')) {
+      return 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=300&q=80';
+    }
+    if (name.includes('pyramid') || name.includes('temple') || name.includes('luxor') || name.includes('cairo') || name.includes('history') || name.includes('museum') || name.includes('mummy')) {
+      return 'https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=300&q=80';
+    }
+    if (name.includes('quad') || name.includes('safari') || name.includes('desert') || name.includes('sand') || name.includes('folklore')) {
+      return 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=300&q=80';
+    }
+    if (name.includes('lunch') || name.includes('dinner') || name.includes('feast') || name.includes('food') || name.includes('bbq') || name.includes('tea') || name.includes('culinary')) {
+      return 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=300&q=80';
+    }
+    return 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=300&q=80';
+  };
 
   useEffect(() => {
     if (experience) {
@@ -235,26 +256,179 @@ const EditPackageModal = ({ experience, onClose, onUpdate, activitiesList, provi
 
                 {/* Activities within Day */}
                 <div style={{ marginLeft: '20px', paddingLeft: '10px', borderLeft: '1px dashed rgba(255,255,255,0.2)' }}>
-                  {day.activities.map((act, aIdx) => (
-                    <div key={aIdx} style={{ display: 'flex', gap: '10px', marginBottom: '10px', alignItems: 'center' }}>
-                      <select value={act.activity?._id || act.activity} onChange={(e) => handleActivityChange(dIdx, aIdx, 'activity', e.target.value)} style={{ flex: 2, padding: '8px', background: 'rgba(0,0,0,0.2)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        <option value="">Select Activity</option>
-                        {activitiesList?.map(a => <option key={a._id} value={a._id}>{a.name}</option>)}
-                      </select>
-                      
-                      <select value={act.provider?._id || act.provider} onChange={(e) => handleActivityChange(dIdx, aIdx, 'provider', e.target.value)} style={{ flex: 1.5, padding: '8px', background: 'rgba(0,0,0,0.2)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        <option value="">Select Provider</option>
-                        {providersList?.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
-                      </select>
+                  <h5 style={{ color: '#9ca3af', marginBottom: '15px', fontSize: '0.95rem', fontWeight: 'bold' }}>
+                    <i className="fa-solid fa-route" style={{ color: '#d4af37', marginRight: '5px' }}></i> Day Activities
+                  </h5>
 
-                      <input type="text" value={act.image || ''} onChange={(e) => handleActivityChange(dIdx, aIdx, 'image', e.target.value)} placeholder="Image URL" style={{ flex: 1, padding: '8px', background: 'rgba(0,0,0,0.2)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }} />
+                  {day.activities.map((act, actIdx) => {
+                    const matchedAct = activitiesList?.find(a => a._id === (act.activity?._id || act.activity));
+                    const actName = matchedAct ? matchedAct.name : 'Custom Activity';
+                    const actDesc = act.description || matchedAct?.description || 'No description available for this activity.';
+                    const actImage = act.image || matchedAct?.image || getActivityImage(actName);
+                    const actProvider = act.provider || matchedAct?.provider?.name || matchedAct?.provider || 'Platform Provider';
+                    const actPrice = act.price !== undefined ? act.price : (matchedAct?.price || 0);
+
+                    return (
+                      <div key={actIdx} style={{ marginBottom: '15px' }}>
+                        <div className="ppm-activity-card">
+                          <img 
+                            src={actImage} 
+                            alt={actName} 
+                            className="ppm-activity-card-image"
+                            onError={(e) => {
+                              e.target.src = 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=300&q=80';
+                            }}
+                          />
+                          <div className="ppm-activity-card-info">
+                            <h4 className="ppm-activity-card-title" style={{ color: '#d4af37' }}>{actName}</h4>
+                            <p className="ppm-activity-card-desc">{actDesc}</p>
+                            <div className="ppm-activity-card-provider">
+                              <i className="fa-solid fa-user-tie"></i> Provider: {actProvider}
+                            </div>
+                            <div className="ppm-activity-card-actions">
+                              <button
+                                type="button"
+                                className="ppm-activity-edit-toggle"
+                                onClick={() => {
+                                  const key = `${dIdx}-${actIdx}`;
+                                  setEditingActivityKey(editingActivityKey === key ? null : key);
+                                }}
+                              >
+                                <i className="fa-solid fa-sliders"></i> {editingActivityKey === `${dIdx}-${actIdx}` ? 'Close Specs' : 'Edit Specs'}
+                              </button>
+                            </div>
+                          </div>
+                          <div className="ppm-activity-card-right">
+                            <span className="ppm-activity-card-status">
+                              {Number(actPrice) === 0 ? 'Included' : `EGP ${actPrice}`}
+                            </span>
+                            <span className="ppm-activity-card-time">
+                              {actIdx === 0 ? '08:00 AM' : actIdx === 1 ? '01:00 PM' : '04:00 PM'}
+                            </span>
+                            <button 
+                              type="button" 
+                              className="ppm-activity-delete-btn" 
+                              onClick={() => handleRemoveActivity(dIdx, actIdx)}
+                              title="Remove Activity"
+                            >
+                              <i className="fa-solid fa-trash"></i>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Drawer / Edit specifications panel */}
+                        {editingActivityKey === `${dIdx}-${actIdx}` && (
+                          <div className="ppm-activity-edit-drawer">
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '10px' }}>
+                              <div className="ppm-input-group" style={{ margin: 0 }}>
+                                <label>Provider Name</label>
+                                <input 
+                                  type="text" 
+                                  className="ppm-input" 
+                                  value={act.provider || ''} 
+                                  onChange={(e) => handleActivityChange(dIdx, actIdx, 'provider', e.target.value)} 
+                                  placeholder="e.g. Red Sea Adventures" 
+                                />
+                              </div>
+                              <div className="ppm-input-group" style={{ margin: 0 }}>
+                                <label>Price Override (EGP)</label>
+                                <input 
+                                  type="number" 
+                                  className="ppm-input" 
+                                  value={act.price || ''} 
+                                  onChange={(e) => handleActivityChange(dIdx, actIdx, 'price', Number(e.target.value))} 
+                                  placeholder="e.g. 150" 
+                                />
+                              </div>
+                            </div>
+                            <div className="ppm-input-group" style={{ margin: 0, marginBottom: '10px' }}>
+                              <label>Custom Description</label>
+                              <textarea 
+                                className="ppm-input" 
+                                rows="2"
+                                value={act.description || ''} 
+                                onChange={(e) => handleActivityChange(dIdx, actIdx, 'description', e.target.value)} 
+                                placeholder="Override standard description..." 
+                                style={{ resize: 'vertical' }}
+                              />
+                            </div>
+                            <div className="ppm-input-group" style={{ margin: 0 }}>
+                              <label>Custom Image URL</label>
+                              <input 
+                                type="text" 
+                                className="ppm-input" 
+                                value={act.image || ''} 
+                                onChange={(e) => handleActivityChange(dIdx, actIdx, 'image', e.target.value)} 
+                                placeholder="https://images.unsplash.com/..." 
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {showAddActDayIndex === dIdx ? (
+                    <div style={{ marginTop: '15px', background: 'rgba(0,0,0,0.3)', padding: '20px', borderRadius: '12px', border: '1px solid rgba(212,175,55,0.2)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                        <h5 style={{ color: '#d4af37', margin: 0, fontSize: '1rem', fontWeight: 'bold' }}>
+                          <i className="fa-solid fa-wand-magic-sparkles" style={{ marginRight: '5px' }}></i> Select Activity to Add (Day {day.day_number})
+                        </h5>
+                        <button 
+                          type="button" 
+                          className="ppm-btn-outline" 
+                          onClick={() => setShowAddActDayIndex(null)}
+                          style={{ padding: '4px 10px', fontSize: '0.8rem' }}
+                        >
+                          <i className="fa-solid fa-xmark"></i> Close Grid
+                        </button>
+                      </div>
                       
-                      <input type="number" value={act.price} onChange={(e) => handleActivityChange(dIdx, aIdx, 'price', Number(e.target.value))} placeholder="Price" style={{ flex: 1, padding: '8px', background: 'rgba(0,0,0,0.2)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }} />
-                      
-                      <button type="button" onClick={() => handleRemoveActivity(dIdx, aIdx)} style={{ background: '#ff4d4f', border: 'none', color: '#fff', cursor: 'pointer', padding: '8px', borderRadius: '4px' }}>✕</button>
+                      <div className="ppm-activity-grid">
+                        {activitiesList?.map((actItem) => {
+                          const itemImage = actItem.image || getActivityImage(actItem.name);
+                          return (
+                            <div 
+                              key={actItem._id} 
+                              className="ppm-activity-select-card"
+                              onClick={() => {
+                                setFormData(prev => {
+                                  const newItin = [...prev.itinerary];
+                                  newItin[dIdx].activities.push({
+                                    activity: actItem._id,
+                                    provider: actItem.provider?.name || actItem.provider || 'Platform Provider',
+                                    price: actItem.price || 0,
+                                    description: actItem.description || '',
+                                    image: itemImage
+                                  });
+                                  return { ...prev, itinerary: newItin };
+                                });
+                                setShowAddActDayIndex(null);
+                              }}
+                            >
+                              <img src={itemImage} alt={actItem.name} className="ppm-activity-select-image" />
+                              <div className="ppm-activity-select-body">
+                                <h6 className="ppm-activity-select-name">{actItem.name}</h6>
+                                <p className="ppm-activity-select-desc">{actItem.description || 'No description available.'}</p>
+                                <div className="ppm-activity-select-price">
+                                  <span>EGP {actItem.price || 0}</span>
+                                  <span style={{ fontSize: '0.75rem', color: '#d4af37', fontWeight: 'bold' }}>+ Add Card</span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  ))}
-                  <button type="button" onClick={() => handleAddActivity(dIdx)} style={{ background: 'transparent', color: '#d4af37', border: '1px dashed #d4af37', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>+ Add Activity to Day</button>
+                  ) : (
+                    <button 
+                      type="button" 
+                      onClick={() => setShowAddActDayIndex(dIdx)} 
+                      style={{ background: 'transparent', color: '#d4af37', border: '1px dashed #d4af37', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
+                    >
+                      <i className="fa-solid fa-plus"></i> Add Activity to Day {day.day_number}
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
