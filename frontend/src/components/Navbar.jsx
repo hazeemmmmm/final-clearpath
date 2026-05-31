@@ -84,25 +84,10 @@ const Navbar = ({ isScrolled, dashboardMode }) => {
     fetchRealUser();
   }, [isAuthenticated]);
 
-  const [tripChain, setTripChain] = useState([]);
   const [isChainOpen, setIsChainOpen] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
 
-  const loadTripChain = () => {
-    const chainStr = localStorage.getItem('clearpath_trip_chain');
-    if (chainStr) {
-      try {
-        setTripChain(JSON.parse(chainStr));
-      } catch (e) {
-        console.error('Failed to parse trip chain from localStorage:', e);
-      }
-    } else {
-      setTripChain([]);
-    }
-  };
-
   useEffect(() => {
-    loadTripChain();
     window.addEventListener('cartUpdate', loadTripChain);
     return () => window.removeEventListener('cartUpdate', loadTripChain);
   }, []);
