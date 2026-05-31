@@ -40,6 +40,8 @@ const PublishPackageModal = ({
   // Draft & Preview UI states
   const [draftToast, setDraftToast] = useState(null); // { type: 'success'|'error', msg: string }
   const [showLivePreview, setShowLivePreview] = useState(false);
+  const [editingActivityKey, setEditingActivityKey] = useState(null);
+  const [showAddActDayIndex, setShowAddActDayIndex] = useState(null);
 
   // Load all packing guides so the admin can link one to this experience
   useEffect(() => {
