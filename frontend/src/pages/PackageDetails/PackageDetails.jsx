@@ -1774,7 +1774,7 @@ const PackageDetails = () => {
                                               });
 
                                               const currentDayActIds = day.activities.map(a => (a.activity?._id || a.activity)?.toString());
-                                              const remainingActs = regionalActs.filter(a => !currentDayActIds.includes(a._id.toString()));
+                                              const remainingActs = regionalActs.filter(a => !currentDayActIds.includes(a._id?.toString()));
 
                                               if (remainingActs.length === 0) {
                                                 return (
