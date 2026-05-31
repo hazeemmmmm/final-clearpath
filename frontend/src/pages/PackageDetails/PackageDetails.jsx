@@ -753,6 +753,38 @@ const PackageDetails = () => {
     }
   };
 
+  const handleAddToTripChain = () => {
+    if (!packageData) return;
+    const singlePrice = isCustomizing && customTrip 
+      ? customTrip.total_price 
+      : (packageData.base_price || packageData.price || 0);
+
+    const addonsTotal = selectedAddons.reduce((sum, addonId) => {
+      const addon = packageData?.addons?.find(a => a._id === addonId);
+      return sum + (addon ? addon.price : 0);
+    }, 0);
+
+    const totalPrice = (singlePrice * guestCount) + addonsTotal;
+
+    const chainItem = {
+      id: packageData._id || id,
+      name: packageData.name,
+      image: activeImage || packageData.image || (packageData.images && packageData.images[0]) || 'https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=1200&q=80',
+      guestCount: guestCount,
+      price: totalPrice,
+      selectedAddons: selectedAddons,
+      isCustomized: isCustomizing,
+      customTripId: customTrip?._id || null
+    };
+
+    const currentChain = JSON.parse(localStorage.getItem('clearpath_trip_chain') || '[]');
+    currentChain.push(chainItem);
+    localStorage.setItem('clearpath_trip_chain', JSON.stringify(currentChain));
+
+    alert(lang === 'AR' ? 'تمت إضافة الباقة بنجاح إلى سلسلة الرحلة!' : 'Package successfully added to your Trip Chain!');
+    window.dispatchEvent(new Event('tripChainUpdated'));
+  };
+
   const handleBookNow = async () => {
     if (!token) {
       window.location.href = '/login';
@@ -2314,7 +2346,7 @@ const PackageDetails = () => {
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', boxSizing: 'border-box' }}>
                     <button 
                       onClick={handleBookNow} 
                       className="tw-w-full tw-flex tw-items-center tw-justify-center tw-gap-2 tw-bg-amber-500 hover:tw-bg-amber-600 tw-text-white tw-font-bold tw-py-4 tw-px-6 tw-rounded-2xl tw-transition-all tw-shadow-lg" 
@@ -2324,8 +2356,46 @@ const PackageDetails = () => {
                       {bookingLoading ? (
                         <><i className="fa-solid fa-spinner fa-spin"></i> {lang === 'AR' ? 'جاري إتمام الحجز...' : 'Creating Booking...'}</>
                       ) : (
-                        <><i className="fa-solid fa-calendar-days"></i> {lang === 'AR' ? 'تخصيص واحجز الآن' : 'Customize & Book'}</>
+                        <><i className="fa-solid fa-calendar-days"></i> {lang === 'AR' ? 'تخصيص واحجز الآن' : 'Customize & Book'} </>
                       )}
+                    </button>
+
+                    <button 
+                      type="button"
+                      onClick={handleAddToTripChain}
+                      className="add-to-trip-chain-btn"
+                      style={{
+                        width: '100%',
+                        background: 'rgba(212, 175, 55, 0.05)',
+                        border: '2px dashed #d4af37',
+                        color: '#d4af37',
+                        padding: '14px 20px',
+                        borderRadius: '16px',
+                        fontWeight: '800',
+                        fontSize: '1rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '10px',
+                        transition: 'all 0.3s ease',
+                        boxShadow: '0 4px 15px rgba(212, 175, 55, 0.1)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px'
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.background = '#d4af37';
+                        e.currentTarget.style.color = '#000';
+                        e.currentTarget.style.boxShadow = '0 6px 20px rgba(212, 175, 55, 0.3)';
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.background = 'rgba(212, 175, 55, 0.05)';
+                        e.currentTarget.style.color = '#d4af37';
+                        e.currentTarget.style.boxShadow = '0 4px 15px rgba(212, 175, 55, 0.1)';
+                      }}
+                    >
+                      <i className="fa-solid fa-link"></i>
+                      {lang === 'AR' ? 'أضف إلى سلسلة الرحلة (تجميع)' : 'Add to Trip Chain'}
                     </button>
                     
                     <p style={{ textAlign: 'center', fontSize: '0.8rem', color: '#a4a4b4', margin: '5px 0 0 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
@@ -2744,101 +2814,14 @@ const PackageDetails = () => {
                               {renderStars(rev.rating)}
                               {rev.isVerifiedBooking && (
                                 <span className="verified-badge">
-                                  <i className="fa-solid fa-circle-check"></i> {lang === 'AR' ? 'حجز مؤكد' : 'Verified Booking'}
-                                </span>
-                              )}
-                            </div>
+                                  <i className="fa-solid fa-circl      </main>
 
-                          </div>
-
-                          {/* Body */}
-                          <div className="review-card-body">
-                            <p>{rev.comment || (lang === 'AR' ? 'ترك هذا المستخدم تقييماً بالنجوم فقط دون تعليق.' : 'This user left no comment, just a rating.')}</p>
-                          </div>
-
-                        </div>
-                      );
-                    })}
-
-                    {/* MODULAR TRIP EXTENSION BUTTON */}
-                    <div style={{ marginTop: '30px', textAlign: 'center', position: 'relative' }}>
-                      <div style={{ position: 'absolute', top: '50%', left: '0', right: '0', height: '2px', background: 'linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.3), transparent)', zIndex: '0' }}></div>
-                      <button 
-                        onClick={() => {
-                          alert(lang === 'AR' ? 'سيتم ربط وجهتك الحالية ببرنامج يومي جديد بسلاسة!' : 'Your current destination will be seamlessly connected to a new Dayuse package!');
-                        }}
-                        style={{ position: 'relative', zIndex: '1', background: '#1e2228', border: '1px solid #d4af37', color: '#d4af37', padding: '12px 24px', borderRadius: '30px', fontWeight: 'bold', fontSize: '0.95rem', cursor: 'pointer', boxShadow: '0 4px 15px rgba(212, 175, 55, 0.2)', transition: 'all 0.3s ease' }}
-                        onMouseOver={(e) => { e.currentTarget.style.background = '#d4af37'; e.currentTarget.style.color = '#000'; }}
-                        onMouseOut={(e) => { e.currentTarget.style.background = '#1e2228'; e.currentTarget.style.color = '#d4af37'; }}
-                      >
-                        <i className="fa-solid fa-link" style={{ marginRight: '8px' }}></i>
-                        {lang === 'AR' ? '+ إضافة وجهة تالية / تمديد الرحلة' : '+ Add Next Destination / Extension'}
-                      </button>
-                      <p style={{ marginTop: '10px', fontSize: '0.8rem', color: '#64748b' }}>
-                        {lang === 'AR' ? 'اربط هذه الرحلة مع باقات أخرى واستمتع بتجربة سفر متصلة بخصم إضافي!' : 'Chain this trip with other packages for a seamless connected travel experience with extra discounts!'}
-                      </p>
-                    </div>
-
-                  </div>
-                )}
-              </div>
-
-            </div>
-          </>
-        ) : (
-          <div className="error-card">
-            <p>{lang === 'AR' ? 'لم يتم العثور على الباقة السياحية.' : 'Package not found.'}</p>
+      <Footer />�م العثور على الباقة السياحية.' : 'Package not found.'}</p>
             <Link to="/" className="btn-back">{lang === 'AR' ? 'العودة للرئيسية' : 'Return to Home'}</Link>
           </div>
         )}
       </main>
 
-      {/* Sticky Price Footer */}
-      {packageData && (
-        <div className="sticky-price-footer" style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          background: 'rgba(15, 15, 15, 0.95)',
-          backdropFilter: 'blur(10px)',
-          borderTop: '1px solid rgba(212, 175, 55, 0.3)',
-          padding: '15px 20px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          zIndex: 999,
-          boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.5)'
-        }}>
-          {(() => {
-            const singlePrice = isCustomizing && customTrip 
-              ? customTrip.total_price 
-              : (packageData.base_price || packageData.price || 0);
-              
-            const originalSinglePrice = isCustomizing && customTrip && customTrip.ai_discount_applied
-              ? customTrip.original_price
-              : singlePrice;
-              
-            const addonsTotal = selectedAddons.reduce((sum, addonId) => {
-              const addon = packageData?.addons?.find(a => a._id === addonId);
-              return sum + (addon ? addon.price : 0);
-            }, 0);
-            
-            const extraActivitiesCount = selectedAddons.length + (customTrip?.extra_activities?.length || 0);
-            const aiDiscountApplied = customTrip?.ai_discount_applied || extraActivitiesCount >= 3;
-            
-            let totalPrice = (singlePrice * guestCount) + addonsTotal;
-            let originalTotalPrice = (originalSinglePrice * guestCount) + addonsTotal;
-            
-            if (!customTrip?.ai_discount_applied && extraActivitiesCount >= 3) {
-               const discount = totalPrice * 0.10;
-               totalPrice -= discount;
-            }
-
-            return (
-              <>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     {aiDiscountApplied && (
                       <span style={{ fontSize: '1rem', textDecoration: 'line-through', color: '#64748b' }}>
                         {formatPrice(originalTotalPrice)}

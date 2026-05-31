@@ -20,6 +20,33 @@ const Navbar = ({ isScrolled, dashboardMode }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  const [tripChain, setTripChain] = useState([]);
+  const [isChainPanelOpen, setIsChainPanelOpen] = useState(false);
+
+  const loadTripChain = () => {
+    const chain = JSON.parse(localStorage.getItem('clearpath_trip_chain') || '[]');
+    setTripChain(chain);
+  };
+
+  useEffect(() => {
+    loadTripChain();
+    window.addEventListener('tripChainUpdated', loadTripChain);
+    return () => window.removeEventListener('tripChainUpdated', loadTripChain);
+  }, []);
+
+  const handleRemoveFromChain = (index) => {
+    const newChain = [...tripChain];
+    newChain.splice(index, 1);
+    localStorage.setItem('clearpath_trip_chain', JSON.stringify(newChain));
+    setTripChain(newChain);
+    window.dispatchEvent(new Event('tripChainUpdated'));
+  };
+
+  const handleCheckoutChain = () => {
+    setIsChainPanelOpen(false);
+    navigate('/my-bookings?tab=pending');
+  };
+
   const syncUser = () => {
     const storedUser = localStorage.getItem('user');
     if (storedUser && storedUser !== 'undefined') {
@@ -134,6 +161,100 @@ const Navbar = ({ isScrolled, dashboardMode }) => {
               <i className="fa-solid fa-coins"></i>
               <span>{currency}</span>
             </button>
+            {/* Glowing Trip Chain Link Icon */}
+            <div className="tw-relative tw-mr-1">
+              <button 
+                type="button"
+                onClick={() => setIsChainPanelOpen(!isChainPanelOpen)}
+                className={`tw-w-9 tw-h-9 tw-rounded-full tw-flex tw-items-center tw-justify-center tw-transition-all tw-duration-300 tw-relative tw-border ${
+                  tripChain.length > 0 
+                    ? 'tw-bg-amber-500/10 tw-border-amber-500 tw-text-amber-500 tw-shadow-[0_0_15px_rgba(245,158,11,0.65)] tw-animate-pulse' 
+                    : 'tw-bg-white/50 dark:tw-bg-transparent tw-border-slate-300 dark:tw-border-slate-700 tw-text-slate-600 dark:tw-text-slate-300 hover:tw-text-amber-500 dark:hover:tw-text-amber-500 hover:tw-border-amber-500 dark:hover:tw-border-amber-500'
+                }`}
+                title={lang === 'AR' ? 'سلسلة الرحلة المضيئة' : 'Glowing Trip Chain'}
+              >
+                <i className="fa-solid fa-link tw-text-sm"></i>
+                {tripChain.length > 0 && (
+                  <span className="tw-absolute -tw-top-1 -tw-right-1 tw-bg-amber-500 tw-text-slate-950 tw-text-[9px] tw-font-black tw-w-4 tw-h-4 tw-rounded-full tw-flex tw-items-center tw-justify-center tw-shadow-md">
+                    {tripChain.length}
+                  </span>
+                )}
+              </button>
+
+              {/* Trip Chain Dropdown Panel */}
+              {isChainPanelOpen && (
+                <div 
+                  className="tw-absolute tw-top-[calc(100%+12px)] tw-right-0 tw-w-[320px] tw-bg-[#0c0d12]/95 tw-backdrop-blur-md tw-border tw-border-amber-500/30 tw-rounded-2xl tw-shadow-[0_15px_50px_rgba(0,0,0,0.8)] tw-p-4 tw-z-[1001] tw-text-slate-200"
+                  style={{ direction: lang === 'AR' ? 'rtl' : 'ltr', textAlign: lang === 'AR' ? 'right' : 'left' }}
+                >
+                  <div className="tw-flex tw-items-center tw-justify-between tw-pb-3 tw-border-b tw-border-slate-800/80 tw-mb-3">
+                    <span className="tw-text-sm tw-font-bold tw-text-amber-500 tw-flex tw-items-center tw-gap-1.5">
+                      <i className="fa-solid fa-link"></i>
+                      {lang === 'AR' ? 'تجميع سلسلة الرحلة' : 'Trip Chain Builder'}
+                    </span>
+                    <span className="tw-text-xs tw-bg-amber-500/20 tw-text-amber-400 tw-px-2 tw-py-0.5 tw-rounded-full tw-font-black">
+                      {tripChain.length} {lang === 'AR' ? 'باقات' : 'Packages'}
+                    </span>
+                  </div>
+
+                  {tripChain.length === 0 ? (
+                    <div className="tw-py-8 tw-text-center tw-text-slate-500 tw-text-xs">
+                      <i className="fa-regular fa-folder-open tw-text-2xl tw-mb-2 tw-block tw-text-slate-700"></i>
+                      {lang === 'AR' ? 'سلسلة الرحلة فارغة حالياً' : 'Your trip chain is currently empty.'}
+                    </div>
+                  ) : (
+                    <>
+                      <div className="tw-max-h-[220px] tw-overflow-y-auto tw-flex tw-flex-col tw-gap-2.5 tw-pr-1">
+                        {tripChain.map((item, idx) => (
+                          <div key={idx} className="tw-flex tw-gap-3 tw-bg-slate-900/50 tw-p-2.5 tw-rounded-xl tw-border tw-border-slate-800/80 tw-relative tw-group">
+                            <img 
+                              src={item.image} 
+                              alt={item.name} 
+                              className="tw-w-12 tw-h-12 tw-rounded-lg tw-object-cover tw-border tw-border-slate-800"
+                            />
+                            <div className="tw-flex-1 tw-min-w-0">
+                              <h4 className="tw-text-xs tw-font-bold tw-text-white tw-truncate tw-mb-0.5">{item.name}</h4>
+                              <p className="tw-text-[10px] tw-text-slate-400 tw-mb-1">
+                                {lang === 'AR' ? `${item.guestCount} مسافرين` : `${item.guestCount} travelers`}
+                              </p>
+                              <span className="tw-text-xs tw-font-extrabold tw-text-amber-500">
+                                {item.price.toLocaleString()} EGP
+                              </span>
+                            </div>
+                            <button 
+                              type="button"
+                              onClick={() => handleRemoveFromChain(idx)}
+                              className="tw-absolute tw-top-2.5 tw-right-2.5 tw-w-6 tw-h-6 tw-rounded-lg tw-bg-red-500/10 hover:tw-bg-red-500 tw-text-red-400 hover:tw-text-white tw-flex tw-items-center tw-justify-center tw-transition-colors tw-border-none"
+                            >
+                              <i className="fa-solid fa-trash-can tw-text-[11px]"></i>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="tw-mt-4 tw-pt-3 tw-border-t tw-border-slate-800/80">
+                        <div className="tw-flex tw-justify-between tw-items-center tw-mb-3.5">
+                          <span className="tw-text-xs tw-text-slate-400 tw-font-bold">
+                            {lang === 'AR' ? 'الإجمالي الكلي للسلسلة:' : 'Total Chain Cost:'}
+                          </span>
+                          <span className="tw-text-sm tw-font-black tw-text-amber-500">
+                            {tripChain.reduce((sum, item) => sum + item.price, 0).toLocaleString()} EGP
+                          </span>
+                        </div>
+                        <button 
+                          type="button"
+                          onClick={handleCheckoutChain}
+                          className="tw-w-full tw-bg-gradient-to-r tw-from-amber-500 tw-to-amber-600 hover:tw-from-amber-600 hover:tw-to-amber-700 tw-text-slate-950 tw-font-bold tw-text-xs tw-py-2.5 tw-px-4 tw-rounded-xl tw-transition-all tw-shadow-[0_4px_15px_rgba(245,158,11,0.2)] tw-border-none"
+                        >
+                          {lang === 'AR' ? 'تأكيد السلسلة والدفع 💳' : 'Proceed to Checkout & Pay'}
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+
             <button 
               onClick={toggleLanguage}
               className="tw-flex tw-items-center tw-justify-center tw-gap-1.5 tw-px-3 tw-h-9 tw-rounded-full tw-border tw-border-slate-300 dark:tw-border-slate-700 tw-bg-white/50 dark:tw-bg-transparent tw-text-slate-600 dark:tw-text-slate-300 hover:tw-text-amber-500 dark:hover:tw-text-amber-500 hover:tw-border-amber-500 dark:hover:tw-border-amber-500 tw-transition-colors tw-text-xs tw-font-bold"
