@@ -25,6 +25,7 @@ import ForgotPassword from './pages/ForgotPassword/ForgotPassword'
 import Chatbot from './components/Chatbot'
 import CreateDestination from './pages/Admin/CreateDestination'
 import CreateProvider from './pages/Admin/CreateProvider'
+import CreateActivity from './pages/Admin/CreateActivity'
 
 // Protected Route Component
 const ProtectedRoute = ({ children, roles = [] }) => {
@@ -75,6 +76,8 @@ function App() {
         <Route path="/admin/guides/new" element={<ProtectedRoute roles={['admin']}><CreateGuide /></ProtectedRoute>} />
         <Route path="/admin/destinations/new" element={<ProtectedRoute roles={['admin']}><CreateDestination /></ProtectedRoute>} />
         <Route path="/admin/providers/new" element={<ProtectedRoute roles={['admin']}><CreateProvider /></ProtectedRoute>} />
+        <Route path="/admin/activities/new" element={<ProtectedRoute roles={['admin']}><CreateActivity /></ProtectedRoute>} />
+        <Route path="/admin/activities/:id/edit" element={<ProtectedRoute roles={['admin']}><CreateActivity /></ProtectedRoute>} />
         <Route path="/supervisor" element={<ProtectedRoute roles={['supervisor', 'provider']}><SupervisorDashboard /></ProtectedRoute>} />
 
         {/* Auth Routes */}

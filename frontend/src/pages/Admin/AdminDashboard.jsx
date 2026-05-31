@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import {
   createExperience,
@@ -25,12 +25,13 @@ import EditPackageModal from './EditPackageModal';
 import PackingGuidesAdmin from './PackingGuidesAdmin';
 import DestinationsAdmin from './DestinationsAdmin';
 import ProvidersAdmin from './ProvidersAdmin';
-import ActivityFormModal from './ActivityFormModal';
+import ActivitiesAdmin from './ActivitiesAdmin';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('overview'); // overview, packages, forecast, bookings, users, supervisors, reviews, settings
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'overview'); // overview, packages, forecast, bookings, users, supervisors, reviews, settings
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -2033,7 +2034,9 @@ const AdminDashboard = () => {
               )}
 
               {/* TAB: ACTIVITIES */}
-              {activeTab === 'activities' && renderActivitiesTab()}
+              {activeTab === 'activities' && (
+                <ActivitiesAdmin />
+              )}
 
               {/* TAB: PACKING GUIDES */}
               {activeTab === 'packing-guides' && (
@@ -2076,95 +2079,6 @@ const AdminDashboard = () => {
           destinationsList={destinationsList}
           supervisorsList={getSupervisorsList()}
         />
-      )}
-
-      {/* ── Dynamic Activity Form Modal ── */}
-      <ActivityFormModal
-        isOpen={isActivityModalOpen}
-        onClose={() => { setIsActivityModalOpen(false); setSelectedActivity(null); }}
-        onSubmit={handleCreateOrUpdateActivity}
-        activity={selectedActivity}
-        destinationsList={destinationsList}
-        providersList={providersList}
-      />
-
-      {/* ── Activity Details Modal ── */}
-      {isViewActivityDetailsOpen && selectedActivity && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', 
-          background: 'rgba(0,0,0,0.8)', zIndex: 10000, display: 'flex', 
-          justifyContent: 'center', alignItems: 'center', padding: '20px',
-          backdropFilter: 'blur(8px)', animation: 'fadeIn 0.2s ease-out'
-        }}>
-          <div style={{
-            background: '#14141f', borderRadius: '16px', width: '500px', maxWidth: '95%',
-            border: '1px solid rgba(212,175,55,0.3)', padding: '30px', position: 'relative',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
-          }}>
-            <button onClick={() => { setIsViewActivityDetailsOpen(false); setSelectedActivity(null); }} style={{
-              position: 'absolute', top: '15px', right: '20px', background: 'transparent',
-              border: 'none', color: '#fff', fontSize: '1.8rem', cursor: 'pointer'
-            }}>×</button>
-
-            <h3 style={{ color: '#d4af37', marginBottom: '20px', fontSize: '1.4rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <i className="fa-regular fa-eye"></i> Activity Details
-            </h3>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', color: '#cbd5e1' }}>
-              <img 
-                src={selectedActivity.image || getActivityImage(selectedActivity.name)} 
-                alt={selectedActivity.name} 
-                style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '8px' }}
-                onError={(e) => {
-                  e.target.src = 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=300&q=80';
-                }}
-              />
-              <div>
-                <strong style={{ color: '#a4a4b4', fontSize: '0.85rem' }}>NAME</strong>
-                <p style={{ margin: '4px 0 0 0', color: '#fff', fontSize: '1.1rem', fontWeight: 'bold' }}>{selectedActivity.name}</p>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                <div>
-                  <strong style={{ color: '#a4a4b4', fontSize: '0.85rem' }}>TYPE</strong>
-                  <p style={{ margin: '4px 0 0 0', color: '#fff', textTransform: 'capitalize' }}>{selectedActivity.type}</p>
-                </div>
-                <div>
-                  <strong style={{ color: '#a4a4b4', fontSize: '0.85rem' }}>PRICE</strong>
-                  <p style={{ margin: '4px 0 0 0', color: '#10b981', fontWeight: 'bold' }}>EGP {selectedActivity.price}</p>
-                </div>
-              </div>
-              <div>
-                <strong style={{ color: '#a4a4b4', fontSize: '0.85rem' }}>DESTINATION</strong>
-                <p style={{ margin: '4px 0 0 0', color: '#fff' }}>{selectedActivity.destination?.name || 'Local Platform'}</p>
-              </div>
-              <div>
-                <strong style={{ color: '#a4a4b4', fontSize: '0.85rem' }}>PROVIDER</strong>
-                <p style={{ margin: '4px 0 0 0', color: '#fff' }}>{selectedActivity.provider?.name || 'Platform Admin'}</p>
-              </div>
-              {selectedActivity.duration && (
-                <div>
-                  <strong style={{ color: '#a4a4b4', fontSize: '0.85rem' }}>DURATION</strong>
-                  <p style={{ margin: '4px 0 0 0', color: '#fff' }}>{selectedActivity.duration} Hours</p>
-                </div>
-              )}
-              <div>
-                <strong style={{ color: '#a4a4b4', fontSize: '0.85rem' }}>AVAILABILITY STATUS</strong>
-                <p style={{ margin: '4px 0 0 0', color: selectedActivity.isAvailable !== false ? '#10b981' : '#ef4444', fontWeight: 'bold' }}>
-                  {selectedActivity.isAvailable !== false ? 'Active & Available' : 'Inactive'}
-                </p>
-              </div>
-            </div>
-
-            <div style={{ marginTop: '25px', display: 'flex', justifyContent: 'flex-end' }}>
-              <button 
-                onClick={() => { setIsViewActivityDetailsOpen(false); setSelectedActivity(null); }}
-                style={{ padding: '10px 20px', background: '#333', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
-              >
-                Close View
-              </button>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );
