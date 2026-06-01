@@ -110,6 +110,7 @@ const Wishlist = () => {
         ) : (
           <div className="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-3 tw-gap-8">
             {wishlistItems.map((item) => {
+              if (!item) return null;
               const isDayuse = item.duration_days === 1;
               const tagText = isDayuse 
                 ? (lang === 'AR' ? 'استجمام حصري' : 'PRIVATE SANCTUARY')

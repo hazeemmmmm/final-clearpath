@@ -24,8 +24,11 @@ export const createNewBooking = async (userId, data) => {
         if (!trip) throw new Error("Custom Trip not found");
         bookingData.customTrip = customTrip;
         bookingData.booking_type = 'Trip';
-        basePrice = trip.total_price;
-        originalAmount = trip.original_price || trip.total_price;
+        
+        // Sum up experience base_price and custom trip's activities total_price
+        const expBase = trip.experience ? (trip.experience.base_price || 0) : 0;
+        basePrice = trip.total_price + expBase;
+        originalAmount = (trip.original_price || trip.total_price) + expBase;
         if (trip.ai_discount_applied) {
             bookingData.discount_amount = trip.discount_amount;
             bookingData.ai_discount_applied = true;

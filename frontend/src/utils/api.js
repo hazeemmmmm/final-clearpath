@@ -286,3 +286,9 @@ export const recommendSupervisors = async (payload) =>
     headers: getHeaders(true),
     body: JSON.stringify(payload)
   });
+
+export const getTripExtensions = async (currentTripEndDate) =>
+  apiCall(`${BASE_URL}/experience/extensions?currentTripEndDate=${currentTripEndDate}`, {
+    method: 'GET',
+    headers: getHeaders(true)
+  });

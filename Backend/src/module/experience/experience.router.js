@@ -15,6 +15,9 @@ router.get("/supervisor/me", authMiddleware, allowTo("supervisor"), experienceCo
 //  Get Filter Options
 router.get("/filter-options", experienceController.getFilterOptions);
 
+//  Get Extensions starting the next day for trip chaining
+router.get("/extensions", experienceController.getExtensions);
+
 //  Get one experience
 router.get("/:id", experienceController.getOne);
 

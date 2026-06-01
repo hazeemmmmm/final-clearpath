@@ -85,13 +85,16 @@ Respond ONLY with a JSON object containing keys "destination" and "budget".
 
 User message: "${userMessage}"
 `;
-        const extractionResult = await extractionModel.generateContent(extractionPrompt);
+        const extractionResult = await Promise.race([
+          extractionModel.generateContent(extractionPrompt),
+          new Promise((_, reject) => setTimeout(() => reject(new Error("Extraction timed out")), 1500))
+        ]);
         const responseText = extractionResult.response.text().trim();
         const parsed = JSON.parse(responseText);
         extractedDestination = parsed.destination;
         extractedBudget = parsed.budget;
       } catch (err) {
-        console.error("Gemini extraction error:", err);
+        console.error("Gemini extraction error or timeout:", err);
       }
     }
 
@@ -237,13 +240,28 @@ User message: "${userMessage}"
             history: formattedHistory,
           });
 
-          // Send the new message to get response
-          const result = await chat.sendMessage(userMessage);
+          // Send the new message with a 2.2 seconds timeout
+          const result = await Promise.race([
+            chat.sendMessage(userMessage),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("Gemini response timed out")), 2200))
+          ]);
           aiReply = result.response.text();
 
         } catch (error) {
-          console.error("Gemini AI API Error:", error);
-          aiReply = `🤖 [AI Error]: Sorry, I encountered an issue while generating a response. (${error.message || "Unknown error"})`;
+          console.error("Gemini AI API Error (falling back to local AI rules):", error);
+          
+          // GRACEFUL FALLBACK: Use smart local rule-based system so the chat NEVER crashes!
+          if (recommendedPackages.length > 0) {
+            aiReply = `I have successfully checked our database and found ${recommendedPackages.length} matching premium travel experiences for you! You can view their details or book them directly using the interactive cards below. Let me know if you would like to adjust your destination or budget!`;
+          } else {
+            // General friendly fallback response that answers in a helpful way
+            const isArabic = userMessage.match(/[\u0600-\u06FF]/);
+            if (isArabic) {
+              aiReply = `مرحباً بك! أنا مساعد ClearPath الذكي. لمساعدتك في التخطيط لرحلتك المميزة في مصر، يمكنك:\n1. استكشاف الوجهات الرائعة المتوفرة على منصتنا.\n2. تصميم رحلتك الخاصة بالكامل (Custom Trip) وإضافة الفنادق والأنشطة التي تفضلها.\n3. تصفح وحجز الرحلات الفاخرة الجاهزة.\n\nما هي المدينة التي ترغب في زيارتها، أو ما هي ميزانيتك المتوقعة بالجنيه المصري؟`;
+            } else {
+              aiReply = `Welcome! I am your ClearPath AI Assistant. To help you plan your premium experience in Egypt, you can:\n1. Explore our hand-picked destinations.\n2. Design your own custom itinerary by adding activities, hotels, and tours.\n3. Book pre-planned luxury packages directly.\n\nTell me which city you would like to explore or share your budget in EGP, and I will find the perfect packages for you!`;
+            }
+          }
         }
       }
     }

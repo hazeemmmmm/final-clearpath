@@ -10,10 +10,11 @@ import './Payment.css';
 const Payment = () => {
   const [loading, setLoading] = useState(false);
   const [bookingLoading, setBookingLoading] = useState(true);
-  const [bookingData, setBookingData] = useState(null);
-  const [selectedCurrency, setSelectedCurrency] = useState('EGP'); 
+  const [bookingData, setBookingData] = useState(null);         // single booking
+  const [chainBookings, setChainBookings] = useState([]);       // multiple bookings (chain)
+  const [selectedCurrency, setSelectedCurrency] = useState('EGP');
   const [message, setMessage] = useState('');
-  
+
   // Promo Code State
   const [promoCode, setPromoCode] = useState('');
   const [discountPercent, setDiscountPercent] = useState(0);
@@ -25,19 +26,27 @@ const Payment = () => {
   const token = useSelector((state) => state.auth?.token) || localStorage.getItem('clearpath_access_token') || localStorage.getItem('token');
   const bookingId = localStorage.getItem('currentBookingId');
 
+  // Detect chain booking mode
+  const chainIdsRaw = localStorage.getItem('currentChainBookingIds');
+  const chainBookingIds = chainIdsRaw ? JSON.parse(chainIdsRaw) : null;
+  const isChainPayment = chainBookingIds && chainBookingIds.length > 1;
+
   useEffect(() => {
     window.scrollTo(0, 0);
     if (!token) {
       navigate('/login');
       return;
     }
-    if (!bookingId) {
+    if (isChainPayment) {
+      fetchAllChainBookings(chainBookingIds);
+    } else if (bookingId) {
+      fetchBookingInfo();
+    } else {
       setBookingLoading(false);
-      return;
     }
-    fetchBookingInfo();
   }, [bookingId, token]);
 
+  // Load a single booking
   const fetchBookingInfo = async () => {
     try {
       setBookingLoading(true);
@@ -52,17 +61,38 @@ const Payment = () => {
     }
   };
 
-  const handleApplyPromo = async () => {
-    if (!promoCode || !bookingId) return;
+  // Load ALL bookings in the chain
+  const fetchAllChainBookings = async (ids) => {
     try {
-      const res = await applyCoupon(bookingId, promoCode.trim().toUpperCase());
+      setBookingLoading(true);
+      const results = await Promise.all(
+        ids.map(async (id) => {
+          const res = await getBookingDetails(id);
+          return res.booking || res.data || res;
+        })
+      );
+      setChainBookings(results.filter(Boolean));
+    } catch (err) {
+      console.error('Failed to load chain booking details', err);
+      setMessage(lang === 'AR' ? 'فشل في تحميل تفاصيل الحجوزات.' : 'Failed to load booking details.');
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
+  const handleApplyPromo = async () => {
+    const targetId = isChainPayment ? chainBookingIds[0] : bookingId;
+    if (!promoCode || !targetId) return;
+    try {
+      const res = await applyCoupon(targetId, promoCode.trim().toUpperCase());
       if (res?.discount || res?.discountPercent || res?.data?.discountPercent) {
         const pct = res.discountPercent || res.data?.discountPercent || res.discount || 0;
         setDiscountPercent(pct);
         alert(`✅ Promo code applied! ${pct}% discount.`);
       } else {
         alert('✅ Coupon applied! Refreshing booking...');
-        fetchBookingInfo(); // Refresh booking with updated price from server
+        if (isChainPayment) fetchAllChainBookings(chainBookingIds);
+        else fetchBookingInfo();
       }
     } catch (err) {
       console.error(err);
@@ -77,7 +107,7 @@ const Payment = () => {
       return;
     }
 
-    if (!bookingId) {
+    if (!bookingId && !isChainPayment) {
       setMessage(lang === 'AR' ? 'لم يتم العثور على أي حجز. يرجى اختيار تجربة وحجزها أولاً.' : 'No booking selected. Please choose a package before paying.');
       return;
     }
@@ -91,11 +121,29 @@ const Payment = () => {
     setLoading(true);
     setMessage('');
     try {
-      const response = await processPayment(bookingId, selectedCurrency);
-      if (response.approvalUrl) {
-        window.location.href = response.approvalUrl;
+      if (isChainPayment) {
+        // Pay for all chain bookings sequentially — redirect to first Stripe URL
+        // Store remaining IDs so PaymentSuccess can chain them
+        const [firstId, ...remainingIds] = chainBookingIds;
+        if (remainingIds.length > 0) {
+          localStorage.setItem('pendingChainBookingIds', JSON.stringify(remainingIds));
+        }
+        localStorage.removeItem('currentChainBookingIds');
+        localStorage.setItem('currentBookingId', firstId);
+
+        const response = await processPayment(firstId, selectedCurrency);
+        if (response.approvalUrl) {
+          window.location.href = response.approvalUrl;
+        } else {
+          setMessage(lang === 'AR' ? 'تم إنشاء جلسة الدفع، ولكن لم يتم إرجاع رابط التوجيه.' : 'Payment session created, but no redirect URL was returned.');
+        }
       } else {
-        setMessage(lang === 'AR' ? 'تم إنشاء جلسة الدفع، ولكن لم يتم إرجاع رابط التوجيه.' : 'Payment session created successfully, but no redirect URL was returned.');
+        const response = await processPayment(bookingId, selectedCurrency);
+        if (response.approvalUrl) {
+          window.location.href = response.approvalUrl;
+        } else {
+          setMessage(lang === 'AR' ? 'تم إنشاء جلسة الدفع، ولكن لم يتم إرجاع رابط التوجيه.' : 'Payment session created successfully, but no redirect URL was returned.');
+        }
       }
     } catch (err) {
       console.error(err);
@@ -105,15 +153,24 @@ const Payment = () => {
     }
   };
 
-  const originalEgp = bookingData?.total_amount || bookingData?.totalPrice || bookingData?.price || 0;
-  const discountedEgp = originalEgp - (originalEgp * (discountPercent / 100));
-  const finalEgp = discountedEgp;
+  // ── Price calculations ──────────────────────────────────────────────────────
+  let originalEgp, finalEgp;
+  if (isChainPayment && chainBookings.length > 0) {
+    originalEgp = chainBookings.reduce((sum, b) => sum + (b?.total_amount || b?.totalPrice || b?.price || 0), 0);
+  } else {
+    originalEgp = bookingData?.total_amount || bookingData?.totalPrice || bookingData?.price || 0;
+  }
+  finalEgp = originalEgp - (originalEgp * (discountPercent / 100));
   const calculatedUsd = parseFloat((finalEgp / 50).toFixed(2));
+
+  // ── Primary booking ref display ─────────────────────────────────────────────
+  const primaryId = isChainPayment ? chainBookingIds?.[0] : bookingId;
+  const hasBooking = isChainPayment ? chainBookingIds?.length > 0 : !!bookingId;
 
   return (
     <div className={`payment-page-wrapper ${lang === 'AR' ? 'lang-ar' : ''}`}>
       <Navbar lang={lang} isScrolled={true} />
-      
+
       <main className="payment-main-content">
         <div className="payment-card-premium">
           <div className="payment-badge-secure">
@@ -127,8 +184,8 @@ const Payment = () => {
 
           <h2>{lang === 'AR' ? 'بوابة الدفع الآمنة' : 'Secure Checkout'}</h2>
           <p className="payment-desc">
-            {lang === 'AR' 
-              ? 'راجع تفاصيل حجزك واختر العملة المفضلة لديك أدناه. سيتم توجيهك بأمان إلى صفحة الدفع الخاصة بـ Stripe لإتمام الدفع.' 
+            {lang === 'AR'
+              ? 'راجع تفاصيل حجزك واختر العملة المفضلة لديك أدناه. سيتم توجيهك بأمان إلى صفحة الدفع الخاصة بـ Stripe لإتمام الدفع.'
               : 'Verify your booking details and select your preferred currency below. You will be securely redirected to Stripe Hosted Checkout.'}
           </p>
 
@@ -137,53 +194,117 @@ const Payment = () => {
               <i className="stripe-spinner" style={{ display: 'block', margin: '0 auto 10px' }}></i>
               <span>{lang === 'AR' ? 'جاري تحميل تفاصيل الحجز...' : 'Loading booking details...'}</span>
             </div>
-          ) : !bookingId ? (
+          ) : !hasBooking ? (
             <div className="payment-error-toast" style={{ justifyContent: 'center' }}>
               <i className="fa-solid fa-triangle-exclamation"></i>
               {lang === 'AR' ? 'لم يتم تحديد حجز حالي!' : 'No booking selected!'}
             </div>
           ) : (
             <form onSubmit={handlePayment}>
-              
-
 
               <div className="booking-summary-box">
                 <div className="summary-title-main">
                   <i className="fa-solid fa-receipt"></i>
-                  {lang === 'AR' ? 'ملخص الحجز والتفاصيل' : 'Booking & Trip Summary'}
+                  {isChainPayment
+                    ? (lang === 'AR' ? 'ملخص سلسلة الرحلات' : 'Trip Chain Summary')
+                    : (lang === 'AR' ? 'ملخص الحجز والتفاصيل' : 'Booking & Trip Summary')}
                 </div>
 
-                <div className="summary-detail-row">
-                  <span>{lang === 'AR' ? 'رقم مرجع الحجز:' : 'Booking Ref:'}</span>
-                  <span className="detail-val">#{bookingId.slice(-6).toUpperCase()}</span>
-                </div>
+                {/* ── Chain Mode: list every trip ─────────────────────────── */}
+                {isChainPayment ? (
+                  <>
+                    {/* Chain badge */}
+                    <div style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '6px',
+                      background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.4)',
+                      borderRadius: '20px', padding: '4px 12px', marginBottom: '16px',
+                      color: '#f59e0b', fontSize: '0.78rem', fontWeight: '700', letterSpacing: '0.05em'
+                    }}>
+                      <i className="fa-solid fa-link"></i>
+                      {lang === 'AR' ? `${chainBookings.length} رحلات مرتبطة` : `${chainBookings.length} Chained Trips`}
+                    </div>
 
-                <div className="summary-detail-row">
-                  <span>{lang === 'AR' ? 'الرحلة / التجربة:' : 'Experience:'}</span>
-                  <span className="detail-val">
-                    {bookingData?.experience?.name || bookingData?.customTrip?.experience?.name || (lang === 'AR' ? 'باقة سياحية مميزة' : 'Premium Package')}
-                  </span>
-                </div>
+                    {/* Booking ref of primary */}
+                    <div className="summary-detail-row">
+                      <span>{lang === 'AR' ? 'رقم مرجع الحجز الرئيسي:' : 'Primary Booking Ref:'}</span>
+                      <span className="detail-val">#{primaryId?.slice(-6).toUpperCase()}</span>
+                    </div>
 
-                <div className="summary-detail-row">
-                  <span>{lang === 'AR' ? 'عدد المسافرين:' : 'Guests:'}</span>
-                  <span className="detail-val">
-                    {bookingData?.numberOfGuests || 1} {lang === 'AR' ? 'أفراد' : 'Guests'}
-                  </span>
-                </div>
+                    {/* Individual trip rows */}
+                    <div style={{ margin: '16px 0', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {chainBookings.map((b, idx) => {
+                        const expName = b?.experience?.name || b?.customTrip?.experience?.name
+                          || (lang === 'AR' ? 'باقة سياحية' : 'Travel Package');
+                        const amt = b?.total_amount || b?.totalPrice || b?.price || 0;
+                        const guests = b?.numberOfGuests || 1;
+                        return (
+                          <div key={b?._id || idx} style={{
+                            background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(245,158,11,0.2)',
+                            borderRadius: '12px', padding: '12px 16px',
+                            display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px'
+                          }}>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                <span style={{
+                                  background: 'rgba(245,158,11,0.15)', color: '#f59e0b',
+                                  borderRadius: '50%', width: '22px', height: '22px',
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  fontSize: '0.7rem', fontWeight: '900', flexShrink: 0
+                                }}>{idx + 1}</span>
+                                <span style={{ color: '#fff', fontWeight: '700', fontSize: '0.9rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {expName}
+                                </span>
+                              </div>
+                              <span style={{ color: '#94a3b8', fontSize: '0.78rem' }}>
+                                {guests} {lang === 'AR' ? 'مسافر' : 'Guests'}
+                                {b?._id && <span style={{ marginLeft: '8px', opacity: 0.6 }}>· #{b._id.slice(-6).toUpperCase()}</span>}
+                              </span>
+                            </div>
+                            <span style={{ color: '#f59e0b', fontWeight: '900', fontSize: '0.95rem', flexShrink: 0 }}>
+                              {amt.toLocaleString()} EGP
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                ) : (
+                  /* ── Single booking mode ───────────────────────────────── */
+                  <>
+                    <div className="summary-detail-row">
+                      <span>{lang === 'AR' ? 'رقم مرجع الحجز:' : 'Booking Ref:'}</span>
+                      <span className="detail-val">#{bookingId?.slice(-6).toUpperCase()}</span>
+                    </div>
 
+                    <div className="summary-detail-row">
+                      <span>{lang === 'AR' ? 'الرحلة / التجربة:' : 'Experience:'}</span>
+                      <span className="detail-val">
+                        {bookingData?.experience?.name || bookingData?.customTrip?.experience?.name || (lang === 'AR' ? 'باقة سياحية مميزة' : 'Premium Package')}
+                      </span>
+                    </div>
+
+                    <div className="summary-detail-row">
+                      <span>{lang === 'AR' ? 'عدد المسافرين:' : 'Guests:'}</span>
+                      <span className="detail-val">
+                        {bookingData?.numberOfGuests || 1} {lang === 'AR' ? 'أفراد' : 'Guests'}
+                      </span>
+                    </div>
+                  </>
+                )}
+
+                {/* Promo code */}
                 <div className="promo-section" style={{ marginTop: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px' }}>
                   <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.9rem', marginBottom: '8px' }}>Have a Promo Code?</label>
                   <div style={{ display: 'flex', gap: '10px' }}>
-                    <input 
-                      type="text" 
-                      value={promoCode} 
-                      onChange={(e) => setPromoCode(e.target.value)} 
-                      placeholder="e.g. LUXURY15" 
+                    <input
+                      type="text"
+                      value={promoCode}
+                      onChange={(e) => setPromoCode(e.target.value)}
+                      placeholder="e.g. LUXURY15"
                       style={{ flex: 1, padding: '10px 15px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(212, 175, 55, 0.3)', color: '#fff', borderRadius: '8px', textTransform: 'uppercase' }}
                     />
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={handleApplyPromo}
                       style={{ background: '#d4af37', color: '#000', border: 'none', padding: '0 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
                     >
@@ -197,8 +318,10 @@ const Payment = () => {
                   )}
                 </div>
 
+                {/* Price summary */}
                 <div className="price-summary-box">
-                  {bookingData?.ai_discount_applied && (
+                  {/* AI discount (single booking only) */}
+                  {!isChainPayment && bookingData?.ai_discount_applied && (
                     <>
                       <div className="summary-row" style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', textDecoration: 'line-through' }}>
                         <span>{lang === 'AR' ? 'السعر الأصلي:' : 'Original Price:'}</span>
@@ -210,27 +333,40 @@ const Payment = () => {
                       </div>
                     </>
                   )}
-                  {discountPercent > 0 && !bookingData?.ai_discount_applied && (
+
+                  {discountPercent > 0 && (
                     <div className="summary-row" style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981', fontWeight: 'bold' }}>
                       <span><i className="fa-solid fa-ticket"></i> {lang === 'AR' ? 'خصم البرومو كود:' : 'Promo Discount:'}</span>
                       <span>- {discountPercent}%</span>
                     </div>
                   )}
-                  
+
+                  {/* Chain payment info note */}
+                  {isChainPayment && (
+                    <div style={{
+                      background: 'rgba(245,158,11,0.07)', border: '1px dashed rgba(245,158,11,0.3)',
+                      borderRadius: '10px', padding: '10px 14px', marginTop: '12px',
+                      color: '#94a3b8', fontSize: '0.78rem', lineHeight: '1.5'
+                    }}>
+                      <i className="fa-solid fa-circle-info" style={{ color: '#f59e0b', marginRight: '6px' }}></i>
+                      {lang === 'AR'
+                        ? 'سيتم معالجة الدفع لكل رحلة على حدة عبر Stripe بشكل متسلسل.'
+                        : 'Payment will be processed for each trip sequentially via Stripe.'}
+                    </div>
+                  )}
+
                   <div className="summary-row total-row" style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between' }}>
                     <span className="total-lbl">{lang === 'AR' ? 'الإجمالي المستحق للدفع:' : 'Total Amount Payable:'}</span>
                     <strong className="total-val">
-                      {selectedCurrency === 'EGP' ? `${finalEgp} EGP` : `$${calculatedUsd} USD`}
+                      {selectedCurrency === 'EGP' ? `${finalEgp.toLocaleString()} EGP` : `$${calculatedUsd} USD`}
                     </strong>
                   </div>
                 </div>
               </div>
 
-
-
-              <button 
-                type="submit" 
-                disabled={loading} 
+              <button
+                type="submit"
+                disabled={loading}
                 className="payment-btn-stripe"
               >
                 {loading ? (
@@ -241,7 +377,9 @@ const Payment = () => {
                 ) : (
                   <>
                     <i className="fa-brands fa-stripe" style={{ fontSize: '2rem', marginRight: '4px' }}></i>
-                    {lang === 'AR' ? `ادفع ${selectedCurrency === 'EGP' ? 'الجنيه' : 'الدولار'} عبر Stripe` : `Pay in ${selectedCurrency} via Stripe`}
+                    {isChainPayment
+                      ? (lang === 'AR' ? `ادفع ${chainBookings.length} رحلات عبر Stripe` : `Pay for ${chainBookings.length} Trips via Stripe`)
+                      : (lang === 'AR' ? `ادفع ${selectedCurrency === 'EGP' ? 'الجنيه' : 'الدولار'} عبر Stripe` : `Pay in ${selectedCurrency} via Stripe`)}
                   </>
                 )}
               </button>

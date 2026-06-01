@@ -29,7 +29,8 @@ import {
   removeFromWishlist,
   getPackingGuideForExperience,
   trackInteraction,
-  combineDestination
+  combineDestination,
+  getTripExtensions
 } from '../../utils/api';
 import './PackageDetailsNew.css';
 
@@ -91,6 +92,13 @@ const PackageDetails = () => {
   const [selectedAddons, setSelectedAddons] = useState([]);
   const [expandedDay, setExpandedDay] = useState(1); // Default expand first day
 
+  // Trip Chaining / Modular Extension State
+  const [showChainModal, setShowChainModal] = useState(false);
+  const [chainExperiences, setChainExperiences] = useState([]);
+  const [selectedChainId, setSelectedChainId] = useState('');
+  const [loadingChain, setLoadingChain] = useState(false);
+  const [carouselIndex, setCarouselIndex] = useState(0);
+
   // Wishlist State
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
@@ -109,22 +117,6 @@ const PackageDetails = () => {
     // Play a subtle micro-interaction sound (if possible, else just visual)
   };
 
-  const getActivityImage = (actName = '') => {
-    const name = actName.toLowerCase();
-    if (name.includes('snorkel') || name.includes('beach') || name.includes('sea') || name.includes('boat') || name.includes('water') || name.includes('island')) {
-      return 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=300&q=80';
-    }
-    if (name.includes('pyramid') || name.includes('temple') || name.includes('luxor') || name.includes('cairo') || name.includes('history') || name.includes('museum') || name.includes('mummy')) {
-      return 'https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=300&q=80';
-    }
-    if (name.includes('quad') || name.includes('safari') || name.includes('desert') || name.includes('sand') || name.includes('folklore')) {
-      return 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=300&q=80';
-    }
-    if (name.includes('lunch') || name.includes('dinner') || name.includes('feast') || name.includes('food') || name.includes('bbq') || name.includes('tea') || name.includes('culinary')) {
-      return 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=300&q=80';
-    }
-    return 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=300&q=80';
-  };
 
   const token = localStorage.getItem('token') || localStorage.getItem('clearpath_access_token');
 
@@ -139,6 +131,70 @@ const PackageDetails = () => {
     }
     fetchPackingGuideData();
   }, [id, token]);
+
+  // Fetch dynamic trip chaining extensions starting exactly the next day after current package ends
+  useEffect(() => {
+    const fetchChainingExtensions = async () => {
+      if (!packageData) return;
+      
+      let start = null;
+      if (packageData.availableDates && packageData.availableDates.length > 0) {
+        const validDates = packageData.availableDates
+          .map(d => new Date(d.date))
+          .filter(d => !isNaN(d.getTime()))
+          .sort((a, b) => a - b);
+        if (validDates.length > 0) {
+          start = validDates[0];
+        }
+      }
+      if (!start) {
+        const today = new Date();
+        const nextSat = new Date();
+        nextSat.setDate(today.getDate() + ((6 - today.getDay() + 7) % 7 || 7));
+        start = nextSat;
+      }
+      const duration = packageData.duration_days || 1;
+      const end = new Date(start);
+      end.setDate(start.getDate() + (duration > 1 ? duration - 1 : 0));
+      
+      const endDateStr = end.toISOString().split('T')[0];
+      
+      try {
+        setLoadingChain(true);
+        const res = await getTripExtensions(endDateStr);
+        let filtered = [];
+        if (res && res.success && res.data) {
+          filtered = res.data.filter(exp => exp._id !== id);
+        }
+        
+        // Smart AI Fallback: If no packages are scheduled exactly on the next day, fetch general premium catalog packages
+        // and dynamically project them starting on the next day so the user can test the Trip Chaining slider immediately!
+        if (filtered.length === 0) {
+          const fallbackRes = await getTrips({ limit: 10 });
+          const allExps = fallbackRes.data || fallbackRes;
+          if (allExps && Array.isArray(allExps)) {
+            filtered = allExps
+              .filter(exp => exp._id !== id)
+              .map(exp => ({
+                ...exp,
+                availableDates: [{ date: new Date(end.getTime()) }]
+              }));
+          }
+        }
+
+        setChainExperiences(filtered);
+        if (filtered.length > 0) {
+          setSelectedChainId(filtered[0]._id);
+        }
+      } catch (err) {
+        console.error("Failed to fetch trip extensions:", err);
+      } finally {
+        setLoadingChain(false);
+      }
+    };
+
+    fetchChainingExtensions();
+  }, [packageData, id]);
 
   const fetchPackingGuideData = async () => {
     try {
@@ -681,7 +737,7 @@ const PackageDetails = () => {
       }
 
       const sourceDay = dayusePkg.itinerary?.[0] || {};
-      
+
       const payload = {
         title: dayusePkg.name || sourceDay.title || 'Day Use Plan',
         description: dayusePkg.description || sourceDay.description || 'Pre-designed single-day itinerary.',
@@ -711,10 +767,26 @@ const PackageDetails = () => {
     }
   };
 
-  const handleAddToTripChain = () => {
+  const handleAddToTripChain = async () => {
     if (!packageData) return;
-    const singlePrice = isCustomizing && customTrip 
-      ? customTrip.total_price 
+
+    // Always fetch the latest customTrip from backend to get accurate total_price.
+    // This covers cases where the user customized but toggled the panel off, or state is stale.
+    let latestCustomTrip = customTrip;
+    if (token) {
+      try {
+        const freshRes = await getFinalTrip(id);
+        if (freshRes && freshRes.source === 'customTrip' && freshRes.data) {
+          latestCustomTrip = freshRes.data;
+          setCustomTrip(freshRes.data);
+        }
+      } catch (e) {
+        // silently fall back to current state
+      }
+    }
+
+    const singlePrice = latestCustomTrip
+      ? latestCustomTrip.total_price
       : (packageData.base_price || packageData.price || 0);
 
     const addonsTotal = selectedAddons.reduce((sum, addonId) => {
@@ -731,8 +803,8 @@ const PackageDetails = () => {
       guestCount: guestCount,
       price: totalPrice,
       selectedAddons: selectedAddons,
-      isCustomized: isCustomizing,
-      customTripId: customTrip?._id || null
+      isCustomized: !!latestCustomTrip || isCustomizing,
+      customTripId: latestCustomTrip?._id || customTrip?._id || null
     };
 
     const currentChain = JSON.parse(localStorage.getItem('clearpath_trip_chain') || '[]');
@@ -768,6 +840,88 @@ const PackageDetails = () => {
     } catch (err) {
       console.error('Failed to create booking', err);
       alert(err.message || 'Failed to create booking.');
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
+  const handleLockTripChain = async () => {
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
+    
+    const selectedChainExp = chainExperiences.find(exp => exp._id === selectedChainId);
+    if (!selectedChainExp) {
+      alert(lang === 'AR' ? 'برجاء اختيار رحلة للتمديد' : 'Please select an experience to chain.');
+      return;
+    }
+
+    try {
+      setBookingLoading(true);
+      
+      // 1. Create booking for the current package
+      let res1;
+      if (isCustomizing && customTrip) {
+        res1 = await createBooking({ customTrip: customTrip._id, numberOfGuests: guestCount, selectedAddons });
+      } else {
+        res1 = await createBooking({ experienceId: packageData._id, numberOfGuests: guestCount, selectedAddons });
+      }
+      
+      const booking1 = res1.data || res1.booking || res1;
+      if (!booking1 || !booking1._id) {
+        throw new Error('Could not create booking for current trip.');
+      }
+      
+      // 2. Create booking for the chained package starting next day
+      const res2 = await createBooking({ experienceId: selectedChainExp._id, numberOfGuests: guestCount, selectedAddons: [] });
+      const booking2 = res2.data || res2.booking || res2;
+      
+      localStorage.setItem('currentBookingId', booking1._id);
+      if (booking2 && booking2._id) {
+        localStorage.setItem('chainedBookingId', booking2._id);
+      }
+      
+      // Dynamic Chain item representation in local storage
+      // Use customTrip.total_price if available (includes activities + base), else base_price
+      const chainCurrentAddonsTotal = selectedAddons.reduce((sum, addonId) => {
+        const addon = packageData?.addons?.find(a => a._id === addonId);
+        return sum + (addon ? addon.price : 0);
+      }, 0);
+      const chainCurrentSinglePrice = customTrip
+        ? customTrip.total_price
+        : (packageData.calculatedPrice || packageData.base_price || packageData.price || 0);
+      const chainCurrentTotalPrice = (chainCurrentSinglePrice * guestCount) + chainCurrentAddonsTotal;
+
+      const chainItemCurrent = {
+        id: id,
+        name: packageData.name,
+        image: packageData.image,
+        start: startFormatted,
+        end: endFormatted,
+        guestCount: guestCount,
+        price: chainCurrentTotalPrice,
+        isCustomized: isCustomizing || !!customTrip
+      };
+      
+      const chainItemNext = {
+        id: selectedChainExp._id,
+        name: selectedChainExp.name,
+        image: selectedChainExp.image,
+        start: new Date(end.getTime()).toLocaleDateString(lang === 'AR' ? 'ar-EG' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        end: new Date(end.getTime() + ((selectedChainExp.duration_days || 1) - 1) * 86400000).toLocaleDateString(lang === 'AR' ? 'ar-EG' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        guestCount: guestCount,
+        price: selectedChainExp.calculatedPrice || selectedChainExp.base_price,
+        isCustomized: false
+      };
+      
+      localStorage.setItem('clearpath_trip_chain', JSON.stringify([chainItemCurrent, chainItemNext]));
+      
+      alert(lang === 'AR' ? 'تم ربط سلسلة الرحلات وحجز الرحلتين بنجاح! جاري تحويلك لصفحة الدفع...' : 'Trip chain successfully locked and both trips booked! Redirecting to checkout...');
+      window.location.href = '/payment';
+    } catch (err) {
+      console.error('Failed to chain trips booking:', err);
+      alert(err.message || 'Failed to lock trip chain.');
     } finally {
       setBookingLoading(false);
     }
@@ -965,12 +1119,6 @@ const PackageDetails = () => {
           </div>
         ) : packageData ? (
           <>
-            {/* Top Breadcrumb */}
-            <div className="breadcrumb">
-              <Link to="/">Home</Link> <i className="fa-solid fa-chevron-right"></i> 
-              <Link to={packageData.type === 'Trip' ? '/trips' : '/dayuse'}>{packageData.type === 'Trip' ? 'Trips' : 'Day Use'}</Link> 
-              <i className="fa-solid fa-chevron-right"></i> <span>{packageData.name || packageData.title}</span>
-            </div>
 
             {/* Main Grid */}
             <div className="package-grid">
@@ -1615,169 +1763,161 @@ const PackageDetails = () => {
                           const finalAddActivityOptions = optionalActs.length > 0 ? optionalActs : activitiesList;
 
                           return (
-                            <div key={day.day_number} className={`tw-bg-white dark:tw-bg-[#15171a] tw-border tw-border-slate-200 dark:tw-border-slate-800 tw-rounded-2xl tw-shadow-sm ${packageData.type === 'Day Use' ? 'day-use-timeline' : 'trip-accordion'}`} style={{ 
-                              background: packageData.type === 'Day Use' ? 'transparent' : 'transparent', 
-                              border: packageData.type === 'Day Use' ? 'none' : (isDayRemoved ? '1px solid var(--border-light, #333)' : '1.5px solid #f59e0b'),
-                              borderRadius: packageData.type === 'Day Use' ? '0' : '16px', 
+                            <div key={day.day_number} className="tw-bg-white dark:tw-bg-[#15171a] tw-border tw-border-slate-200 dark:tw-border-slate-800 tw-rounded-2xl tw-shadow-sm trip-accordion" style={{ 
+                              background: 'transparent', 
+                              border: isDayRemoved ? '1px solid var(--border-light, #333)' : '1.5px solid #f59e0b',
+                              borderRadius: '16px', 
                               overflow: 'hidden',
-                              marginBottom: packageData.type === 'Day Use' ? '0' : '30px',
+                              marginBottom: '30px',
                               opacity: isDayRemoved ? 0.6 : 1,
                               transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                              boxShadow: packageData.type === 'Day Use' ? 'none' : 'var(--box-shadow-soft)',
+                              boxShadow: 'var(--box-shadow-soft)',
                               display: 'flex',
                               flexDirection: 'column',
-                              position: 'relative',
-                              paddingLeft: packageData.type === 'Day Use' ? '30px' : '0',
-                              borderLeft: packageData.type === 'Day Use' ? '3px solid #f59e0b' : 'none',
-                              paddingBottom: packageData.type === 'Day Use' ? '30px' : '0'
+                              position: 'relative'
                             }}>
-                              {packageData.type === 'Day Use' && (
-                                <div style={{ position: 'absolute', left: '-12px', top: '0', width: '20px', height: '20px', borderRadius: '50%', background: '#f59e0b', border: '4px solid #14141f' }}></div>
-                              )}
                               
-                              {/* 🖼️ Scenic Airbnb-style Day Illustration Image Banner (Only for Trips) */}
-                              {packageData.type === 'Trip' && (
-                                <div 
-                                  className="day-image-banner" 
-                                  onClick={() => setExpandedDay(expandedDay === day.day_number ? null : day.day_number)}
-                                  style={{ 
-                                    height: expandedDay === day.day_number ? '220px' : '100px', 
-                                    position: 'relative',
-                                    background: '#121212',
-                                    overflow: 'hidden',
-                                    cursor: 'pointer',
-                                    transition: 'height 0.3s ease'
-                                  }}
-                                >
-                                  <img 
-                                    src={day.image || packageData.image || 'https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=1200&q=80'} 
-                                    alt={day.title || `Day ${day.day_number}`} 
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s' }}
-                                  />
-                                  
-                                  {/* Overlay Gradient */}
-                                  <div style={{
-                                    position: 'absolute',
-                                    left: 0, right: 0, top: 0, bottom: 0,
-                                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.85) 100%)'
-                                  }}></div>
+                              {/* 🖼️ Scenic Airbnb-style Day Illustration Image Banner */}
+                              <div 
+                                className="day-image-banner" 
+                                onClick={() => setExpandedDay(expandedDay === day.day_number ? null : day.day_number)}
+                                style={{ 
+                                  height: expandedDay === day.day_number ? '220px' : '100px', 
+                                  position: 'relative',
+                                  background: '#121212',
+                                  overflow: 'hidden',
+                                  cursor: 'pointer',
+                                  transition: 'height 0.3s ease'
+                                }}
+                              >
+                                <img 
+                                  src={day.image || packageData.image || 'https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=1200&q=80'} 
+                                  alt={day.title || `Day ${day.day_number}`} 
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s' }}
+                                />
+                                
+                                {/* Overlay Gradient */}
+                                <div style={{
+                                  position: 'absolute',
+                                  left: 0, right: 0, top: 0, bottom: 0,
+                                  background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.85) 100%)'
+                                }}></div>
 
-                                  {/* Custom Day Number Badge */}
-                                  <div className="day-number-badge" style={{
-                                    position: 'absolute',
-                                    top: '15px',
-                                    left: '15px',
-                                    background: isDayRemoved ? '#555' : '#f59e0b',
-                                    color: '#000000',
-                                    padding: '5px 12px',
-                                    borderRadius: '20px',
-                                    fontWeight: '800',
-                                    fontSize: '0.8rem',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.5px',
-                                    zIndex: 2
-                                  }}>
-                                    Day {day.day_number}
-                                  </div>
-
-                                  {/* Accordion Icon */}
-                                  <div style={{
-                                    position: 'absolute',
-                                    top: '15px',
-                                    right: '15px',
-                                    color: '#fff',
-                                    fontSize: '1.2rem',
-                                    transition: 'transform 0.3s',
-                                    transform: expandedDay === day.day_number ? 'rotate(180deg)' : 'rotate(0deg)'
-                                  }}>
-                                    <i className="fa-solid fa-chevron-down"></i>
-                                  </div>
-
-                                  {/* Day Calendar Date Badge */}
-                                  <div className="day-calendar-date-badge" style={{
-                                    position: 'absolute',
-                                    top: '15px',
-                                    left: '95px',
-                                    background: 'rgba(0, 0, 0, 0.75)',
-                                    color: '#fff',
-                                    padding: '5px 12px',
-                                    borderRadius: '20px',
-                                    fontWeight: '700',
-                                    fontSize: '0.78rem',
-                                    border: '1px solid rgba(255,255,255,0.2)',
-                                    zIndex: 2,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '5px'
-                                  }}>
-                                    <i className="fa-solid fa-calendar-day" style={{ color: '#f59e0b' }}></i>
-                                    {getDayDate(day.day_number)}
-                                  </div> 
-
-                                  {/* Day Title Heading */}
-                                  <h3 style={{ 
-                                    position: 'absolute',
-                                    bottom: '15px',
-                                    left: '20px',
-                                    right: '20px',
-                                    color: '#ffffff',
-                                    margin: 0,
-                                    fontSize: expandedDay === day.day_number ? '1.4rem' : '1.2rem',
-                                    fontWeight: '800',
-                                    textShadow: '0 2px 4px rgba(0,0,0,0.5)',
-                                    textDecoration: isDayRemoved ? 'line-through' : 'none',
-                                    transition: 'all 0.3s ease'
-                                  }}>
-                                    {day.title || (lang === 'AR' ? `مخطط اليوم ${day.day_number}` : `Day ${day.day_number} Itinerary Plan`)}
-                                  </h3>
-
-                                  {/* 🗑️ Delete / Restore Day Button — visible only when expanded */}
-                                  {expandedDay === day.day_number && (
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleToggleDayCheckbox(day.day_number);
-                                      }}
-                                      title={isDayRemoved
-                                        ? (lang === 'AR' ? 'استعادة اليوم' : 'Restore Day')
-                                        : (lang === 'AR' ? 'حذف اليوم' : 'Delete Day')}
-                                      style={{
-                                        position: 'absolute',
-                                        bottom: '15px',
-                                        right: '15px',
-                                        background: isDayRemoved ? 'rgba(34,197,94,0.85)' : 'rgba(239,68,68,0.85)',
-                                        color: '#fff',
-                                        border: 'none',
-                                        borderRadius: '10px',
-                                        padding: '7px 14px',
-                                        fontSize: '0.82rem',
-                                        fontWeight: '700',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '6px',
-                                        zIndex: 10,
-                                        backdropFilter: 'blur(4px)',
-                                        boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-                                        transition: 'all 0.2s ease',
-                                        letterSpacing: '0.3px'
-                                      }}
-                                      onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-                                      onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                                    >
-                                      <i className={isDayRemoved ? 'fa-solid fa-rotate-left' : 'fa-solid fa-trash'}></i>
-                                      {isDayRemoved
-                                        ? (lang === 'AR' ? 'استعادة' : 'Restore')
-                                        : (lang === 'AR' ? 'حذف اليوم' : 'Delete Day')}
-                                    </button>
-                                  )}
+                                {/* Custom Day Number Badge */}
+                                <div className="day-number-badge" style={{
+                                  position: 'absolute',
+                                  top: '15px',
+                                  left: '15px',
+                                  background: isDayRemoved ? '#555' : '#f59e0b',
+                                  color: '#000000',
+                                  padding: '5px 12px',
+                                  borderRadius: '20px',
+                                  fontWeight: '800',
+                                  fontSize: '0.8rem',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.5px',
+                                  zIndex: 2
+                                }}>
+                                  Day {day.day_number}
                                 </div>
-                              )}
+
+                                {/* Accordion Icon */}
+                                <div style={{
+                                  position: 'absolute',
+                                  top: '15px',
+                                  right: '15px',
+                                  color: '#fff',
+                                  fontSize: '1.2rem',
+                                  transition: 'transform 0.3s',
+                                  transform: expandedDay === day.day_number ? 'rotate(180deg)' : 'rotate(0deg)'
+                                }}>
+                                  <i className="fa-solid fa-chevron-down"></i>
+                                </div>
+
+                                {/* Day Calendar Date Badge */}
+                                <div className="day-calendar-date-badge" style={{
+                                  position: 'absolute',
+                                  top: '15px',
+                                  left: '95px',
+                                  background: 'rgba(0, 0, 0, 0.75)',
+                                  color: '#fff',
+                                  padding: '5px 12px',
+                                  borderRadius: '20px',
+                                  fontWeight: '700',
+                                  fontSize: '0.78rem',
+                                  border: '1px solid rgba(255,255,255,0.2)',
+                                  zIndex: 2,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '5px'
+                                }}>
+                                  <i className="fa-solid fa-calendar-day" style={{ color: '#f59e0b' }}></i>
+                                  {getDayDate(day.day_number)}
+                                </div> 
+
+                                {/* Day Title Heading */}
+                                <h3 style={{ 
+                                  position: 'absolute',
+                                  bottom: '15px',
+                                  left: '20px',
+                                  right: '20px',
+                                  color: '#ffffff',
+                                  margin: 0,
+                                  fontSize: expandedDay === day.day_number ? '1.4rem' : '1.2rem',
+                                  fontWeight: '800',
+                                  textShadow: '0 2px 4px rgba(0,0,0,0.5)',
+                                  textDecoration: isDayRemoved ? 'line-through' : 'none',
+                                  transition: 'all 0.3s ease'
+                                }}>
+                                  {day.title || (lang === 'AR' ? `مخطط اليوم ${day.day_number}` : `Day ${day.day_number} Itinerary Plan`)}
+                                </h3>
+
+                                {/* 🗑️ Delete / Restore Day Button — visible only when expanded */}
+                                {expandedDay === day.day_number && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleToggleDayCheckbox(day.day_number);
+                                    }}
+                                    title={isDayRemoved
+                                      ? (lang === 'AR' ? 'استعادة اليوم' : 'Restore Day')
+                                      : (lang === 'AR' ? 'حذف اليوم' : 'Delete Day')}
+                                    style={{
+                                      position: 'absolute',
+                                      bottom: '15px',
+                                      right: '15px',
+                                      background: isDayRemoved ? 'rgba(34,197,94,0.85)' : 'rgba(239,68,68,0.85)',
+                                      color: '#fff',
+                                      border: 'none',
+                                      borderRadius: '10px',
+                                      padding: '7px 14px',
+                                      fontSize: '0.82rem',
+                                      fontWeight: '700',
+                                      cursor: 'pointer',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '6px',
+                                      zIndex: 10,
+                                      backdropFilter: 'blur(4px)',
+                                      boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                                      transition: 'all 0.2s ease',
+                                      letterSpacing: '0.3px'
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                                  >
+                                    <i className={isDayRemoved ? 'fa-solid fa-rotate-left' : 'fa-solid fa-trash'}></i>
+                                    {isDayRemoved
+                                      ? (lang === 'AR' ? 'استعادة' : 'Restore')
+                                      : (lang === 'AR' ? 'حذف اليوم' : 'Delete Day')}
+                                  </button>
+                                )}
+                              </div>
                               
                               <div className="day-card-body" style={{ 
-                                padding: packageData.type === 'Day Use' ? '0 15px' : '20px 25px', 
+                                padding: '20px 25px', 
                                 flex: '1', 
-                                display: (packageData.type === 'Day Use' || expandedDay === day.day_number) ? 'flex' : 'none', 
+                                display: (expandedDay === day.day_number) ? 'flex' : 'none', 
                                 flexDirection: 'column', 
                                 gap: '15px' 
                               }}>
@@ -2167,17 +2307,14 @@ const PackageDetails = () => {
                               </h4>
                               <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: '0', lineHeight: '1.4' }}>
                                 {lang === 'AR'
-                                  ? `رحلتك الحالية تنتهي في ${endFormatted}. يمكنك فوراً حجز رحلة أخرى أو داي يوز يبدأ من اليوم التالي (${new Date(end.getTime() + 86400000).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric', year: 'numeric' })}) لبناء سلسلة رحلات متصلة وخلق تجربة خالية من الفجوات الموقوتة!`
-                                  : `Your current experience ends on ${endFormatted}. You can instantly stack another package or dayuse starting the next day (${new Date(end.getTime() + 86400000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}) to build a seamless Trip Chain without overlapping schedules!`}
+                                  ? `رحلتك الحالية تنتهي في ${endFormatted}. يمكنك فوراً حجز رحلة أخرى أو داي يوز يبدأ في نفس اليوم (${endFormatted}) لبناء سلسلة رحلات متصلة وخلق تجربة خالية من الفجوات الموقوتة!`
+                                  : `Your current experience ends on ${endFormatted}. You can instantly stack another package or dayuse starting the same day (${endFormatted}) to build a seamless Trip Chain without overlapping schedules!`}
                               </p>
                               
                               <button
                                 type="button"
                                 onClick={() => {
-                                  const nextDay = new Date(end);
-                                  nextDay.setDate(end.getDate() + 1);
-                                  const nextDayStr = nextDay.toISOString().split('T')[0];
-                                  window.location.href = `/experiences?chainStartDate=${nextDayStr}`;
+                                  setShowChainModal(true);
                                 }}
                                 style={{
                                   width: 'fit-content',
@@ -2206,342 +2343,6 @@ const PackageDetails = () => {
                           </div>
                         )}
 
-                        {/* Timeline Node for Adding a New Day / Destination */}
-                        {isCustomizing && customTrip && (
-                          <div className="add-day-timeline-node" style={{ display: 'flex', flexDirection: 'column', gap: '15px', borderLeft: '2px dashed rgba(212, 175, 55, 0.5)', paddingLeft: '20px', position: 'relative', marginTop: '30px', minHeight: '60px' }}>
-                            
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '15px', position: 'relative' }}>
-                              <button 
-                                className="btn-add-day-plus"
-                                type="button"
-                                onClick={() => {
-                                  const nextDayNum = displayItinerary.length + 1;
-                                  setShowAddActivityDay(nextDayNum);
-                                }}
-                                style={{
-                                  position: 'absolute',
-                                  left: '-38px',
-                                  width: '36px',
-                                  height: '36px',
-                                  borderRadius: '50%',
-                                  background: 'linear-gradient(135deg, var(--brand-accent, #f59e0b), #f3e5ab)',
-                                  color: '#000',
-                                  border: '3px solid var(--bg-primary, #121212)',
-                                  cursor: 'pointer',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  fontSize: '1.2rem',
-                                  fontWeight: 'bold',
-                                  boxShadow: '0 0 15px rgba(212, 175, 55, 0.5)',
-                                  transition: 'all 0.3s',
-                                  zIndex: 2
-                                }}
-                                title={lang === 'AR' ? 'إضافة وجهة جديدة من موقعك الحالي' : 'Add new destination from your current location'}
-                              >
-                                <i className="fa-solid fa-plus"></i>
-                              </button>
-                              
-                              <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#f59e0b', textShadow: '0 0 10px rgba(212,175,55,0.3)' }}>
-                                {lang === 'AR' ? 'أضف وجهة جديدة من موقعك الحالي' : 'Add new destination from your current location'}
-                              </span>
-                            </div>
-
-                            {/* Smart Suggestion UI */}
-                            {suggestedPackages && suggestedPackages.length > 0 && (
-                              <div className="smart-suggestion-banner" style={{
-                                background: 'linear-gradient(90deg, rgba(34, 197, 94, 0.1), rgba(212, 175, 55, 0.05))',
-                                border: '1px solid rgba(34, 197, 94, 0.3)',
-                                borderRadius: '12px',
-                                padding: '15px 20px',
-                                display: 'flex',
-                                alignItems: 'flex-start',
-                                gap: '15px',
-                                marginTop: '10px'
-                              }}>
-                                <div style={{ background: '#22c55e', color: '#fff', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                  <i className="fa-solid fa-lightbulb"></i>
-                                </div>
-                                <div style={{ flex: 1 }}>
-                                  <h4 style={{ color: '#22c55e', margin: '0 0 5px 0', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    {lang === 'AR' ? 'اقتراح ذكي' : 'Smart Suggestion'}
-                                    <span style={{ background: 'rgba(34, 197, 94, 0.2)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem' }}>AI</span>
-                                  </h4>
-                                  <p style={{ color: 'var(--text-primary)', margin: 0, fontSize: '0.9rem', lineHeight: '1.5' }}>
-                                    {lang === 'AR' 
-                                      ? `أنت على بُعد ساعات قليلة من "${suggestedPackages[0].name}"! هل ترغب في دمجها إلى مسار رحلتك الحالي وتوفير وقت السفر؟`
-                                      : `You are just hours away from "${suggestedPackages[0].name}"! Want to combine it to your current itinerary and save travel time?`}
-                                  </p>
-                                </div>
-                                <button 
-                                  onClick={async () => {
-                                    if (!isCustomizing || !customTrip?._id) {
-                                      alert(lang === 'AR' ? 'يرجى بدء تخصيص الرحلة أولاً.' : 'Please start customizing the trip first.');
-                                      return;
-                                    }
-                                    try {
-                                      const res = await combineDestination(customTrip._id, suggestedPackages[0]._id);
-                                      if (res && res.data) {
-                                        setCustomTrip(res.data);
-                                        alert(lang === 'AR' ? 'تم دمج الوجهة بنجاح!' : 'Destination combined successfully!');
-                                      }
-                                    } catch (err) {
-                                      alert(lang === 'AR' ? 'فشل دمج الوجهة.' : 'Failed to combine destination.');
-                                    }
-                                  }}
-                                  style={{
-                                  background: 'transparent',
-                                  border: '1px solid #22c55e',
-                                  color: '#22c55e',
-                                  padding: '8px 16px',
-                                  borderRadius: '8px',
-                                  fontWeight: 'bold',
-                                  cursor: 'pointer',
-                                  transition: 'all 0.2s',
-                                  whiteSpace: 'nowrap'
-                                }} onMouseOver={(e) => { e.currentTarget.style.background = '#22c55e'; e.currentTarget.style.color = '#fff'; }} onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#22c55e'; }}>
-                                  {lang === 'AR' ? 'دمج الوجهة' : 'Combine Destination'}
-                                </button>
-                              </div>
-                            )}
-                            
-                            <div style={{ marginLeft: '15px' }}>
-                              {showAddActivityDay === (displayItinerary.length + 1) ? (
-                                <div className="add-activity-inline-form" style={{
-                                  background: 'rgba(255,255,255,0.03)',
-                                  border: '1.5px solid rgba(212, 175, 55, 0.3)',
-                                  padding: '20px',
-                                  borderRadius: '12px',
-                                  width: '450px',
-                                  maxWidth: '90vw',
-                                  boxShadow: '0 8px 30px rgba(0,0,0,0.5)'
-                                }}>
-                                  {/* Tab Selection Headers */}
-                                  <div style={{ display: 'flex', gap: '10px', marginBottom: '15px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>
-                                    <button
-                                      type="button"
-                                      onClick={() => setAddDayTab('custom')}
-                                      style={{
-                                        background: addDayTab === 'custom' ? '#f59e0b' : 'transparent',
-                                        color: addDayTab === 'custom' ? '#000' : '#fff',
-                                        border: addDayTab === 'custom' ? 'none' : '1px solid rgba(255,255,255,0.2)',
-                                        padding: '6px 12px',
-                                        borderRadius: '6px',
-                                        cursor: 'pointer',
-                                        fontWeight: '700',
-                                        fontSize: '0.8rem',
-                                        flex: 1,
-                                        transition: 'all 0.2s'
-                                      }}
-                                    >
-                                      {lang === 'AR' ? 'نشاط مخصص' : 'Custom Activity'}
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => setAddDayTab('ready')}
-                                      style={{
-                                        background: addDayTab === 'ready' ? '#f59e0b' : 'transparent',
-                                        color: addDayTab === 'ready' ? '#000' : '#fff',
-                                        border: addDayTab === 'ready' ? 'none' : '1px solid rgba(255,255,255,0.2)',
-                                        padding: '6px 12px',
-                                        borderRadius: '6px',
-                                        cursor: 'pointer',
-                                        fontWeight: '700',
-                                        fontSize: '0.8rem',
-                                        flex: 1,
-                                        transition: 'all 0.2s'
-                                      }}
-                                    >
-                                      {lang === 'AR' ? 'يوم جاهز (Day Use)' : 'Ready Day Use Day'}
-                                    </button>
-                                  </div>
-
-                                  {addDayTab === 'custom' ? (
-                                    <>
-                                      <h4 style={{ color: '#f59e0b', fontSize: '0.9rem', margin: '0 0 10px 0', fontWeight: '800' }}>
-                                        {lang === 'AR' ? `إضافة نشاط لليوم الجديد (اليوم ${displayItinerary.length + 1}):` : `Add Activity to Start Day ${displayItinerary.length + 1}:`}
-                                      </h4>
-                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                        <select 
-                                          value={newActivitySelection.activityId}
-                                          onChange={(e) => {
-                                            const actId = e.target.value;
-                                            const actObj = activitiesList.find(a => a._id === actId);
-                                            setNewActivitySelection(prev => ({
-                                              ...prev,
-                                              activityId: actId,
-                                              price: actObj ? actObj.price : '',
-                                              providerId: actObj && actObj.provider?._id ? actObj.provider._id : (actObj?.provider || '')
-                                            }));
-                                          }}
-                                          style={{ padding: '10px', background: '#14141f', border: '1.5px solid rgba(212,175,55,0.2)', color: '#fff', borderRadius: '6px', fontSize: '0.85rem', outline: 'none' }}
-                                        >
-                                          <option value="">-- {lang === 'AR' ? 'اختر نشاطاً إضافياً بالمنطقة' : 'Select an Activity'} --</option>
-                                          {(() => {
-                                            const pkgDestId = packageData?.destination?._id || packageData?.destination;
-                                            const optionalActs = activitiesList.filter(act => {
-                                              const actDestId = act.destination?._id || act.destination;
-                                              return actDestId && pkgDestId && actDestId.toString() === pkgDestId.toString();
-                                            }) || [];
-                                            return optionalActs.map(act => {
-                                              const provId = act.provider?._id || act.provider;
-                                              const matchedProv = providersList.find(p => p._id === provId);
-                                              const provName = matchedProv ? matchedProv.name : (act.provider?.name || 'Local Expert');
-                                              return (
-                                                <option key={act._id} value={act._id}>
-                                                  {act.name} | Mover: {provName} | {act.description ? act.description.substring(0, 30) + '...' : 'No desc'} | Price: {act.price} EGP
-                                                </option>
-                                              );
-                                            });
-                                          })()}
-                                        </select>
-
-                                        {/* 🌟 Professional Live Preview of Selected Activity Specs */}
-                                        {(() => {
-                                          if (!newActivitySelection.activityId) return null;
-                                          const selectedActObj = activitiesList.find(a => a._id === newActivitySelection.activityId);
-                                          if (!selectedActObj) return null;
-
-                                          const provId = selectedActObj.provider?._id || selectedActObj.provider;
-                                          const matchedProv = providersList.find(p => p._id === provId);
-                                          const providerNameResolved = matchedProv ? matchedProv.name : (selectedActObj.provider?.name || 'Local Expert');
-
-                                          return (
-                                            <div className="activity-live-preview-box" style={{
-                                              background: 'rgba(255, 255, 255, 0.02)',
-                                              border: '1px dashed rgba(212,175,55,0.3)',
-                                              borderRadius: '8px',
-                                              padding: '12px',
-                                              fontSize: '0.85rem',
-                                              display: 'flex',
-                                              flexDirection: 'column',
-                                              gap: '6px'
-                                            }}>
-                                                <div style={{ color: '#fff', fontWeight: '700' }}>
-                                                  {selectedActObj.name}
-                                                </div>
-                                              <div style={{ color: '#f59e0b', fontWeight: '600', display: 'flex', gap: '15px' }}>
-                                                <span>
-                                                  <i className="fa-solid fa-parachute-box" style={{ marginRight: '5px' }}></i>
-                                                  {providerNameResolved}
-                                                </span>
-                                                <span>
-                                                  <i className="fa-solid fa-wallet" style={{ marginRight: '5px' }}></i>
-                                                  {newActivitySelection.price} EGP
-                                                </span>
-                                              </div>
-                                              {selectedActObj.description && (
-                                                <div style={{ color: '#a4a4b4', fontSize: '0.78rem', lineHeight: '1.4', fontStyle: 'italic', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '6px' }}>
-                                                  {selectedActObj.description}
-                                                </div>
-                                              )}
-                                            </div>
-                                          );
-                                        })()}
-
-                                        <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
-                                          <button 
-                                            onClick={() => handleAddActivitySubmit(displayItinerary.length + 1)}
-                                            style={{ background: '#f59e0b', color: '#000', border: 'none', padding: '8px 18px', borderRadius: '6px', cursor: 'pointer', fontWeight: '800', fontSize: '0.82rem' }}
-                                          >
-                                            {lang === 'AR' ? 'تأكيد إضافة اليوم والنشاط' : 'Confirm Add Day & Activity'}
-                                          </button>
-                                          <button 
-                                            onClick={() => {
-                                              setShowAddActivityDay(null);
-                                              setNewActivitySelection({ activityId: '', providerId: '', price: '' });
-                                            }}
-                                            style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '8px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.82rem' }}
-                                          >
-                                            {lang === 'AR' ? 'إلغاء' : 'Cancel'}
-                                          </button>
-                                        </div>
-                                      </div>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <h4 style={{ color: '#f59e0b', fontSize: '0.9rem', margin: '0 0 10px 0', fontWeight: '800' }}>
-                                        {lang === 'AR' ? 'اختر يوماً جاهزاً من الباقات المتاحة بنفس المنطقة:' : 'Choose a ready-made Day Use in same region:'}
-                                      </h4>
-                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '300px', overflowY: 'auto', paddingRight: '5px' }}>
-                                        {(() => {
-                                          const regionalDayuses = suggestedPackages.filter(p => p.type === 'Package' || p.duration_days === 1);
-                                          if (regionalDayuses.length === 0) {
-                                            return (
-                                              <p style={{ color: '#aaa', fontStyle: 'italic', fontSize: '0.8rem', textAlign: 'center', padding: '10px 0' }}>
-                                                {lang === 'AR' ? 'لا توجد باقات Day Use جاهزة متاحة حالياً في هذه المنطقة.' : 'No pre-designed Day Use experiences available in this region.'}
-                                              </p>
-                                            );
-                                          }
-
-                                          return regionalDayuses.map(pkg => (
-                                            <div 
-                                              key={pkg._id} 
-                                              onClick={() => handleInjectDayuseDay(pkg)}
-                                              style={{
-                                                background: 'rgba(255, 255, 255, 0.03)',
-                                                border: '1px solid rgba(255, 255, 255, 0.08)',
-                                                borderRadius: '8px',
-                                                padding: '10px',
-                                                cursor: 'pointer',
-                                                transition: 'all 0.2s',
-                                                display: 'flex',
-                                                gap: '12px',
-                                                alignItems: 'center'
-                                              }}
-                                              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(212,175,55,0.4)'; e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
-                                              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)'; e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'; }}
-                                            >
-                                              <img 
-                                                src={pkg.image || 'https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=150&q=80'} 
-                                                alt={pkg.name} 
-                                                style={{ width: '60px', height: '60px', borderRadius: '6px', objectFit: 'cover' }}
-                                              />
-                                              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                                                <div style={{ color: '#fff', fontSize: '0.82rem', fontWeight: '700' }}>
-                                                  {pkg.name}
-                                                </div>
-                                                <div style={{ color: '#94a3b8', fontSize: '0.74rem', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: '1', WebkitBoxOrient: 'vertical' }}>
-                                                  {pkg.description || 'Pre-designed package.'}
-                                                </div>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#f59e0b', fontSize: '0.74rem', fontWeight: '700', marginTop: '2px' }}>
-                                                  <span>{pkg.base_price} EGP</span>
-                                                  <span style={{ color: '#aaa', fontSize: '0.7rem' }}>
-                                                    <i className="fa-solid fa-bolt" style={{ marginRight: '3px', color: '#f59e0b' }}></i>
-                                                    {lang === 'AR' ? 'اضغط للإضافة' : 'Click to Inject'}
-                                                  </span>
-                                                </div>
-                                              </div>
-                                            </div>
-                                          ));
-                                        })()}
-                                      </div>
-                                      
-                                      <button 
-                                        onClick={() => {
-                                          setShowAddActivityDay(null);
-                                        }}
-                                        style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '8px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.82rem', marginTop: '10px', width: '100%' }}
-                                      >
-                                        {lang === 'AR' ? 'إلغاء' : 'Cancel'}
-                                      </button>
-                                    </>
-                                  )}
-                                </div>
-                              ) : (
-                                <span 
-                                  onClick={() => {
-                                    const nextDayNum = displayItinerary.length + 1;
-                                    setShowAddActivityDay(nextDayNum);
-                                  }}
-                                  style={{ color: '#f59e0b', fontWeight: '700', cursor: 'pointer', fontSize: '0.95rem' }}
-                                >
-                                  {lang === 'AR' ? 'أضف يوماً إضافياً إلى خطتك اليومية (+)' : 'Add an extra day to your itinerary (+)'}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        )}
 
                     {/* 🌟 Suggested regional Packages & Dayuse card lists */}
                     {isCustomizing && suggestedPackages && suggestedPackages.length > 0 && (
@@ -3287,44 +3088,7 @@ const PackageDetails = () => {
                   );
                 })()}
 
-                {/* MODULAR EXTENSIONS (ADD-ONS) */}
-                {packageData.addons && packageData.addons.length > 0 && (
-                  <div className="package-extensions-section" style={{ marginTop: '40px', padding: '25px', background: 'rgba(212,175,55,0.05)', borderRadius: '15px', border: '1px solid rgba(212,175,55,0.2)' }}>
-                    <h3 style={{ color: '#f59e0b', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <i className="fa-solid fa-puzzle-piece"></i> {lang === 'AR' ? 'إضافات الرحلة' : 'Modular Trip Extensions'}
-                    </h3>
-                    <div style={{ display: 'grid', gap: '15px' }}>
-                      {packageData.addons.map(addon => {
-                        const isSelected = selectedAddons.includes(addon._id);
-                        return (
-                          <div 
-                            key={addon._id} 
-                            onClick={() => {
-                              setSelectedAddons(prev => 
-                                isSelected ? prev.filter(id => id !== addon._id) : [...prev, addon._id]
-                              );
-                            }}
-                            style={{ 
-                              display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
-                              padding: '15px', borderRadius: '10px', cursor: 'pointer',
-                              background: isSelected ? 'rgba(212,175,55,0.1)' : 'rgba(255,255,255,0.02)',
-                              border: `1px solid ${isSelected ? '#f59e0b' : 'rgba(255,255,255,0.1)'}`
-                            }}
-                          >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                              <i className={`fa-solid ${isSelected ? 'fa-check-circle' : 'fa-circle'} `} style={{ color: isSelected ? '#f59e0b' : '#aaa' }}></i>
-                              <div>
-                                <div style={{ color: '#fff', fontWeight: '600' }}>{addon.name}</div>
-                                <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>{addon.description}</div>
-                              </div>
-                            </div>
-                            <div style={{ color: '#f59e0b', fontWeight: '700' }}>+{addon.price} EGP</div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
+
               </div>
 
             {/* ============================================================== */}
@@ -3532,24 +3296,7 @@ const PackageDetails = () => {
                       );
                     })}
 
-                    {/* MODULAR TRIP EXTENSION BUTTON */}
-                    <div style={{ marginTop: '30px', textAlign: 'center', position: 'relative' }}>
-                      <div style={{ position: 'absolute', top: '50%', left: '0', right: '0', height: '2px', background: 'linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.3), transparent)', zIndex: '0' }}></div>
-                      <button 
-                        onClick={() => {
-                          alert(lang === 'AR' ? 'سيتم ربط وجهتك الحالية ببرنامج يومي جديد بسلاسة!' : 'Your current destination will be seamlessly connected to a new Dayuse package!');
-                        }}
-                        style={{ position: 'relative', zIndex: '1', background: '#1e2228', border: '1px solid #d4af37', color: '#d4af37', padding: '12px 24px', borderRadius: '30px', fontWeight: 'bold', fontSize: '0.95rem', cursor: 'pointer', boxShadow: '0 4px 15px rgba(212, 175, 55, 0.2)', transition: 'all 0.3s ease' }}
-                        onMouseOver={(e) => { e.currentTarget.style.background = '#d4af37'; e.currentTarget.style.color = '#000'; }}
-                        onMouseOut={(e) => { e.currentTarget.style.background = '#1e2228'; e.currentTarget.style.color = '#d4af37'; }}
-                      >
-                        <i className="fa-solid fa-link" style={{ marginRight: '8px' }}></i>
-                        {lang === 'AR' ? '+ إضافة وجهة تالية / تمديد الرحلة' : '+ Add Next Destination / Extension'}
-                      </button>
-                      <p style={{ marginTop: '10px', fontSize: '0.8rem', color: '#64748b' }}>
-                        {lang === 'AR' ? 'اربط هذه الرحلة مع باقات أخرى واستمتع بتجربة سفر متصلة بخصم إضافي!' : 'Chain this trip with other packages for a seamless connected travel experience with extra discounts!'}
-                      </p>
-                    </div>
+
 
                   </div>
                 )}
@@ -3565,6 +3312,414 @@ const PackageDetails = () => {
         )}
       </main>
 
+
+      {/* 🧠 Smart AI Trip Chaining (Modular Trip Extension) Carousel Modal */}
+      {showChainModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.85)',
+          backdropFilter: 'blur(8px)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px',
+          boxSizing: 'border-box'
+        }}>
+          <div style={{
+            background: 'linear-gradient(145deg, #0e0f14 0%, #151720 100%)',
+            border: '2px solid #f59e0b',
+            borderRadius: '24px',
+            width: '100%',
+            maxWidth: '1200px',
+            padding: '30px',
+            position: 'relative',
+            boxShadow: '0 20px 50px rgba(245, 158, 11, 0.15)',
+            boxSizing: 'border-box',
+            color: '#fff',
+            overflow: 'hidden'
+          }}>
+            {/* Close Button */}
+            <button
+              onClick={() => setShowChainModal(false)}
+              style={{
+                position: 'absolute',
+                top: '20px',
+                right: '20px',
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                color: '#fff',
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s',
+                zIndex: 10
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(245, 158, 11, 0.2)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+            >
+              <i className="fa-solid fa-xmark" style={{ fontSize: '1.1rem' }}></i>
+            </button>
+
+            {/* Modal Header */}
+            <div style={{ textAlign: 'center', marginBottom: '25px', position: 'relative' }}>
+              <div style={{
+                position: 'absolute',
+                top: '-30px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '200px',
+                height: '100px',
+                background: 'radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, rgba(0,0,0,0) 70%)',
+                pointerEvents: 'none'
+              }}></div>
+              
+              <h3 style={{
+                color: '#f59e0b',
+                fontSize: '1.75rem',
+                fontWeight: '900',
+                margin: '0 0 8px 0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px'
+              }}>
+                <i className="fa-solid fa-route"></i>
+                {lang === 'AR' ? 'تمديد وربط رحلتك (Modular Trip Extension)' : 'Extend Your Journey (Modular Trip Extension)'}
+                <span style={{
+                  background: 'rgba(245, 158, 11, 0.15)',
+                  color: '#f59e0b',
+                  fontSize: '0.75rem',
+                  padding: '2px 8px',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(245, 158, 11, 0.3)',
+                  fontWeight: 'bold',
+                  letterSpacing: '1px'
+                }}>
+                  <i className="fa-solid fa-brain" style={{ marginRight: '4px' }}></i> AI Powered
+                </span>
+              </h3>
+              <p style={{ color: '#94a3b8', fontSize: '0.9rem', maxWidth: '700px', margin: '0 auto' }}>
+                {lang === 'AR'
+                  ? `رحلتك تنتهي في ${endFormatted}. يمكنك فوراً ربط رحلة أخرى أو داي يوز يبدأ في نفس اليوم (${endFormatted}) لتخلق سلسلة رحلات متصلة ممتازة!`
+                  : `Your current experience ends on ${endFormatted}. You can instantly stack another package starting the same day (${endFormatted}) to build a seamless Trip Chain!`}
+              </p>
+            </div>
+
+            {/* Slider Title Banner */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '15px',
+              margin: '15px 0 25px 0'
+            }}>
+              <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.3))' }}></div>
+              <span style={{ color: '#94a3b8', fontSize: '0.85rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <i className="fa-solid fa-sparkles" style={{ color: '#f59e0b' }}></i>
+                {lang === 'AR' ? 'سلسلة الرحلات المقترحة المتاحة' : 'Recommended Seamless Extensions'}
+                <i className="fa-solid fa-sparkles" style={{ color: '#f59e0b' }}></i>
+              </span>
+              <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, rgba(245, 158, 11, 0.3), transparent)' }}></div>
+            </div>
+
+            {/* Carousel Container */}
+            {loadingChain ? (
+              <div style={{ height: '280px', display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '15px' }}>
+                <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: '2.5rem', color: '#f59e0b' }}></i>
+                <span style={{ color: '#94a3b8' }}>{lang === 'AR' ? 'جاري البحث عن الرحلات المتوافقة...' : 'Searching for compatible extensions...'}</span>
+              </div>
+            ) : chainExperiences.length === 0 ? (
+              <div style={{ height: '280px', display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '15px', textRendering: 'optimizeLegibility' }}>
+                <i className="fa-regular fa-calendar-xmark" style={{ fontSize: '3rem', color: '#64748b' }}></i>
+                <span style={{ color: '#94a3b8', fontSize: '1rem', fontWeight: 'bold' }}>
+                  {lang === 'AR' ? 'لا توجد باقات متوفرة لليوم التالي حالياً.' : 'No packages start on the next day.'}
+                </span>
+                <span style={{ color: '#64748b', fontSize: '0.8rem' }}>
+                  {lang === 'AR' ? 'قم بتعديل مواعيدك لرؤية باقات أخرى أو انتظر إضافة الأدمن للمزيد.' : 'Try selecting different dates or check back later.'}
+                </span>
+              </div>
+            ) : (
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                {/* Back Arrow */}
+                <button
+                  onClick={() => setCarouselIndex(prev => Math.max(0, prev - 1))}
+                  disabled={carouselIndex === 0}
+                  style={{
+                    background: carouselIndex === 0 ? 'rgba(255,255,255,0.02)' : 'rgba(245,158,11,0.1)',
+                    border: `1px solid ${carouselIndex === 0 ? 'rgba(255,255,255,0.05)' : 'rgba(245,158,11,0.3)'}`,
+                    color: carouselIndex === 0 ? '#475569' : '#f59e0b',
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    cursor: carouselIndex === 0 ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.2s',
+                    zIndex: 2
+                  }}
+                >
+                  <i className="fa-solid fa-chevron-left"></i>
+                </button>
+
+                {/* Visible Horizontal Cards viewport */}
+                <div style={{
+                  flex: 1,
+                  overflow: 'hidden',
+                  display: 'flex',
+                  gap: '20px',
+                  padding: '10px 5px'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    gap: '20px',
+                    transform: `translateX(-${carouselIndex * 310}px)`,
+                    transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+                  }}>
+                    {chainExperiences.map((exp, idx) => {
+                      const isSelected = selectedChainId === exp._id;
+                      const formattedStartDate = new Date(end.getTime()).toLocaleDateString(lang === 'AR' ? 'ar-EG' : 'en-US', { month: 'short', day: 'numeric' });
+                      
+                      return (
+                        <div
+                          key={exp._id}
+                          onClick={() => setSelectedChainId(exp._id)}
+                          style={{
+                            width: '290px',
+                            background: isSelected ? 'rgba(245, 158, 11, 0.05)' : 'rgba(255,255,255,0.02)',
+                            border: `2px solid ${isSelected ? '#f59e0b' : 'rgba(255,255,255,0.07)'}`,
+                            borderRadius: '16px',
+                            padding: '15px',
+                            cursor: 'pointer',
+                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                            position: 'relative',
+                            boxSizing: 'border-box',
+                            boxShadow: isSelected ? '0 8px 24px rgba(245, 158, 11, 0.15)' : 'none'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isSelected) e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.4)';
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isSelected) e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)';
+                          }}
+                        >
+                          {/* Top Right Checkbox Circle */}
+                          <div style={{
+                            position: 'absolute',
+                            top: '12px',
+                            right: '12px',
+                            width: '20px',
+                            height: '20px',
+                            borderRadius: '50%',
+                            background: isSelected ? '#f59e0b' : 'rgba(0,0,0,0.5)',
+                            border: `2px solid ${isSelected ? '#f59e0b' : 'rgba(255,255,255,0.4)'}`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            zIndex: 3
+                          }}>
+                            {isSelected && <i className="fa-solid fa-check" style={{ color: '#000', fontSize: '0.75rem', fontWeight: 'bold' }}></i>}
+                          </div>
+
+                          {/* Recently Added Badge */}
+                          {idx === 0 && (
+                            <span style={{
+                              position: 'absolute',
+                              top: '12px',
+                              left: '12px',
+                              background: '#22c55e',
+                              color: '#fff',
+                              fontSize: '0.68rem',
+                              fontWeight: 'bold',
+                              padding: '2px 8px',
+                              borderRadius: '8px',
+                              textTransform: 'uppercase',
+                              letterSpacing: '1px',
+                              zIndex: 3,
+                              boxShadow: '0 2px 8px rgba(34, 197, 94, 0.3)'
+                            }}>
+                              {lang === 'AR' ? 'مضاف حديثاً' : 'Recently Added'}
+                            </span>
+                          )}
+
+                          {/* Image */}
+                          <div style={{
+                            height: '130px',
+                            borderRadius: '12px',
+                            overflow: 'hidden',
+                            position: 'relative',
+                            marginBottom: '12px'
+                          }}>
+                            <img
+                              src={exp.image || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=300&q=80'}
+                              alt={exp.name}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                            <div style={{
+                              position: 'absolute',
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              height: '50%',
+                              background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)'
+                            }}></div>
+                          </div>
+
+                          {/* Content Details */}
+                          <h4 style={{
+                            fontSize: '0.95rem',
+                            fontWeight: 'bold',
+                            margin: '0 0 6px 0',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            color: isSelected ? '#f59e0b' : '#fff'
+                          }}>
+                            {exp.name}
+                          </h4>
+
+                          <p style={{ color: '#94a3b8', fontSize: '0.8rem', margin: '0 0 10px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <i className="fa-regular fa-clock" style={{ color: '#f59e0b' }}></i>
+                            {lang === 'AR' 
+                              ? `يبدأ في ${formattedStartDate}، لمدة ${exp.duration_days || 1} أيام` 
+                              : `Starts ${formattedStartDate}, ${exp.duration_days || 1}-Days`}
+                          </p>
+
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            marginTop: '10px',
+                            borderTop: '1px solid rgba(255,255,255,0.06)',
+                            paddingTop: '10px'
+                          }}>
+                            <div>
+                              <span style={{ fontSize: '0.7rem', color: '#64748b', display: 'block' }}>
+                                {lang === 'AR' ? 'سعر الباقة يبدأ من' : 'Base Price'}
+                              </span>
+                              <span style={{ fontSize: '1rem', fontWeight: 'bold', color: '#fff' }}>
+                                {formatPrice ? formatPrice(exp.base_price) : `${exp.base_price} EGP`}
+                              </span>
+                            </div>
+
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedChainId(exp._id);
+                              }}
+                              style={{
+                                background: isSelected ? '#f59e0b' : 'rgba(255,255,255,0.05)',
+                                color: isSelected ? '#000' : '#fff',
+                                border: 'none',
+                                padding: '6px 12px',
+                                borderRadius: '8px',
+                                fontSize: '0.78rem',
+                                fontWeight: 'bold',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                              }}
+                            >
+                              {lang === 'AR' ? 'اختر الرحلة' : 'Select/View'}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Next Arrow */}
+                <button
+                  onClick={() => setCarouselIndex(prev => Math.min(chainExperiences.length - 1, prev + 1))}
+                  disabled={carouselIndex >= chainExperiences.length - 3}
+                  style={{
+                    background: carouselIndex >= chainExperiences.length - 3 ? 'rgba(255,255,255,0.02)' : 'rgba(245,158,11,0.1)',
+                    border: `1px solid ${carouselIndex >= chainExperiences.length - 3 ? 'rgba(255,255,255,0.05)' : 'rgba(245,158,11,0.3)'}`,
+                    color: carouselIndex >= chainExperiences.length - 3 ? '#475569' : '#f59e0b',
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    cursor: carouselIndex >= chainExperiences.length - 3 ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.2s',
+                    zIndex: 2
+                  }}
+                >
+                  <i className="fa-solid fa-chevron-right"></i>
+                </button>
+              </div>
+            )}
+
+            {/* Lock inselected Trip Chain CTA button */}
+            {!loadingChain && chainExperiences.length > 0 && (
+              <div style={{
+                marginTop: '30px',
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '15px'
+              }}>
+                <button
+                  onClick={handleLockTripChain}
+                  disabled={bookingLoading}
+                  style={{
+                    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                    color: '#000',
+                    border: 'none',
+                    padding: '14px 45px',
+                    borderRadius: '35px',
+                    fontWeight: '900',
+                    fontSize: '1rem',
+                    cursor: 'pointer',
+                    boxShadow: '0 6px 20px rgba(245,158,11,0.4)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.03)'}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  {bookingLoading ? (
+                    <><i className="fa-solid fa-circle-notch fa-spin"></i> {lang === 'AR' ? 'جاري الحجز وتأمين الربط...' : 'Locking in Chained Trips...'}</>
+                  ) : (
+                    <><i className="fa-solid fa-link"></i> {lang === 'AR' ? 'ربط وتأمين سلسلة الرحلة (حجز ودفع)' : 'Lock in selected Trip Chain (Add & Book)'}</>
+                  )}
+                </button>
+
+                {/* Helpful list banner */}
+                <div style={{
+                  color: '#64748b',
+                  fontSize: '0.8rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginTop: '5px'
+                }}>
+                  <i className="fa-solid fa-circle-info" style={{ color: '#f59e0b' }}></i>
+                  <span>
+                    {lang === 'AR'
+                      ? `تمت الإضافة بواسطة الأدمن حديثاً: ${chainExperiences.slice(0, 3).map(e => e.name).join('، ')} إلخ.`
+                      : `Trip Extensions Added by Admin: Recently Added (1h ago): ${chainExperiences.slice(0, 3).map(e => e.name).join(', ')}, etc.`}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

@@ -518,58 +518,7 @@ const PublishPackageModal = ({
               <button type="button" className="ppm-btn-add-dashed" onClick={addDay}><i className="fa-solid fa-calendar-plus"></i> Add New Day</button>
             </div>
 
-            {/* 5. Modular Extensions (Add-ons) */}
-            <div className="ppm-section-card">
-              <h3 className="ppm-section-title"><i className="fa-solid fa-puzzle-piece"></i> Modular Extensions (Add-ons)</h3>
-              <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '15px' }}>Optional upgrades customers can add to this package.</p>
-              
-              <div className="ppm-addons-container" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                {(formData.addons || []).map((addon, index) => (
-                  <div key={index} className="ppm-addon-card" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '15px', position: 'relative' }}>
-                    <button type="button" onClick={() => {
-                      const newAddons = [...(formData.addons || [])];
-                      newAddons.splice(index, 1);
-                      setFormData(prev => ({ ...prev, addons: newAddons }));
-                    }} style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}>
-                      <i className="fa-solid fa-xmark"></i>
-                    </button>
-                    
-                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '15px', marginBottom: '10px' }}>
-                      <div className="ppm-input-group" style={{ margin: 0 }}>
-                        <label>Add-on Name</label>
-                        <input type="text" className="ppm-input" value={addon.name} onChange={(e) => {
-                          const newAddons = [...formData.addons];
-                          newAddons[index].name = e.target.value;
-                          setFormData(prev => ({ ...prev, addons: newAddons }));
-                        }} placeholder="e.g. Professional Drone Photography" required />
-                      </div>
-                      <div className="ppm-input-group" style={{ margin: 0 }}>
-                        <label>Price ($)</label>
-                        <input type="number" className="ppm-input" value={addon.price} onChange={(e) => {
-                          const newAddons = [...formData.addons];
-                          newAddons[index].price = e.target.value;
-                          setFormData(prev => ({ ...prev, addons: newAddons }));
-                        }} required />
-                      </div>
-                    </div>
-                    <div className="ppm-input-group" style={{ margin: 0 }}>
-                      <label>Description (Optional)</label>
-                      <input type="text" className="ppm-input" value={addon.description} onChange={(e) => {
-                        const newAddons = [...formData.addons];
-                        newAddons[index].description = e.target.value;
-                        setFormData(prev => ({ ...prev, addons: newAddons }));
-                      }} placeholder="Brief details about this add-on" />
-                    </div>
-                  </div>
-                ))}
-                
-                <button type="button" onClick={() => {
-                  setFormData(prev => ({ ...prev, addons: [...(prev.addons || []), { name: '', price: 0, description: '' }] }));
-                }} className="ppm-btn-outline" style={{ borderStyle: 'dashed', justifyContent: 'center' }}>
-                  <i className="fa-solid fa-plus"></i> Add Extension
-                </button>
-              </div>
-            </div>
+
 
           </div>
 

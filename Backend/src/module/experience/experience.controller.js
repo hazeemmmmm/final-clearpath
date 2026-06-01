@@ -44,6 +44,20 @@ class ExperienceController {
     }
   };
 
+  //  Get Extensions starting the next day for trip chaining
+  getExtensions = async (req, res, next) => {
+    try {
+      const result = await ExperienceService.getExtensions(req.query);
+      res.status(200).json({
+        success: true,
+        message: "Extension experiences fetched successfully",
+        data: result,
+      });
+    } catch (err) {
+      next(err);
+    }
+  };
+
   // 🔍 Get One
   getOne = async (req, res, next) => {
     try {

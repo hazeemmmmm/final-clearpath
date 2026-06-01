@@ -6,6 +6,9 @@ export const getUserWishlist = async (userId) => {
     if (!wishlist) {
         wishlist = new Wishlist({ user: userId, experiences: [] });
         await wishlist.save();
+    } else if (wishlist.experiences) {
+        // Filter out any experiences that populated as null (were deleted)
+        wishlist.experiences = wishlist.experiences.filter(exp => exp !== null);
     }
     return wishlist;
 };
@@ -21,16 +24,24 @@ export const addToWishlist = async (userId, experienceId) => {
         }
     }
     await wishlist.save();
-    return wishlist.populate('experiences');
+    const populated = await wishlist.populate('experiences');
+    if (populated && populated.experiences) {
+        populated.experiences = populated.experiences.filter(exp => exp !== null);
+    }
+    return populated;
 };
 
 // Remove experience from wishlist
 export const removeFromWishlist = async (userId, experienceId) => {
     const wishlist = await Wishlist.findOne({ user: userId });
     if (wishlist) {
-        wishlist.experiences = wishlist.experiences.filter(id => id.toString() !== experienceId);
+        wishlist.experiences = wishlist.experiences.filter(id => id && id.toString() !== experienceId);
         await wishlist.save();
-        return wishlist.populate('experiences');
+        const populated = await wishlist.populate('experiences');
+        if (populated && populated.experiences) {
+            populated.experiences = populated.experiences.filter(exp => exp !== null);
+        }
+        return populated;
     }
     return null;
 };

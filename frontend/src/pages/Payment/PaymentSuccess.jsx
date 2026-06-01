@@ -16,6 +16,9 @@ const PaymentSuccess = () => {
   
   const sessionId = searchParams.get('session_id');
 
+  // How many more trips remain in the chain after this payment
+  const [remainingChainCount, setRemainingChainCount] = useState(0);
+
   useEffect(() => {
     const verifyAndCapture = async () => {
       if (!sessionId) {
@@ -27,19 +30,47 @@ const PaymentSuccess = () => {
       try {
         await confirmPayment(sessionId);
         setLoading(false);
-        // Clean up current booking id from local storage
+        // Clean up current booking id
         localStorage.removeItem('currentBookingId');
-        
-        // Start automatic countdown and redirect
-        let count = 3;
-        const interval = setInterval(() => {
-          count -= 1;
-          setCountdown(count);
-          if (count === 0) {
-            clearInterval(interval);
-            navigate('/my-bookings');
+
+        // Check if there are more bookings left in a chain
+        const pendingRaw = localStorage.getItem('pendingChainBookingIds');
+        const pendingIds = pendingRaw ? JSON.parse(pendingRaw) : [];
+
+        if (pendingIds.length > 0) {
+          // Pop the next booking from the pending list
+          const [nextId, ...rest] = pendingIds;
+          localStorage.setItem('currentBookingId', nextId);
+          if (rest.length > 0) {
+            localStorage.setItem('pendingChainBookingIds', JSON.stringify(rest));
+          } else {
+            localStorage.removeItem('pendingChainBookingIds');
           }
-        }, 1000);
+          setRemainingChainCount(pendingIds.length);
+
+          // Give the user a moment to see the success message, then redirect to pay next
+          let count = 3;
+          const interval = setInterval(() => {
+            count -= 1;
+            setCountdown(count);
+            if (count === 0) {
+              clearInterval(interval);
+              navigate('/payment');
+            }
+          }, 1000);
+        } else {
+          // No more pending chain bookings — go to my-bookings
+          localStorage.removeItem('pendingChainBookingIds');
+          let count = 3;
+          const interval = setInterval(() => {
+            count -= 1;
+            setCountdown(count);
+            if (count === 0) {
+              clearInterval(interval);
+              navigate('/my-bookings');
+            }
+          }, 1000);
+        }
 
       } catch (err) {
         console.error(err);
@@ -101,23 +132,51 @@ const PaymentSuccess = () => {
               <div style={{ width: '80px', height: '80px', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.25)', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '10px' }}>
                 <i className="fa-solid fa-circle-check" style={{ fontSize: '3.2rem', color: '#10b981' }}></i>
               </div>
-              
+
               <h2 style={{ fontSize: '1.9rem', fontWeight: '800', color: '#10b981' }}>
                 {lang === 'AR' ? 'تم تأكيد الحجز بنجاح!' : 'Booking Confirmed!'}
               </h2>
-              
-              <p style={{ color: '#94a3b8', fontSize: '0.98rem', lineHeight: '1.6' }}>
-                {lang === 'AR' 
-                  ? 'تم استلام الدفعة المالية بنجاح. تذاكر الطيران وتفاصيل الحجز والبرنامج السياحي مؤكدة بالكامل الآن!' 
-                  : 'Your payment was received successfully. Your travel ticket and experience booking are now fully Confirmed.'}
-              </p>
-              
-              <p style={{ color: '#d4af37', fontSize: '0.9rem', fontWeight: '700', background: 'rgba(212, 175, 55, 0.1)', padding: '8px 18px', borderRadius: '20px', border: '1px solid rgba(212, 175, 55, 0.2)', marginTop: '8px', animation: 'pulse-gold 2s infinite' }}>
-                <i className="fa-solid fa-circle-notch fa-spin" style={{ marginRight: lang === 'AR' ? '0' : '8px', marginLeft: lang === 'AR' ? '8px' : '0' }}></i>
-                {lang === 'AR' 
-                  ? `سيتم توجيهك تلقائياً لصفحة حسابك وحجوزاتك خلال ${countdown} ثوانٍ...` 
-                  : `Redirecting you to your bookings page in ${countdown} seconds...`}
-              </p>
+
+              {remainingChainCount > 0 ? (
+                <>
+                  <div style={{
+                    background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)',
+                    borderRadius: '14px', padding: '14px 18px', width: '100%', textAlign: 'center'
+                  }}>
+                    <i className="fa-solid fa-link" style={{ color: '#f59e0b', marginBottom: '6px', display: 'block', fontSize: '1.4rem' }}></i>
+                    <p style={{ color: '#f59e0b', fontWeight: '700', margin: '0 0 4px 0', fontSize: '0.95rem' }}>
+                      {lang === 'AR'
+                        ? `تبقّى ${remainingChainCount} ${remainingChainCount === 1 ? 'رحلة' : 'رحلات'} في السلسلة`
+                        : `${remainingChainCount} more trip${remainingChainCount > 1 ? 's' : ''} remaining in your chain`}
+                    </p>
+                    <p style={{ color: '#94a3b8', fontSize: '0.82rem', margin: 0 }}>
+                      {lang === 'AR' ? 'سيتم توجيهك لإتمام دفع الرحلة التالية.' : 'You will be redirected to complete payment for the next trip.'}
+                    </p>
+                  </div>
+
+                  <p style={{ color: '#f59e0b', fontSize: '0.9rem', fontWeight: '700', background: 'rgba(245,158,11,0.1)', padding: '8px 18px', borderRadius: '20px', border: '1px solid rgba(245,158,11,0.25)', marginTop: '4px' }}>
+                    <i className="fa-solid fa-circle-notch fa-spin" style={{ marginRight: '8px' }}></i>
+                    {lang === 'AR'
+                      ? `الانتقال للدفع التالي خلال ${countdown} ثوانٍ...`
+                      : `Moving to next payment in ${countdown} seconds...`}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p style={{ color: '#94a3b8', fontSize: '0.98rem', lineHeight: '1.6' }}>
+                    {lang === 'AR'
+                      ? 'تم استلام الدفعة المالية بنجاح. تفاصيل الحجز والبرنامج السياحي مؤكدة بالكامل الآن!'
+                      : 'Your payment was received successfully. Your experience booking is now fully Confirmed.'}
+                  </p>
+
+                  <p style={{ color: '#d4af37', fontSize: '0.9rem', fontWeight: '700', background: 'rgba(212, 175, 55, 0.1)', padding: '8px 18px', borderRadius: '20px', border: '1px solid rgba(212, 175, 55, 0.2)', marginTop: '8px', animation: 'pulse-gold 2s infinite' }}>
+                    <i className="fa-solid fa-circle-notch fa-spin" style={{ marginRight: lang === 'AR' ? '0' : '8px', marginLeft: lang === 'AR' ? '8px' : '0' }}></i>
+                    {lang === 'AR'
+                      ? `سيتم توجيهك تلقائياً لصفحة حسابك وحجوزاتك خلال ${countdown} ثوانٍ...`
+                      : `Redirecting you to your bookings page in ${countdown} seconds...`}
+                  </p>
+                </>
+              )}
 
               <div style={{ borderTop: '1px dashed rgba(255,255,255,0.08)', width: '100%', margin: '15px 0' }}></div>
               

@@ -19,6 +19,11 @@ const MyBookings = () => {
   const [activeTab, setActiveTab] = useState('paid');
   const [tripChain, setTripChain] = useState([]);
   const [bookingLoading, setBookingLoading] = useState(false);
+  
+  // Cancellation Policy Modal State
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelBookingItem, setCancelBookingItem] = useState(null);
+  const [cancelPolicy, setCancelPolicy] = useState({ feePercent: 0, feeAmount: 0 });
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -51,7 +56,7 @@ const MyBookings = () => {
     if (tripChain.length === 0) return;
     try {
       setBookingLoading(true);
-      let bookingId = null;
+      const createdBookingIds = [];
       for (const item of tripChain) {
         let res;
         if (item.isCustomized && item.customTripId) {
@@ -61,7 +66,7 @@ const MyBookings = () => {
         }
         const booking = res.data || res.booking || res;
         if (booking && booking._id) {
-          bookingId = booking._id;
+          createdBookingIds.push(booking._id);
         }
       }
       
@@ -69,8 +74,10 @@ const MyBookings = () => {
       setTripChain([]);
       window.dispatchEvent(new Event('tripChainUpdated'));
       
-      if (bookingId) {
-        localStorage.setItem('currentBookingId', bookingId);
+      if (createdBookingIds.length > 0) {
+        // Store ALL booking IDs for the payment page to show combined summary
+        localStorage.setItem('currentChainBookingIds', JSON.stringify(createdBookingIds));
+        localStorage.setItem('currentBookingId', createdBookingIds[0]); // primary (first) booking
         window.location.href = '/payment';
       } else {
         alert(lang === 'AR' ? 'تم إنشاء الحجوزات بنجاح!' : 'Bookings created successfully!');
@@ -125,7 +132,7 @@ const MyBookings = () => {
     fetchBookings();
   }, [token]);
 
-  const handleCancelBooking = async (booking) => {
+  const initiateCancellation = (booking) => {
     const now = new Date();
     const createdAt = booking.createdAt || booking.booking_date || null;
     const hoursSinceBooking = createdAt ? (now - new Date(createdAt)) / (1000 * 60 * 60) : Infinity;
@@ -139,23 +146,27 @@ const MyBookings = () => {
 
     const feeAmount = Number(((booking.total_amount || 0) * (feePercent / 100)).toFixed(2));
 
-    const confirmMsg = lang === 'AR'
-      ? `هل أنت متأكد من إلغاء هذا الحجز؟ رسوم الإلغاء: ${feePercent}% (${feeAmount} EGP).`
-      : `Are you sure you want to cancel this booking? Cancellation fee: ${feePercent}% (${feeAmount} EGP).`;
+    setCancelBookingItem(booking);
+    setCancelPolicy({ feePercent, feeAmount });
+    setShowCancelModal(true);
+  };
 
-    if (window.confirm(confirmMsg)) {
-      setActionLoadingId(booking._id);
-      try {
-        await cancelBooking(booking._id);
-        await fetchBookings();
-      } catch (err) {
-        const errorMsg = lang === 'AR'
-          ? 'فشل إلغاء الحجز. حاول مرة أخرى أو تواصل مع الدعم.'
-          : (err.message || 'Failed to cancel the booking. Try again or contact support.');
-        alert(errorMsg);
-      } finally {
-        setActionLoadingId(null);
-      }
+  const executeCancelBooking = async () => {
+    if (!cancelBookingItem) return;
+    setActionLoadingId(cancelBookingItem._id);
+    try {
+      await cancelBooking(cancelBookingItem._id);
+      await fetchBookings();
+      setShowCancelModal(false);
+      setCancelBookingItem(null);
+      alert(lang === 'AR' ? 'تم إلغاء الحجز بنجاح وتحديث القائمة.' : 'Booking cancelled successfully and list updated.');
+    } catch (err) {
+      const errorMsg = lang === 'AR'
+        ? 'فشل إلغاء الحجز. حاول مرة أخرى أو تواصل مع الدعم.'
+        : (err.message || 'Failed to cancel the booking. Try again or contact support.');
+      alert(errorMsg);
+    } finally {
+      setActionLoadingId(null);
     }
   };
 
@@ -339,6 +350,13 @@ const MyBookings = () => {
                               >
                                 {lang === 'AR' ? 'الدعم الفني' : 'Support'}
                               </button>
+
+                              <button 
+                                className="tw-bg-transparent tw-border tw-border-red-500/30 hover:tw-border-red-500 tw-text-red-500 hover:tw-bg-red-500/10 tw-font-medium tw-py-2.5 tw-px-8 tw-rounded-sm tw-text-sm tw-transition-colors tw-cursor-pointer"
+                                onClick={() => initiateCancellation(booking)}
+                              >
+                                {lang === 'AR' ? 'إلغاء الرحلة' : 'Cancel'}
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -521,10 +539,16 @@ const MyBookings = () => {
                                         <i className="fa-solid fa-credit-card tw-text-xs"></i>
                                       </button>
                                       <button 
-                                        className="tw-bg-transparent tw-border tw-border-slate-300 dark:tw-border-[#333333] tw-text-slate-700 dark:tw-text-[#aaaaaa] hover:tw-border-amber-500 hover:tw-text-amber-500 dark:hover:tw-border-amber-500 dark:hover:tw-border-amber-500 tw-font-medium tw-py-2.5 tw-px-8 tw-rounded-sm tw-text-sm tw-transition-colors tw-cursor-pointer"
+                                        className="tw-bg-transparent tw-border tw-border-slate-300 dark:tw-border-[#333333] tw-text-slate-700 dark:tw-text-[#aaaaaa] hover:tw-border-amber-500 hover:tw-text-amber-500 dark:hover:tw-border-amber-500 dark:hover:tw-text-amber-500 tw-font-medium tw-py-2.5 tw-px-8 tw-rounded-sm tw-text-sm tw-transition-colors tw-cursor-pointer"
                                         onClick={() => dispatch(setChatOpen(true))}
                                       >
                                         {lang === 'AR' ? 'الدعم الفني' : 'Support'}
+                                      </button>
+                                      <button 
+                                        className="tw-bg-transparent tw-border tw-border-red-500/30 hover:tw-border-red-500 tw-text-red-500 hover:tw-bg-red-500/10 tw-font-medium tw-py-2.5 tw-px-8 tw-rounded-sm tw-text-sm tw-transition-colors tw-cursor-pointer"
+                                        onClick={() => initiateCancellation(booking)}
+                                      >
+                                        {lang === 'AR' ? 'إلغاء الرحلة' : 'Cancel'}
                                       </button>
                                     </>
                                   )}
@@ -574,6 +598,289 @@ const MyBookings = () => {
           </div>
         )}
       </main>
+
+      {/* ⚠️ Cancellation Policy Modal Overlay */}
+      {showCancelModal && cancelBookingItem && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.85)',
+          backdropFilter: 'blur(8px)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px',
+          boxSizing: 'border-box'
+        }}>
+          <div style={{
+            background: 'linear-gradient(145deg, #0e0f14 0%, #151720 100%)',
+            border: '2px solid rgba(239, 68, 68, 0.3)',
+            borderRadius: '24px',
+            width: '100%',
+            maxWidth: '520px',
+            padding: '30px',
+            position: 'relative',
+            boxShadow: '0 20px 50px rgba(239, 68, 68, 0.15)',
+            boxSizing: 'border-box',
+            color: '#fff',
+            fontFamily: 'system-ui, -apple-system, sans-serif'
+          }}>
+            {/* Warning Icon */}
+            <div style={{
+              textAlign: 'center',
+              marginBottom: '15px'
+            }}>
+              <i className="fa-solid fa-circle-exclamation" style={{
+                fontSize: '3rem',
+                color: '#ef4444',
+                filter: 'drop-shadow(0 0 10px rgba(239, 68, 68, 0.4))'
+              }}></i>
+            </div>
+
+            {/* Modal Header */}
+            <div style={{ textAlign: 'center', marginBottom: '25px' }}>
+              <h3 style={{
+                fontSize: '1.6rem',
+                fontWeight: '900',
+                margin: '0 0 6px 0',
+                color: '#fff'
+              }}>
+                {lang === 'AR' ? 'سياسة الإلغاء والاسترداد' : 'Cancellation Policy'}
+              </h3>
+              <p style={{
+                color: '#94a3b8',
+                fontSize: '0.85rem',
+                margin: 0,
+                lineHeight: '1.4'
+              }}>
+                {lang === 'AR' ? 'إلغاء حجز:' : 'Cancelling:'}{' '}
+                <span style={{ color: '#f59e0b', fontWeight: 'bold' }}>
+                  {cancelBookingItem.experience?.name || cancelBookingItem.customTrip?.experience?.name || (lang === 'AR' ? 'رحلة مخصصة تجميعية' : 'Custom Trip')}
+                </span>
+              </p>
+            </div>
+
+            {/* Policy Items (Rows matching the mockup perfectly) */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
+              {/* Row 1: Free Cancellation */}
+              <div style={{
+                background: 'rgba(255,255,255,0.02)',
+                border: '1px solid rgba(255,255,255,0.06)',
+                borderRadius: '16px',
+                padding: '12px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    background: 'rgba(16, 185, 129, 0.1)',
+                    border: '1.5px solid #10b981',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <i className="fa-solid fa-check" style={{ color: '#10b981', fontSize: '0.85rem' }}></i>
+                  </div>
+                  <div>
+                    <h4 style={{ margin: '0 0 2px 0', fontSize: '0.88rem', fontWeight: 'bold', color: '#fff' }}>
+                      {lang === 'AR' ? 'خلال أول 24 ساعة' : 'Within First 24 Hours'}
+                    </h4>
+                    <p style={{ margin: 0, fontSize: '0.74rem', color: '#94a3b8' }}>
+                      {lang === 'AR' ? 'استرداد كامل القيمة - بدون رسوم إلغاء' : 'Full refund — no charges at all'}
+                    </p>
+                  </div>
+                </div>
+                <span style={{
+                  background: 'rgba(16, 185, 129, 0.15)',
+                  color: '#10b981',
+                  fontSize: '0.72rem',
+                  fontWeight: '900',
+                  padding: '4px 10px',
+                  borderRadius: '20px',
+                  border: '1px solid rgba(16, 185, 129, 0.3)'
+                }}>{lang === 'AR' ? 'مجاني' : 'FREE'}</span>
+              </div>
+
+              {/* Row 2: 10% Deduction */}
+              <div style={{
+                background: 'rgba(255,255,255,0.02)',
+                border: '1px solid rgba(255,255,255,0.06)',
+                borderRadius: '16px',
+                padding: '12px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    background: 'rgba(245, 158, 11, 0.1)',
+                    border: '1.5px solid #f59e0b',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <i className="fa-regular fa-clock" style={{ color: '#f59e0b', fontSize: '0.85rem' }}></i>
+                  </div>
+                  <div>
+                    <h4 style={{ margin: '0 0 2px 0', fontSize: '0.88rem', fontWeight: 'bold', color: '#fff' }}>
+                      {lang === 'AR' ? 'بعد أسبوع من الحجز' : 'After 1 Week of Booking'}
+                    </h4>
+                    <p style={{ margin: 0, fontSize: '0.74rem', color: '#94a3b8' }}>
+                      {lang === 'AR' ? 'خصم 10% من إجمالي المبلغ المدفوع' : '10% deduction from total paid amount'}
+                    </p>
+                  </div>
+                </div>
+                <span style={{
+                  background: 'rgba(245, 158, 11, 0.15)',
+                  color: '#f59e0b',
+                  fontSize: '0.72rem',
+                  fontWeight: '900',
+                  padding: '4px 10px',
+                  borderRadius: '20px',
+                  border: '1px solid rgba(245, 158, 11, 0.3)'
+                }}>-10%</span>
+              </div>
+
+              {/* Row 3: 50% Deduction */}
+              <div style={{
+                background: 'rgba(255,255,255,0.02)',
+                border: '1px solid rgba(255,255,255,0.06)',
+                borderRadius: '16px',
+                padding: '12px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    background: 'rgba(239, 68, 68, 0.1)',
+                    border: '1.5px solid #ef4444',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <i className="fa-regular fa-calendar-minus" style={{ color: '#ef4444', fontSize: '0.85rem' }}></i>
+                  </div>
+                  <div>
+                    <h4 style={{ margin: '0 0 2px 0', fontSize: '0.88rem', fontWeight: 'bold', color: '#fff' }}>
+                      {lang === 'AR' ? 'قبل يومين من الرحلة' : '2 Days Before Trip'}
+                    </h4>
+                    <p style={{ margin: 0, fontSize: '0.74rem', color: '#94a3b8' }}>
+                      {lang === 'AR' ? 'خصم 50% من إجمالي قيمة الحجز (نصف السعر)' : '50% deduction from total amount (half the price)'}
+                    </p>
+                  </div>
+                </div>
+                <span style={{
+                  background: 'rgba(239, 68, 68, 0.15)',
+                  color: '#ef4444',
+                  fontSize: '0.72rem',
+                  fontWeight: '900',
+                  padding: '4px 10px',
+                  borderRadius: '20px',
+                  border: '1px solid rgba(239, 68, 68, 0.3)'
+                }}>-50%</span>
+              </div>
+            </div>
+
+            {/* Row 4: Information Info Row */}
+            <div style={{
+              background: 'rgba(59, 130, 246, 0.05)',
+              border: '1px solid rgba(59, 130, 246, 0.15)',
+              borderRadius: '12px',
+              padding: '12px 14px',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '10px',
+              marginBottom: '25px'
+            }}>
+              <i className="fa-solid fa-circle-info" style={{ color: '#3b82f6', fontSize: '0.9rem', marginTop: '2px' }}></i>
+              <span style={{ fontSize: '0.75rem', color: '#94a3b8', lineHeight: '1.4' }}>
+                {lang === 'AR'
+                  ? `سيتم إرجاع المبالغ المستردة المعتمدة إلى وسيلة الدفع الأصلية في غضون 5-10 أيام عمل بعد التأكيد النهائي. رسوم الإلغاء المحسوبة لرحلتك حالياً هي: ${cancelPolicy.feePercent}% (${cancelPolicy.feeAmount} EGP).`
+                  : `Refunds will be credited to your original payment method within 5-10 business days after confirmation. Calculated fee for this booking: ${cancelPolicy.feePercent}% (${cancelPolicy.feeAmount} EGP).`}
+              </span>
+            </div>
+
+            {/* Bottom Actions */}
+            <div style={{
+              display: 'flex',
+              gap: '15px',
+              justifyContent: 'center',
+              boxSizing: 'border-box'
+            }}>
+              <button
+                onClick={() => {
+                  setShowCancelModal(false);
+                  setCancelBookingItem(null);
+                }}
+                style={{
+                  flex: 1,
+                  background: 'transparent',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  color: '#fff',
+                  padding: '12px 20px',
+                  borderRadius: '30px',
+                  fontSize: '0.88rem',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+              >
+                {lang === 'AR' ? 'الرجوع للخلف' : 'Go Back'}
+              </button>
+
+              <button
+                onClick={executeCancelBooking}
+                disabled={actionLoadingId !== null}
+                style={{
+                  flex: 1,
+                  background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '12px 20px',
+                  borderRadius: '30px',
+                  fontSize: '0.88rem',
+                  fontWeight: 'extrabold',
+                  cursor: actionLoadingId !== null ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)',
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+                onMouseEnter={(e) => { if (actionLoadingId === null) e.currentTarget.style.transform = 'scale(1.02)'; }}
+                onMouseLeave={(e) => { if (actionLoadingId === null) e.currentTarget.style.transform = 'scale(1)'; }}
+              >
+                {actionLoadingId !== null ? (
+                  <><i className="fa-solid fa-spinner fa-spin"></i> {lang === 'AR' ? 'جاري الإلغاء...' : 'Cancelling...'}</>
+                ) : (
+                  <><i className="fa-solid fa-circle-minus"></i> {lang === 'AR' ? 'تأكيد إلغاء الرحلة' : 'Confirm Cancellation'}</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

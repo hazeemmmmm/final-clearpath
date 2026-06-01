@@ -435,25 +435,7 @@ const EditPackageModal = ({ experience, onClose, onUpdate, activitiesList, provi
             {formData.itinerary.length === 0 && <p style={{ color: '#888', fontStyle: 'italic' }}>No itinerary days added yet.</p>}
           </div>
 
-          {/* Modular Add-ons */}
-          <div style={{ borderTop: '1px solid rgba(212,175,55,0.2)', paddingTop: '20px' }}>
-            <h3 style={{ color: '#d4af37', display: 'flex', justifyContent: 'space-between' }}>
-              <span><i className="fa-solid fa-puzzle-piece"></i> Modular Extensions (Add-ons)</span>
-              <button type="button" onClick={handleAddAddon} style={{ background: 'var(--brand-accent, #d4af37)', color: '#000', border: 'none', padding: '5px 15px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>+ Add Extension</button>
-            </h3>
 
-            {formData.addons.map((addon, aIdx) => (
-              <div key={aIdx} style={{ background: 'rgba(255,255,255,0.03)', padding: '15px', borderRadius: '8px', marginBottom: '15px', borderLeft: '3px solid #d4af37' }}>
-                <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-                  <input type="text" value={addon.name} onChange={(e) => handleAddonChange(aIdx, 'name', e.target.value)} placeholder="Extension Name (e.g. Professional Photographer)" style={{ flex: 2, padding: '8px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }} required />
-                  <input type="number" value={addon.price} onChange={(e) => handleAddonChange(aIdx, 'price', Number(e.target.value))} placeholder="Price ($)" style={{ flex: 1, padding: '8px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }} required />
-                  <button type="button" onClick={() => handleRemoveAddon(aIdx)} style={{ background: '#ff4d4f', border: 'none', color: '#fff', cursor: 'pointer', padding: '8px 15px', borderRadius: '4px' }}>✕</button>
-                </div>
-                <textarea value={addon.description} onChange={(e) => handleAddonChange(aIdx, 'description', e.target.value)} placeholder="Description..." style={{ width: '100%', padding: '8px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', minHeight: '60px' }}></textarea>
-              </div>
-            ))}
-            {formData.addons.length === 0 && <p style={{ color: '#888', fontStyle: 'italic' }}>No extensions available.</p>}
-          </div>
 
           {/* Airport Pickup Toggle */}
           <div style={{ borderTop: '1px solid rgba(212,175,55,0.2)', paddingTop: '20px', display: 'flex', alignItems: 'center', gap: '15px' }}>

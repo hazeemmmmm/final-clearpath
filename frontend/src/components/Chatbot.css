@@ -399,10 +399,19 @@ body.dark-mode .history-list::-webkit-scrollbar-thumb {
 }
 
 .message-bubble-wrapper.bot .message-bubble {
-  background: var(--card-bg);
-  color: var(--text-primary);
+  background: #ffffff !important;
+  color: #1e293b !important;
   border-bottom-left-radius: 3px;
-  border: 1px solid var(--border-color);
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+}
+
+.message-bubble-wrapper.bot .message-bubble .message-content {
+  color: #1e293b !important;
+}
+
+.message-bubble-wrapper.bot .message-bubble .message-time {
+  color: rgba(30, 41, 59, 0.6) !important;
 }
 
 .rtl-layout .message-bubble-wrapper.bot .message-bubble {

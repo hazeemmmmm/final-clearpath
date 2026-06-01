@@ -240,6 +240,45 @@ class ExperienceService {
     };
   }
 
+  // 📋 Get Extensions for Trip Chaining (starting exactly next day)
+  async getExtensions(query) {
+    const { currentTripEndDate } = query;
+    if (!currentTripEndDate) {
+      return [];
+    }
+
+    // Parse base date
+    const baseDate = new Date(currentTripEndDate);
+    if (isNaN(baseDate.getTime())) {
+      return [];
+    }
+
+    // Create timezone-safe range constraints for start and end of that exact end day
+    const startOfDay = new Date(baseDate);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(baseDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    // Query packages that have availableDates within this day
+    const filter = {
+      availableDates: {
+        $elemMatch: {
+          date: { $gte: startOfDay, $lte: endOfDay }
+        }
+      }
+    };
+
+    // Sort by createdAt: -1 (recently added by Admin displays first)
+    const data = await Experience.find(filter)
+      .populate("destination")
+      .populate("itinerary.activities.activity")
+      .populate("packingGuide")
+      .sort({ createdAt: -1 });
+
+    return data;
+  }
+
   // 🔍 Get One
   async getOne(id) {
     return await Experience.findById(id)
