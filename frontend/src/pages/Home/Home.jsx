@@ -184,13 +184,13 @@ const Home = () => {
       <Navbar lang={lang} setLang={setLang} isScrolled={isScrolled} />
 
       <header className="tw-relative tw-h-[85vh] tw-w-full">
-        <div className="tw-absolute tw-inset-0 tw-z-0 tw-bg-white dark:tw-bg-black">
+        <div className="tw-absolute tw-inset-0 tw-z-0 tw-bg-slate-100 dark:tw-bg-black">
           <img 
             src="/hero-abu-simbel.jpg" 
             alt="Hero Background" 
-            className="tw-w-full tw-h-full tw-object-cover tw-opacity-30 dark:tw-opacity-50"
+            className="tw-w-full tw-h-full tw-object-cover tw-opacity-70 dark:tw-opacity-50 tw-transition-opacity tw-duration-300"
           />
-          <div className="tw-absolute tw-inset-0 tw-bg-gradient-to-b tw-from-white/90 tw-via-white/60 tw-to-slate-50 dark:tw-from-black/60 dark:tw-via-black/20 dark:tw-to-[#0a0b0d]"></div>
+          <div className="tw-absolute tw-inset-0 tw-bg-gradient-to-b tw-from-white/60 tw-via-white/20 tw-to-slate-50 dark:tw-from-black/60 dark:tw-via-black/20 dark:tw-to-[#0a0b0d]"></div>
         </div>
 
         <div className="tw-absolute tw-inset-0 tw-flex tw-flex-col tw-items-center tw-justify-center tw-z-10 tw-text-center tw-px-4 tw-pt-36">
@@ -212,16 +212,20 @@ const Home = () => {
               <i className="fa-solid fa-location-dot tw-text-amber-500 tw-text-xl"></i>
               <div className="tw-flex tw-flex-col tw-w-full">
                 <span className="tw-text-[10px] tw-tracking-widest tw-font-bold tw-text-slate-500 dark:tw-text-slate-400 tw-uppercase">{lang === 'AR' ? 'الوجهة' : 'DESTINATION'}</span>
-                <select 
-                  className="tw-bg-transparent tw-text-slate-900 dark:tw-text-white tw-w-full tw-outline-none tw-appearance-none tw-cursor-pointer tw-font-medium"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                >
-                  <option value="" className="dark:tw-bg-slate-900">{lang === 'AR' ? 'اختر الوجهة' : 'Luxor, Egypt'}</option>
-                  {options.destinations.map(dest => (
-                    <option key={dest._id} value={dest._id} className="dark:tw-bg-slate-900">{dest.name}</option>
-                  ))}
-                </select>
+                <div className="tw-relative tw-w-full tw-mt-1.5">
+                  <select 
+                    className={`tw-bg-white dark:tw-bg-black/50 tw-text-slate-900 dark:tw-text-white tw-w-full tw-outline-none tw-appearance-none tw-cursor-pointer tw-font-medium tw-px-4 tw-py-2.5 tw-border tw-border-slate-200 dark:tw-border-slate-800 tw-rounded-xl hover:tw-border-amber-500/50 dark:hover:tw-border-amber-500/50 focus:tw-border-amber-500 dark:focus:tw-border-amber-500 tw-transition-all ${lang === 'AR' ? 'tw-pl-10' : 'tw-pr-10'}`}
+                    style={{ outline: 'none' }}
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                  >
+                    <option value="" className="dark:tw-bg-slate-900">{lang === 'AR' ? 'اختر الوجهة' : 'Luxor, Egypt'}</option>
+                    {options.destinations.map(dest => (
+                      <option key={dest._id} value={dest._id} className="dark:tw-bg-slate-900">{dest.name}</option>
+                    ))}
+                  </select>
+                  <i className={`fa-solid fa-chevron-down tw-text-slate-400 dark:tw-text-slate-500 tw-absolute tw-pointer-events-none tw-text-xs tw-top-1/2 -tw-translate-y-1/2 ${lang === 'AR' ? 'tw-left-4' : 'tw-right-4'}`}></i>
+                </div>
               </div>
             </div>
 
@@ -231,16 +235,20 @@ const Home = () => {
               <i className="fa-solid fa-user-group tw-text-amber-500 tw-text-xl"></i>
               <div className="tw-flex tw-flex-col tw-w-full">
                 <span className="tw-text-[10px] tw-tracking-widest tw-font-bold tw-text-slate-500 dark:tw-text-slate-400 tw-uppercase">{lang === 'AR' ? 'الضيوف' : 'GUESTS'}</span>
-                <select 
-                  className="tw-bg-transparent tw-text-slate-900 dark:tw-text-white tw-w-full tw-outline-none tw-appearance-none tw-cursor-pointer tw-font-medium"
-                  value={guests}
-                  onChange={(e) => setGuests(e.target.value)}
-                >
-                  <option value="" className="dark:tw-bg-slate-900">{lang === 'AR' ? 'أي عدد' : '2 Guests'}</option>
-                  {options.capacities.map(cap => (
-                    <option key={cap} value={cap} className="dark:tw-bg-slate-900">{lang === 'AR' ? `حتى ${cap} ضيوف` : `Up to ${cap} Guests`}</option>
-                  ))}
-                </select>
+                <div className="tw-relative tw-w-full tw-mt-1.5">
+                  <select 
+                    className={`tw-bg-white dark:tw-bg-black/50 tw-text-slate-900 dark:tw-text-white tw-w-full tw-outline-none tw-appearance-none tw-cursor-pointer tw-font-medium tw-px-4 tw-py-2.5 tw-border tw-border-slate-200 dark:tw-border-slate-800 tw-rounded-xl hover:tw-border-amber-500/50 dark:hover:tw-border-amber-500/50 focus:tw-border-amber-500 dark:focus:tw-border-amber-500 tw-transition-all ${lang === 'AR' ? 'tw-pl-10' : 'tw-pr-10'}`}
+                    style={{ outline: 'none' }}
+                    value={guests}
+                    onChange={(e) => setGuests(e.target.value)}
+                  >
+                    <option value="" className="dark:tw-bg-slate-900">{lang === 'AR' ? 'أي عدد' : '2 Guests'}</option>
+                    {options.capacities.map(cap => (
+                      <option key={cap} value={cap} className="dark:tw-bg-slate-900">{lang === 'AR' ? `حتى ${cap} ضيوف` : `Up to ${cap} Guests`}</option>
+                    ))}
+                  </select>
+                  <i className={`fa-solid fa-chevron-down tw-text-slate-400 dark:tw-text-slate-500 tw-absolute tw-pointer-events-none tw-text-xs tw-top-1/2 -tw-translate-y-1/2 ${lang === 'AR' ? 'tw-left-4' : 'tw-right-4'}`}></i>
+                </div>
               </div>
             </div>
             

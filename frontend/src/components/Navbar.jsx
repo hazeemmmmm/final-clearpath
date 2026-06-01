@@ -144,6 +144,15 @@ const Navbar = ({ isScrolled, dashboardMode }) => {
     navigate('/login');
   };
 
+  const getLinkClass = (path) => {
+    const isActive = location.pathname === path;
+    return `tw-text-sm tw-font-semibold tw-text-slate-800 dark:tw-text-slate-200 hover:tw-text-amber-600 dark:hover:tw-text-amber-500 tw-transition-colors tw-pb-1 tw-border-b-2 ${
+      isActive 
+        ? 'tw-border-amber-500 tw-text-amber-600 dark:tw-text-amber-500' 
+        : 'tw-border-transparent hover:tw-border-amber-500/50'
+    }`;
+  };
+
   const navBgClass = dashboardMode
     ? 'tw-bg-transparent tw-border-none dark'
     : isScrolled
@@ -178,13 +187,19 @@ const Navbar = ({ isScrolled, dashboardMode }) => {
 
         {/* Center: Navigation Links */}
         <div className="tw-hidden md:tw-flex tw-items-center tw-gap-4 lg:tw-gap-8">
-          <Link to="/experiences" className="tw-text-sm tw-font-semibold tw-text-slate-800 dark:tw-text-slate-200 hover:tw-text-amber-600 dark:hover:tw-text-amber-500 tw-transition-colors tw-border-b-2 tw-border-amber-500 tw-pb-1">
+          <Link 
+            to="/" 
+            className="tw-text-sm tw-font-semibold tw-text-amber-500 dark:tw-text-amber-500 hover:tw-text-slate-900 dark:hover:tw-text-white tw-transition-colors tw-pb-1 tw-border-b-2 tw-border-amber-500 hover:tw-border-slate-900 dark:hover:tw-border-white"
+          >
+            {lang === 'AR' ? 'الرئيسية' : 'Home'}
+          </Link>
+          <Link to="/experiences" className={getLinkClass('/experiences')}>
             {lang === 'AR' ? 'الباقات' : 'Packages'}
           </Link>
-          <Link to="/my-bookings" className="tw-text-sm tw-font-semibold tw-text-slate-800 dark:tw-text-slate-200 hover:tw-text-amber-600 dark:hover:tw-text-amber-500 tw-transition-colors tw-pb-1 tw-border-b-2 tw-border-transparent hover:tw-border-amber-500/50">
+          <Link to="/my-bookings" className={getLinkClass('/my-bookings')}>
             {lang === 'AR' ? 'حجوزاتي' : 'My Bookings'}
           </Link>
-          <Link to="/wishlist" className="tw-text-sm tw-font-semibold tw-text-slate-800 dark:tw-text-slate-200 hover:tw-text-amber-600 dark:hover:tw-text-amber-500 tw-transition-colors tw-pb-1 tw-border-b-2 tw-border-transparent hover:tw-border-amber-500/50">
+          <Link to="/wishlist" className={getLinkClass('/wishlist')}>
             {lang === 'AR' ? 'المفضلة' : 'Wishlist'}
           </Link>
           <span 
