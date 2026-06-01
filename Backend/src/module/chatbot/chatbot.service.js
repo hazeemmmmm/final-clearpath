@@ -62,6 +62,112 @@ export class ChatbotService {
       chatSession.title = words.length > 30 ? words.substring(0, 30) + "..." : words;
     }
 
+    // 4. Extract Destination and Budget
+    let extractedDestination = null;
+    let extractedBudget = null;
+
+    // Use Gemini for extraction if API Key is configured
+    const apiKey = devConfig.GEMINI_API_KEY;
+    if (apiKey && apiKey !== "YOUR_GEMINI_API_KEY" && apiKey.trim() !== "") {
+      try {
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const extractionModel = genAI.getGenerativeModel({
+          model: "gemini-flash-latest",
+          generationConfig: { responseMimeType: "application/json" }
+        });
+
+        const extractionPrompt = `
+Analyze the following travel message from a tourist. Extract:
+1. The destination name in English (e.g. Cairo, Giza, Luxor, Hurghada, Dahab, Alexandria). If mentioned in Arabic (e.g. القاهرة, الغردقة, دهب, الاقصر, الاسكندرية), translate it to the English name. If no destination is mentioned, return null.
+2. The maximum budget as a number (representing EGP). If the budget is mentioned in USD (e.g. $100, 100 USD), convert it to EGP assuming 1 USD = 50 EGP. If no budget is mentioned, return null.
+
+Respond ONLY with a JSON object containing keys "destination" and "budget".
+
+User message: "${userMessage}"
+`;
+        const extractionResult = await extractionModel.generateContent(extractionPrompt);
+        const responseText = extractionResult.response.text().trim();
+        const parsed = JSON.parse(responseText);
+        extractedDestination = parsed.destination;
+        extractedBudget = parsed.budget;
+      } catch (err) {
+        console.error("Gemini extraction error:", err);
+      }
+    }
+
+    // Robust Fallback: Regex-based extraction (essential for Mock mode / fallback)
+    if (!extractedDestination || !extractedBudget) {
+      const destMapping = {
+        cairo: "Cairo",
+        giza: "Cairo",
+        luxor: "Luxor",
+        hurghada: "Hurghada",
+        dahab: "Dahab",
+        alexandria: "Alexandria",
+        القاهرة: "Cairo",
+        الجيزة: "Cairo",
+        الأقصر: "Luxor",
+        الغردقة: "Hurghada",
+        دهب: "Dahab",
+        الإسكندرية: "Alexandria",
+        الاسكندرية: "Alexandria"
+      };
+
+      const lowerMessage = userMessage.toLowerCase();
+      if (!extractedDestination) {
+        for (const [key, value] of Object.entries(destMapping)) {
+          if (lowerMessage.includes(key)) {
+            extractedDestination = value;
+            break;
+          }
+        }
+      }
+
+      if (!extractedBudget) {
+        const usdMatch = userMessage.match(/(\d+(?:\.\d+)?)\s*(?:usd|\$|دولار)/i) || userMessage.match(/(?:\$)\s*(\d+(?:\.\d+)?)/i);
+        const egpMatch = userMessage.match(/(\d+(?:\.\d+)?)\s*(?:egp|le|جنيه|ج.م)/i);
+        
+        if (usdMatch) {
+          extractedBudget = Math.floor(parseFloat(usdMatch[1]) * 50);
+        } else if (egpMatch) {
+          extractedBudget = Math.floor(parseFloat(egpMatch[1]));
+        } else {
+          // Look for any 3-5 digit number in the string as budget if not matched with currency
+          const numberMatch = userMessage.match(/\b(\d{3,5})\b/);
+          if (numberMatch) {
+            extractedBudget = parseInt(numberMatch[1]);
+          }
+        }
+      }
+    }
+
+    // 5. Query experiences database based on extracted destination/budget
+    let recommendedPackages = [];
+    if (extractedDestination || extractedBudget) {
+      let query = {};
+      if (extractedDestination) {
+        const DestinationModel = (await import("../../db/models/destination.model.js")).Destination;
+        const destDoc = await DestinationModel.findOne({
+          name: { $regex: new RegExp(`^${extractedDestination}$`, "i") }
+        });
+        if (destDoc) {
+          query.destination = destDoc._id;
+        } else {
+          query.$or = [
+            { name: { $regex: new RegExp(extractedDestination, "i") } },
+            { description: { $regex: new RegExp(extractedDestination, "i") } }
+          ];
+        }
+      }
+
+      if (extractedBudget) {
+        query.base_price = { $lte: Number(extractedBudget) };
+      }
+
+      const ExperienceModel = (await import("../../db/models/experience.model.js")).Experience;
+      recommendedPackages = await ExperienceModel.find(query).limit(3);
+    }
+
     let aiReply = "";
 
     // MOCK SIMULATION FOR NEGOTIATION (Graduation Project Demo)
@@ -94,17 +200,28 @@ export class ChatbotService {
       // Mentioned but not enough times yet
       aiReply = "I understand you're looking for the best value! Our packages are priced to ensure premium quality and dedicated service. However, if you have a specific budget in mind, I can help you find the best options.";
     } else {
-      // 4. Check if Gemini API Key is configured
-      const apiKey = devConfig.GEMINI_API_KEY;
+      // 6. Generate reply with Gemini or Mock fallback
       if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY" || apiKey.trim() === "") {
-        aiReply = "I am the ClearPath AI assistant! (Mock Mode active). I can help you plan trips, find activities, and even negotiate prices. Try asking me for a discount!";
+        // MOCK MODE with database package integration!
+        if (recommendedPackages.length > 0) {
+          aiReply = `I have successfully queried our database and found ${recommendedPackages.length} luxury experiences matching your request. Take a look at these exclusive choices:`;
+        } else {
+          aiReply = "I am the ClearPath AI assistant! (Mock Mode active). I can help you plan trips, find activities, and recommend packages. Try asking me for 'trips in Hurghada under 3000 EGP'!";
+        }
       } else {
         try {
+          // If packages are found, inject them into Gemini system context
+          let systemInstructionText = SYSTEM_INSTRUCTION;
+          if (recommendedPackages.length > 0) {
+            const pkgListStr = recommendedPackages.map(p => `"${p.name}" (Price: ${p.base_price} EGP, Duration: ${p.duration_days} days)`).join(", ");
+            systemInstructionText += `\n\n[DATABASE RECOMMENDATION CONTEXT]: We found these actual trips/packages in our database matching the user's search: ${pkgListStr}. In your response, politely mention that you have found these matching premium packages (which will be displayed as interactive cards below the chat bubble) and briefly describe them to get the user excited to book. Do not invent any other packages. Keep the response friendly and aligned with their preferred language.`;
+          }
+
           // Initialize Gemini API Client
           const genAI = new GoogleGenerativeAI(apiKey);
           const model = genAI.getGenerativeModel({
             model: "gemini-flash-latest",
-            systemInstruction: SYSTEM_INSTRUCTION,
+            systemInstruction: systemInstructionText,
           });
 
           // Convert Mongoose history to Gemini-compatible history array (excluding the newly pushed message)
@@ -131,14 +248,21 @@ export class ChatbotService {
       }
     }
 
-    // 5. Add AI's reply to database history
+    // 7. Add AI's reply to database history
     chatSession.messages.push({
       role: "model",
       content: aiReply,
+      packages: recommendedPackages.map(pkg => pkg._id),
     });
 
-    // 6. Save back to database
+    // 8. Save back to database
     await chatSession.save();
+
+    // Populate packages so the frontend gets full details!
+    await chatSession.populate({
+      path: "messages.packages",
+      model: "Experience"
+    });
 
     return chatSession;
   }
@@ -162,6 +286,10 @@ export class ChatbotService {
     if (!chatSession) {
       throw new BadRequestException("Chat session not found or does not belong to you");
     }
+    await chatSession.populate({
+      path: "messages.packages",
+      model: "Experience"
+    });
     return chatSession;
   }
 

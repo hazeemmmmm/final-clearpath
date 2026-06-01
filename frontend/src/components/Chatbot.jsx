@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { setChatOpen } from '../store/authSlice';
 import { LanguageContext } from '../context/LanguageContext';
+import { CurrencyContext } from '../context/CurrencyContext';
 import { getChatHistory, getChatDetails, sendChatMessage, deleteChatSession } from '../utils/api';
 import './Chatbot.css';
 
@@ -10,6 +11,7 @@ const Chatbot = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { lang } = useContext(LanguageContext);
+  const { formatPrice } = useContext(CurrencyContext);
   
   // Select state from Redux
   const isChatOpen = useSelector((state) => state.auth.isChatOpen);
@@ -121,6 +123,7 @@ const Chatbot = () => {
         const mappedMessages = res.data.messages.map(msg => ({
           sender: msg.role === 'user' ? 'user' : 'bot',
           content: msg.content,
+          packages: msg.packages || [],
           timestamp: msg.timestamp || new Date().toISOString()
         }));
         setMessages(mappedMessages);
@@ -170,6 +173,7 @@ const Chatbot = () => {
     const userMsg = {
       sender: 'user',
       content: inputMessage,
+      packages: [],
       timestamp: new Date().toISOString()
     };
 
@@ -182,9 +186,12 @@ const Chatbot = () => {
       const res = await sendChatMessage(messageToSend, chatId);
       if (res && res.success) {
         setChatId(res.data.chatId);
+        const serverMessages = res.data.messages || [];
+        const lastServerMsg = serverMessages[serverMessages.length - 1];
         const botMsg = {
           sender: 'bot',
           content: res.data.reply,
+          packages: lastServerMsg?.packages || [],
           timestamp: new Date().toISOString()
         };
         setMessages(prev => [...prev, botMsg]);
@@ -197,6 +204,7 @@ const Chatbot = () => {
           sender: 'bot',
           content: currentT.errorSend,
           isError: true,
+          packages: [],
           timestamp: new Date().toISOString()
         }
       ]);
@@ -316,11 +324,61 @@ const Chatbot = () => {
             <div className="messages-container">
               {messages.map((msg, index) => (
                 <div key={index} className={`message-bubble-wrapper ${msg.sender}`}>
-                  <div className={`message-bubble ${msg.isError ? 'error-bubble' : ''}`}>
-                    <p className="message-content">{msg.content}</p>
-                    <span className="message-time">
-                      {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
+                  <div className="message-bubble-group" style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '8px' }}>
+                    <div className={`message-bubble ${msg.isError ? 'error-bubble' : ''}`}>
+                      <p className="message-content">{msg.content}</p>
+                      <span className="message-time">
+                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+
+                    {/* Render matching package cards directly below the bot's text bubble */}
+                    {msg.sender === 'bot' && msg.packages && msg.packages.length > 0 && (
+                      <div className="chatbot-packages-list">
+                        {msg.packages.map((pkg) => (
+                          <div key={pkg._id} className="chatbot-package-card">
+                            {pkg.image && (
+                              <img 
+                                src={pkg.image} 
+                                alt={pkg.name} 
+                                className="chatbot-package-img" 
+                              />
+                            )}
+                            <div className="chatbot-package-info">
+                              <h5 className="chatbot-package-title">{pkg.name}</h5>
+                              <div className="chatbot-package-meta">
+                                <span className="chatbot-package-duration">
+                                  <i className="fa-regular fa-clock"></i> {pkg.duration_days} {lang === 'AR' ? 'أيام' : 'days'}
+                                </span>
+                                <span className="chatbot-package-price">
+                                  {formatPrice(pkg.base_price)}
+                                </span>
+                              </div>
+                              <div className="chatbot-package-actions">
+                                <button 
+                                  className="btn-chatbot-pkg-view"
+                                  onClick={() => {
+                                    dispatch(setChatOpen(false));
+                                    navigate(`/package-details/${pkg._id}`);
+                                  }}
+                                >
+                                  {lang === 'AR' ? 'تفاصيل' : 'Details'}
+                                </button>
+                                <button 
+                                  className="btn-chatbot-pkg-book"
+                                  onClick={() => {
+                                    dispatch(setChatOpen(false));
+                                    navigate(`/package-details/${pkg._id}?bookDirectly=true`);
+                                  }}
+                                >
+                                  {lang === 'AR' ? 'احجز الآن' : 'Book Now'}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

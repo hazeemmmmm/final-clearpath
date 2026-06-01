@@ -192,6 +192,23 @@ const Experiences = () => {
     }
     const price = exp.calculatedPrice || exp.base_price || 0;
     if (price < minPrice || price > maxPrice) return false;
+
+    // Filter by chainStartDate from URL parameter for Modular Trip Chaining
+    const urlParams = new URLSearchParams(window.location.search);
+    const chainStartDateStr = urlParams.get('chainStartDate');
+    if (chainStartDateStr) {
+      const targetDate = new Date(chainStartDateStr);
+      if (!isNaN(targetDate.getTime())) {
+        if (exp.availableDates && exp.availableDates.length > 0) {
+          const hasValidDate = exp.availableDates.some(d => {
+            const ad = new Date(d.date || d);
+            return !isNaN(ad.getTime()) && ad >= targetDate;
+          });
+          if (!hasValidDate) return false;
+        }
+      }
+    }
+
     return true;
   });
 
@@ -361,6 +378,43 @@ const Experiences = () => {
           </div>
         </div>
       </header>
+
+      {(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const chainStartDateStr = urlParams.get('chainStartDate');
+        if (!chainStartDateStr) return null;
+        
+        return (
+          <div className="tw-max-w-4xl tw-mx-auto tw-w-full tw-px-4 tw-mt-8">
+            <div className="tw-bg-gradient-to-r tw-from-emerald-500/20 tw-to-amber-500/10 tw-backdrop-blur-md tw-border tw-border-emerald-500/30 tw-rounded-xl tw-p-6 tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-justify-between tw-gap-4 tw-shadow-lg">
+              <div className="tw-flex tw-items-center tw-gap-4">
+                <div className="tw-w-12 tw-h-12 tw-rounded-full tw-bg-emerald-500/20 tw-flex tw-items-center tw-justify-center tw-text-emerald-500 tw-text-xl tw-shadow-inner">
+                  <i className="fa-solid fa-route tw-animate-pulse"></i>
+                </div>
+                <div className="tw-flex tw-flex-col">
+                  <h4 className="tw-text-emerald-400 tw-text-sm tw-font-bold">
+                    {lang === 'AR' ? 'وضع سلسلة الرحلات المتصلة نشط 🔗' : 'Trip Chaining Mode Active 🔗'}
+                  </h4>
+                  <p className="tw-text-slate-300 tw-text-xs tw-mt-1">
+                    {lang === 'AR'
+                      ? `نعرض فقط الرحلات والـ Dayuses المتاحة للبدء في أو بعد: ${new Date(chainStartDateStr).toLocaleDateString('ar-EG', { month: 'long', day: 'numeric', year: 'numeric' })}`
+                      : `Showing packages and dayuse tours available to start on or after: ${new Date(chainStartDateStr).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  window.location.href = '/experiences';
+                }}
+                className="hover:tw-bg-slate-800 tw-text-xs tw-font-bold tw-px-5 tw-py-2.5 tw-rounded-lg tw-transition-all tw-border-none tw-cursor-pointer tw-shadow-md tw-flex tw-items-center tw-gap-2"
+                style={{ backgroundColor: '#0f172a', color: '#ffffff' }}
+              >
+                {lang === 'AR' ? 'إلغاء وضع السلسلة' : 'Exit Chain Mode'}
+              </button>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Main Content: City Sections */}
       <main id="recommended-section" className="tw-flex-grow tw-container tw-mx-auto tw-px-4 tw-py-16 tw-max-w-[1400px]">

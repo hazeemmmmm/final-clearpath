@@ -2,10 +2,15 @@ import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
+import LocationBasedAdventures from '../../components/LocationBasedAdventures';
 import { LanguageContext } from '../../context/LanguageContext';
+import { CurrencyContext } from '../../context/CurrencyContext';
 import { getTrips, getFilterOptions, trackInteraction } from '../../utils/api';
 
 const ExperienceCard = ({ pkg, lang, navigate }) => {
+  const { currency, convertPrice } = useContext(CurrencyContext);
+  const displayedPrice = convertPrice(pkg.base_price);
+
   return (
     <div 
       onClick={() => {
@@ -59,7 +64,10 @@ const ExperienceCard = ({ pkg, lang, navigate }) => {
             <p className="tw-text-[10px] tw-font-bold tw-text-slate-500 dark:tw-text-slate-500 tw-tracking-widest tw-mb-1 uppercase">
               {lang === 'AR' ? 'يبدأ من' : 'STARTING FROM'}
             </p>
-            <p className="tw-text-2xl tw-font-bold tw-text-amber-500">{pkg.base_price} <span className="tw-text-sm">{lang === 'AR' ? 'ج.م' : 'EGP'}</span></p>
+            <p className="tw-text-2xl tw-font-bold tw-text-amber-500">
+              {currency === 'USD' ? `$${displayedPrice}` : `${displayedPrice} `}
+              {currency === 'EGP' && <span className="tw-text-sm">{lang === 'AR' ? 'ج.م' : 'EGP'}</span>}
+            </p>
           </div>
           
           <button 
@@ -316,6 +324,9 @@ const Home = () => {
           )}
         </div>
       </section>
+
+      {/* GPS Location Based Seamless Trip Continuation Section */}
+      <LocationBasedAdventures />
 
       <section className="tw-relative tw-py-32 tw-overflow-hidden">
         <div className="tw-absolute tw-inset-0">

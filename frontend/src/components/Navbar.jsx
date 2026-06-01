@@ -100,18 +100,30 @@ const Navbar = ({ isScrolled, dashboardMode }) => {
     setCheckoutLoading(true);
     try {
       const createdBookingIds = [];
+      let previousBookingId = null;
       for (const item of tripChain) {
         let payload;
         if (item.isCustomizing && item.customTripId) {
-          payload = { customTrip: item.customTripId, numberOfGuests: item.guestCount, selectedAddons: item.selectedAddons };
+          payload = { 
+            customTrip: item.customTripId, 
+            numberOfGuests: item.guestCount || item.guests, 
+            selectedAddons: item.selectedAddons,
+            parentBookingId: previousBookingId
+          };
         } else {
-          payload = { experienceId: item.id, numberOfGuests: item.guestCount, selectedAddons: item.selectedAddons };
+          payload = { 
+            experienceId: item.id || item.packageId, 
+            numberOfGuests: item.guestCount || item.guests, 
+            selectedAddons: item.selectedAddons,
+            parentBookingId: previousBookingId
+          };
         }
         
         const res = await createBooking(payload);
         const booking = res.data || res.booking || res;
         if (booking && booking._id) {
           createdBookingIds.push(booking._id);
+          previousBookingId = booking._id; // Set this as parent for the next sequential booking
         }
       }
 
