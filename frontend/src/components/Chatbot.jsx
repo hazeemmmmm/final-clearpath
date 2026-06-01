@@ -223,7 +223,20 @@ const Chatbot = () => {
     navigate('/login');
   };
 
-  if (!isChatOpen) return null;
+  if (!isChatOpen) {
+    return (
+      <button
+        type="button"
+        className={`chatbot-fab ${lang === 'AR' ? 'rtl-layout' : 'ltr-layout'}`}
+        onClick={() => dispatch(setChatOpen(true))}
+        aria-label={lang === 'AR' ? 'فتح المساعد الذكي' : 'Open AI assistant'}
+        title={currentT.title}
+      >
+        <i className="fa-solid fa-comments" />
+        <span className="chatbot-fab-pulse" />
+      </button>
+    );
+  }
 
   return (
     <div className={`chatbot-overlay-container ${lang === 'AR' ? 'rtl-layout' : 'ltr-layout'}`}>

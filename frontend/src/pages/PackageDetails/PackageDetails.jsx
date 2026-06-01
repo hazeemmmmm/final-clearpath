@@ -34,6 +34,10 @@ import {
 } from '../../utils/api';
 import './PackageDetailsNew.css';
 import AISupervisorMatch from '../../components/AISupervisorMatch';
+import VendorTrustBadge from '../../components/VendorTrustBadge';
+import PricingGuaranteeBadge from '../../components/PricingGuaranteeBadge';
+import AdventureInsights from '../../components/AdventureInsights';
+import AIPackageOptimizer from '../../components/AIPackageOptimizer';
 
 const PackageDetails = () => {
   const { id } = useParams();
@@ -1306,6 +1310,7 @@ const PackageDetails = () => {
                                   {lang === 'AR' ? 'تم تطبيق خصم التوجيه الذكي (AI) 10%' : '10% AI Bundle Discount Applied!'}
                                 </div>
                               )}
+                              <PricingGuaranteeBadge lang={lang} className="tw-mt-3" />
                               {extraActivitiesCount === 2 && (
                                 <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px dashed rgba(245, 158, 11, 0.4)', padding: '8px 10px', borderRadius: '8px', color: '#f59e0b', fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', width: 'fit-content' }}>
                                   <i className="fa-solid fa-gift fa-bounce"></i>
@@ -2248,9 +2253,11 @@ const PackageDetails = () => {
                                                   <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                                                     <i className="fa-solid fa-parachute-box"></i>
                                                     {providerNameResolved}
-                                                    <span style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#22c55e', padding: '2px 6px', borderRadius: '12px', fontSize: '0.65rem', marginLeft: '5px', display: 'flex', alignItems: 'center', gap: '4px' }} title="AI Trust Score">
-                                                      <i className="fa-solid fa-shield-halved"></i> 98% Verified
-                                                    </span>
+                                                    <VendorTrustBadge
+                                                      provider={matchedProv || selectedActObj.provider}
+                                                      lang={lang}
+                                                      compact
+                                                    />
                                                   </span>
                                                   <span>
                                                     <i className="fa-solid fa-wallet" style={{ marginRight: '5px' }}></i>
@@ -2601,6 +2608,14 @@ const PackageDetails = () => {
                     </div>
                   );
                 })()}
+
+                <AdventureInsights
+                  packageData={packageData}
+                  packingGuide={packingGuide || getDynamicPackingGuide(packageData, lang)}
+                  lang={lang}
+                  checkedItems={checkedPackingItems}
+                  onToggleItem={handleTogglePackingItem}
+                />
 
                  {/* 🤝 SMART CERTIFIED PROVIDER SECTION */}
                  {(() => {
