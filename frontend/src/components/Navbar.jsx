@@ -112,18 +112,30 @@ const Navbar = ({ isScrolled, dashboardMode }) => {
     setCheckoutLoading(true);
     try {
       const createdBookingIds = [];
+      let previousBookingId = null;
       for (const item of tripChain) {
         let payload;
         if (item.isCustomizing && item.customTripId) {
-          payload = { customTrip: item.customTripId, numberOfGuests: item.guestCount, selectedAddons: item.selectedAddons };
+          payload = { 
+            customTrip: item.customTripId, 
+            numberOfGuests: item.guestCount || item.guests, 
+            selectedAddons: item.selectedAddons,
+            parentBookingId: previousBookingId
+          };
         } else {
-          payload = { experienceId: item.id, numberOfGuests: item.guestCount, selectedAddons: item.selectedAddons };
+          payload = { 
+            experienceId: item.id || item.packageId, 
+            numberOfGuests: item.guestCount || item.guests, 
+            selectedAddons: item.selectedAddons,
+            parentBookingId: previousBookingId
+          };
         }
         
         const res = await createBooking(payload);
         const booking = res.data || res.booking || res;
         if (booking && booking._id) {
           createdBookingIds.push(booking._id);
+          previousBookingId = booking._id; // Set this as parent for the next sequential booking
         }
       }
 
@@ -154,6 +166,15 @@ const Navbar = ({ isScrolled, dashboardMode }) => {
   const handleLogout = () => {
     dispatch(logout());
     navigate('/login');
+  };
+
+  const getLinkClass = (path) => {
+    const isActive = location.pathname === path;
+    return `tw-text-sm tw-font-semibold tw-text-slate-800 dark:tw-text-slate-200 hover:tw-text-amber-600 dark:hover:tw-text-amber-500 tw-transition-colors tw-pb-1 tw-border-b-2 ${
+      isActive 
+        ? 'tw-border-amber-500 tw-text-amber-600 dark:tw-text-amber-500' 
+        : 'tw-border-transparent hover:tw-border-amber-500/50'
+    }`;
   };
 
   const navBgClass = dashboardMode
@@ -190,13 +211,19 @@ const Navbar = ({ isScrolled, dashboardMode }) => {
 
         {/* Center: Navigation Links */}
         <div className="tw-hidden md:tw-flex tw-items-center tw-gap-4 lg:tw-gap-8">
-          <Link to="/experiences" className="tw-text-sm tw-font-semibold tw-text-slate-800 dark:tw-text-slate-200 hover:tw-text-amber-600 dark:hover:tw-text-amber-500 tw-transition-colors tw-border-b-2 tw-border-amber-500 tw-pb-1">
+          <Link 
+            to="/" 
+            className="tw-text-sm tw-font-semibold tw-text-amber-500 dark:tw-text-amber-500 hover:tw-text-slate-900 dark:hover:tw-text-white tw-transition-colors tw-pb-1 tw-border-b-2 tw-border-amber-500 hover:tw-border-slate-900 dark:hover:tw-border-white"
+          >
+            {lang === 'AR' ? 'الرئيسية' : 'Home'}
+          </Link>
+          <Link to="/experiences" className={getLinkClass('/experiences')}>
             {lang === 'AR' ? 'الباقات' : 'Packages'}
           </Link>
-          <Link to="/my-bookings" className="tw-text-sm tw-font-semibold tw-text-slate-800 dark:tw-text-slate-200 hover:tw-text-amber-600 dark:hover:tw-text-amber-500 tw-transition-colors tw-pb-1 tw-border-b-2 tw-border-transparent hover:tw-border-amber-500/50">
+          <Link to="/my-bookings" className={getLinkClass('/my-bookings')}>
             {lang === 'AR' ? 'حجوزاتي' : 'My Bookings'}
           </Link>
-          <Link to="/wishlist" className="tw-text-sm tw-font-semibold tw-text-slate-800 dark:tw-text-slate-200 hover:tw-text-amber-600 dark:hover:tw-text-amber-500 tw-transition-colors tw-pb-1 tw-border-b-2 tw-border-transparent hover:tw-border-amber-500/50">
+          <Link to="/wishlist" className={getLinkClass('/wishlist')}>
             {lang === 'AR' ? 'المفضلة' : 'Wishlist'}
           </Link>
           <span 

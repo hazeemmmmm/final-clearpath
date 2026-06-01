@@ -11,6 +11,12 @@ const messageSchema = new Schema(
       type: String,
       required: true,
     },
+    packages: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Experience",
+      },
+    ],
   },
   { timestamps: true }
 );

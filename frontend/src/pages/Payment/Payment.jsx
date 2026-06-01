@@ -145,22 +145,7 @@ const Payment = () => {
           ) : (
             <form onSubmit={handlePayment}>
               
-              <div style={{ display: 'flex', gap: '15px', marginBottom: '20px' }}>
-                <div 
-                  onClick={() => setPaymentMethod('stripe')}
-                  style={{ flex: 1, padding: '15px', borderRadius: '12px', border: `2px solid ${paymentMethod === 'stripe' ? '#d4af37' : 'rgba(255,255,255,0.1)'}`, background: paymentMethod === 'stripe' ? 'rgba(212,175,55,0.1)' : 'rgba(0,0,0,0.2)', cursor: 'pointer', textAlign: 'center', transition: 'all 0.3s' }}
-                >
-                  <i className="fa-brands fa-stripe" style={{ fontSize: '2rem', display: 'block', marginBottom: '5px', color: paymentMethod === 'stripe' ? '#d4af37' : '#94a3b8' }}></i>
-                  <strong style={{ color: paymentMethod === 'stripe' ? '#d4af37' : '#94a3b8' }}>{lang === 'AR' ? 'بطاقة ائتمان' : 'Credit Card'}</strong>
-                </div>
-                <div 
-                  onClick={() => setPaymentMethod('bank')}
-                  style={{ flex: 1, padding: '15px', borderRadius: '12px', border: `2px solid ${paymentMethod === 'bank' ? '#d4af37' : 'rgba(255,255,255,0.1)'}`, background: paymentMethod === 'bank' ? 'rgba(212,175,55,0.1)' : 'rgba(0,0,0,0.2)', cursor: 'pointer', textAlign: 'center', transition: 'all 0.3s' }}
-                >
-                  <i className="fa-solid fa-building-columns" style={{ fontSize: '1.5rem', display: 'block', marginBottom: '10px', color: paymentMethod === 'bank' ? '#d4af37' : '#94a3b8' }}></i>
-                  <strong style={{ color: paymentMethod === 'bank' ? '#d4af37' : '#94a3b8' }}>{lang === 'AR' ? 'تحويل بنكي' : 'Bank Transfer'}</strong>
-                </div>
-              </div>
+
 
               <div className="booking-summary-box">
                 <div className="summary-title-main">
@@ -241,20 +226,12 @@ const Payment = () => {
                 </div>
               </div>
 
-              {paymentMethod === 'bank' && (
-                <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '20px', borderRadius: '12px', marginBottom: '20px', color: '#22c55e', textAlign: 'center' }}>
-                  <i className="fa-solid fa-circle-info" style={{ fontSize: '1.5rem', marginBottom: '10px' }}></i>
-                  <p style={{ margin: 0, lineHeight: '1.5' }}>
-                    {lang === 'AR' ? 'عند اختيار التحويل البنكي، سيتم حجز رحلتك مبدئياً. سنرسل لك تفاصيل الحساب البنكي عبر البريد الإلكتروني. يرجى إتمام التحويل خلال 24 ساعة لتأكيد الحجز.' : 'By selecting Bank Transfer, your booking will be provisionally held. We will email you our bank account details. Please complete the transfer within 24 hours to confirm your booking.'}
-                  </p>
-                </div>
-              )}
+
 
               <button 
                 type="submit" 
                 disabled={loading} 
                 className="payment-btn-stripe"
-                style={{ background: paymentMethod === 'bank' ? '#22c55e' : '' }}
               >
                 {loading ? (
                   <>
@@ -263,14 +240,8 @@ const Payment = () => {
                   </>
                 ) : (
                   <>
-                    {paymentMethod === 'stripe' ? (
-                      <i className="fa-brands fa-stripe" style={{ fontSize: '2rem', marginRight: '4px' }}></i>
-                    ) : (
-                      <i className="fa-solid fa-building-columns" style={{ fontSize: '1.5rem', marginRight: '8px' }}></i>
-                    )}
-                    {paymentMethod === 'bank' 
-                      ? (lang === 'AR' ? 'تأكيد الحجز البنكي' : 'Confirm Bank Booking')
-                      : (lang === 'AR' ? `ادفع ${selectedCurrency === 'EGP' ? 'الجنيه' : 'الدولار'} عبر Stripe` : `Pay in ${selectedCurrency} via Stripe`)}
+                    <i className="fa-brands fa-stripe" style={{ fontSize: '2rem', marginRight: '4px' }}></i>
+                    {lang === 'AR' ? `ادفع ${selectedCurrency === 'EGP' ? 'الجنيه' : 'الدولار'} عبر Stripe` : `Pay in ${selectedCurrency} via Stripe`}
                   </>
                 )}
               </button>
@@ -297,7 +268,6 @@ const Payment = () => {
         </div>
       </main>
 
-      <Footer />
     </div>
   );
 };
