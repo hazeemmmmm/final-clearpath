@@ -323,11 +323,13 @@ const AdminDashboard = () => {
   };
 
   const calculateEstimatedPackagePrice = () => {
-    const base = Number(formData.base_price) || 0;
     const activitiesSum = itinerary.reduce((acc, day) => {
       return acc + day.activities.reduce((dAcc, act) => dAcc + (Number(act.price) || 0), 0);
     }, 0);
-    return base + activitiesSum;
+    const breakdownSum = (formData.priceBreakdown || []).reduce((acc, item) => {
+      return acc + (Number(item.amount) || 0);
+    }, 0);
+    return activitiesSum + breakdownSum;
   };
 
   const handleCreatePackage = async (e) => {
@@ -352,11 +354,13 @@ const AdminDashboard = () => {
           }))
       }));
 
+      const computedTotal = calculateEstimatedPackagePrice();
+
       const payload = {
         ...formData,
         supervisor: formData.supervisor || undefined,
         type: formData.type.toLowerCase() === 'dayuse' ? 'Package' : 'Trip',
-        base_price: Number(formData.base_price),
+        base_price: computedTotal,
         duration_days: Number(formData.duration_days),
         capacity: Number(formData.capacity),
         image: formData.image || undefined,
@@ -1171,7 +1175,7 @@ const AdminDashboard = () => {
                             <tr>
                               <th>Package Name</th>
                               <th>Destination</th>
-                              <th>Base Price</th>
+                              <th>Total Price (EGP)</th>
                               <th>Duration</th>
                               <th>Capacity</th>
                               <th style={{ textAlign: 'right' }}>Action</th>
@@ -1182,7 +1186,7 @@ const AdminDashboard = () => {
                               <tr key={pkg._id}>
                                 <td><strong className="pkg-emphasis">{pkg.name}</strong></td>
                                 <td><i className="fa-solid fa-location-dot location-marker"></i> {pkg.destination?.name || pkg.destination || 'Unspecified'}</td>
-                                <td><span className="price-tag">${pkg.base_price}</span></td>
+                                <td><span className="price-tag">EGP {pkg.base_price?.toLocaleString()}</span></td>
                                 <td><span className="badge-duration">{pkg.duration_days} Days</span></td>
                                 <td>{pkg.capacity} Guests max</td>
                                 <td style={{ textAlign: 'right' }}>
@@ -1349,7 +1353,7 @@ const AdminDashboard = () => {
                                     </span>
                                     <p className="desc-truncated" style={{ fontSize: '0.82rem', color: '#94a3b8', lineHeight: '1.5', marginBottom: '14px' }}>{pkg.description}</p>
                                     <div className="card-stats-footer">
-                                      <span className="price-tag-large">${pkg.base_price?.toLocaleString()}</span>
+                                      <span className="price-tag-large">EGP {pkg.base_price?.toLocaleString()}</span>
                                       <span className="badge-duration">{pkg.duration_days} Days</span>
                                     </div>
                                   </div>
@@ -1956,8 +1960,14 @@ const AdminDashboard = () => {
                                     <span style={{ padding: '3px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: '600', letterSpacing: '0.5px', ...sentimentStyle }}>
                                       {sentimentBadge}
                                     </span>
-                                    <span style={{ color: '#e5c158', fontSize: '0.92rem', letterSpacing: '1px' }}>
-                                      {'â˜…'.repeat(rev.rating)}{'â˜†'.repeat(5 - rev.rating)}
+                                    <span style={{ color: '#e5c158', fontSize: '0.85rem', display: 'flex', gap: '3px', marginTop: '4px' }}>
+                                      {Array.from({ length: 5 }).map((_, i) => (
+                                        <i 
+                                          key={i} 
+                                          className={i < rev.rating ? "fa-solid fa-star" : "fa-regular fa-star"} 
+                                          style={{ color: '#e5c158' }}
+                                        ></i>
+                                      ))}
                                     </span>
                                   </div>
                                 </div>

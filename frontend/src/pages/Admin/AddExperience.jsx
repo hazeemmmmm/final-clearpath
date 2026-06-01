@@ -500,10 +500,10 @@ const AddExperience = () => {
 
             <div style={pageStyles.formGrid2}>
               <div style={pageStyles.formGroup}>
-                <label style={pageStyles.label} htmlFor="price">Base Price ($) <span style={{ color: '#ef4444' }}>*</span></label>
+                <label style={pageStyles.label} htmlFor="price">Total Price (EGP) <span style={{ color: '#ef4444' }}>*</span></label>
                 <input
                   id="price" name="price" type="number" min="1" required
-                  placeholder="e.g. 250"
+                  placeholder="e.g. 5000"
                   value={form.price} onChange={handleChange}
                   onFocus={() => setFocusedField('price')} onBlur={() => setFocusedField(null)}
                   style={{ ...pageStyles.input, ...focusStyle('price') }}

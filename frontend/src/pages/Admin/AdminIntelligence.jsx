@@ -440,109 +440,8 @@ const AdminIntelligence = () => {
       {/* Core Grid System for secondary details */}
       <div className="intel-grid-container">
         
-        {/* Left Grid Card: Automated Actions List with Search & Carousel */}
-        <div className="intel-card intel-actions-card">
-          <h3 className="intel-actions-header" style={{ marginBottom: '15px' }}>
-            <i className="fa-solid fa-wand-magic-sparkles"></i> AUTOMATED ACTIONS
-          </h3>
-
-          {/* Search and Select Tool Area */}
-          <div className="intel-search-select-box" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-            <div style={{ position: 'relative', width: '100%' }}>
-              <i className="fa-solid fa-magnifying-glass" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '0.8rem', color: '#71717a' }}></i>
-              <input 
-                type="text" 
-                placeholder="Search packages..." 
-                value={searchTerm} 
-                onChange={e => { setSearchTerm(e.target.value); setCarouselIndex(0); }} 
-                className="intel-search-input"
-                style={{ width: '100%', padding: '10px 10px 10px 32px', backgroundColor: '#0c0c0f', border: '1px solid #1f1f2a', borderRadius: '8px', color: '#fff', fontSize: '0.85rem', outline: 'none' }}
-              />
-            </div>
-            {filteredAlerts.length > 0 && (
-              <select 
-                onChange={handleSelectAlert} 
-                value={activeAlert?.experienceId || ''} 
-                className="intel-select-dropdown"
-                style={{ width: '100%', padding: '10px', backgroundColor: '#0c0c0f', border: '1px solid #1f1f2a', borderRadius: '8px', color: '#d5b266', fontSize: '0.82rem', outline: 'none', cursor: 'pointer' }}
-              >
-                {filteredAlerts.map(a => (
-                  <option key={a.experienceId} value={a.experienceId}>
-                    {a.experienceName.replace(" (Simulated)", "")} ({a.type})
-                  </option>
-                ))}
-              </select>
-            )}
-          </div>
-          
-          <div className="intel-actions-list" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            {filteredAlerts.length === 0 ? (
-              <div style={{ textAlign: 'center', color: '#71717a', padding: '30px 10px', fontSize: '0.85rem' }}>
-                <i className="fa-solid fa-folder-open" style={{ fontSize: '2rem', display: 'block', marginBottom: '10px', opacity: 0.3 }}></i>
-                No automated actions matching search query.
-              </div>
-            ) : (
-              <div>
-                {/* Carousel Card Slider View */}
-                <div className="intel-action-item intel-carousel-item" style={{ transition: 'all 0.3s ease' }}>
-                  <div className="intel-item-title-row">
-                    <h4 style={{ fontSize: '1.05rem', fontWeight: 700 }}>{activeAlert.experienceName.replace(" (Simulated)", "")}</h4>
-                    <span className={`intel-status-badge ${activeAlert.type === "High Demand" ? "intel-badge-warning" : "intel-badge-opportunity"}`}>
-                      {activeAlert.type === "High Demand" ? "HIGH DEMAND" : "CONVERSION DROP"}
-                    </span>
-                  </div>
-                  <p className="intel-item-desc" style={{ fontSize: '0.82rem', margin: '8px 0 20px 0', minHeight: '44px' }}>{activeAlert.message}</p>
-                  
-                  {activeAlert.type === "High Demand" ? (
-                    <button 
-                      onClick={() => handleAction(activeAlert.experienceId, 'demand', `Action performed for ${activeAlert.experienceName}`)}
-                      disabled={processing === activeAlert.experienceId}
-                      className="intel-btn-solid"
-                    >
-                      {processing === activeAlert.experienceId ? (
-                        <i className="fa-solid fa-circle-notch fa-spin"></i>
-                      ) : (
-                        <i className="fa-solid fa-user-plus"></i>
-                      )}
-                      <span>{activeAlert.actionRecommended}</span>
-                    </button>
-                  ) : (
-                    <button 
-                      onClick={() => handleOpenOptimize(activeAlert.experienceId, activeAlert.experienceName)}
-                      disabled={processing === activeAlert.experienceId}
-                      className="intel-btn-outline"
-                    >
-                      {processing === activeAlert.experienceId ? (
-                        <i className="fa-solid fa-circle-notch fa-spin"></i>
-                      ) : (
-                        <i className="fa-solid fa-wand-magic-sparkles" style={{ color: '#d4af37' }}></i>
-                      )}
-                      <span>Run AI Price Optimizer / محرك التسعير</span>
-                    </button>
-                  )}
-                </div>
-
-                {/* Carousel Navigation Controller */}
-                {filteredAlerts.length > 1 && (
-                  <div className="intel-carousel-controls" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
-                    <button onClick={prevAlert} className="intel-carousel-nav-btn" style={{ background: '#16161c', border: '1px solid #1f1f2a', color: '#a1a1aa', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
-                      <i className="fa-solid fa-chevron-left"></i>
-                    </button>
-                    <span style={{ fontSize: '0.78rem', color: '#71717a', fontWeight: 600 }}>
-                      {carouselIndex + 1} of {filteredAlerts.length}
-                    </span>
-                    <button onClick={nextAlert} className="intel-carousel-nav-btn" style={{ background: '#16161c', border: '1px solid #1f1f2a', color: '#a1a1aa', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
-                      <i className="fa-solid fa-chevron-right"></i>
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
         {/* Right Grid Card: Fraud Anomaly & Account Security */}
-        <div className="intel-card intel-security-card" style={{ border: '1px solid rgba(239, 68, 68, 0.2)', backgroundColor: 'rgba(239, 68, 68, 0.01)' }}>
+        <div className="intel-card intel-security-card" style={{ gridColumn: '1 / -1', border: '1px solid rgba(239, 68, 68, 0.2)', backgroundColor: 'rgba(239, 68, 68, 0.01)' }}>
           <div className="intel-card-header" style={{ marginBottom: '18px' }}>
             <div className="intel-card-title-block">
               <div className="intel-card-icon-box box-red" style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444' }}>
@@ -700,20 +599,20 @@ const AdminIntelligence = () => {
                 {/* Price Comparisons */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                   <div style={{ background: '#16161c', padding: '15px', borderRadius: '10px', border: '1px solid #1d1d25' }}>
-                    <span style={{ display: 'block', color: '#71717a', fontSize: '0.8rem', marginBottom: '5px' }}>CURRENT BASE PRICE</span>
-                    <strong style={{ fontSize: '1.4rem', color: '#ef4444' }}>${optModal.result.currentPrice}</strong>
+                    <span style={{ display: 'block', color: '#71717a', fontSize: '0.8rem', marginBottom: '5px' }}>CURRENT TOTAL PRICE (EGP)</span>
+                    <strong style={{ fontSize: '1.4rem', color: '#ef4444' }}>EGP {optModal.result.currentPrice}</strong>
                   </div>
                   <div style={{ background: 'rgba(213,178,102,0.06)', padding: '15px', borderRadius: '10px', border: '1px solid #d5b266' }}>
-                    <span style={{ display: 'block', color: '#d5b266', fontSize: '0.8rem', marginBottom: '5px' }}>RECOMMENDED PRICE</span>
-                    <strong style={{ fontSize: '1.4rem', color: '#22c55e' }}>${optModal.result.recommendedPrice}</strong>
+                    <span style={{ display: 'block', color: '#d5b266', fontSize: '0.8rem', marginBottom: '5px' }}>RECOMMENDED PRICE (EGP)</span>
+                    <strong style={{ fontSize: '1.4rem', color: '#22c55e' }}>EGP {optModal.result.recommendedPrice}</strong>
                   </div>
                 </div>
 
                 {/* Factors Details */}
                 <div style={{ background: '#16161c', padding: '15px', borderRadius: '10px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.85rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#71717a' }}>Cost Basis (Base + Activities):</span>
-                    <strong style={{ color: '#fff' }}>${optModal.result.costBasis}</strong>
+                    <span style={{ color: '#71717a' }}>Cost Basis (Activities + Breakdown):</span>
+                    <strong style={{ color: '#fff' }}>EGP {optModal.result.costBasis}</strong>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ color: '#71717a' }}>Season factor ({optModal.result.seasonName}):</span>

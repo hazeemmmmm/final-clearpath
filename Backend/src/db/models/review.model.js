@@ -8,10 +8,17 @@ const reviewSchema = new mongoose.Schema({
   rating: { type: Number, min: 1, max: 5, required: true },
   comment: { type: String },
   isVerifiedBooking: { type: Boolean, default: false },
-  // AI Trust fields
+  // Core AI Trust fields
   trustScore: { type: Number, default: 100 },
   isSpam: { type: Boolean, default: false },
-  sentiment: { type: String, enum: ['Positive', 'Neutral', 'Negative'], default: 'Positive' }
+  sentiment: { type: String, enum: ['Positive', 'Neutral', 'Negative', 'Mixed'], default: 'Positive' },
+  
+  // Custom persistable fields for graduation AI Supervisor/Trust match requirements
+  customerName: { type: String }, // name of the customer
+  packageName: { type: String },  // name of the travel package
+  reviewText: { type: String },   // original raw review text
+  aiSentiment: { type: String, default: 'AI: Positive' }, // AI Sentiment classification
+  aiTrustScore: { type: Number, default: 100 } // AI Trust score percentage
 }, { timestamps: true });
 
 export const Review = mongoose.model("Review", reviewSchema);

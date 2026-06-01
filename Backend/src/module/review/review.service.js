@@ -3,6 +3,8 @@ import { Review } from "../../db/models/review.model.js";
 import { Booking } from "../../db/models/booking.model.js";
 import { CustomTrip } from "../../db/models/customtrip.model.js";
 import * as AppError from "../../utils/error/index.js";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { devConfig } from "../../config/env/dev.config.js";
 
 class ReviewService {
   async create(userId, data) {
@@ -15,6 +17,16 @@ class ReviewService {
       );
     }
 
+    // Fetch user and experience docs for permanent persistable bio matches
+    const User = mongoose.model("User");
+    const ExperienceModel = mongoose.model("Experience");
+    const userDoc = await User.findById(userId);
+    const expDoc = await ExperienceModel.findById(experience);
+
+    const customerName = userDoc ? `${userDoc.firstName} ${userDoc.lastName}` : "Valued Customer";
+    const packageName = expDoc ? expDoc.name : "Exclusive Tour Package";
+    const reviewText = comment || "";
+
     // Check if user has a confirmed booking for this experience
     const userCustomTrips = await CustomTrip.find({ user: userId, experience });
     const customTripIds = userCustomTrips.map((ct) => ct._id);
@@ -23,50 +35,123 @@ class ReviewService {
       status: "Confirmed",
     });
 
-    // 🤖 AI Mock Analysis for Review Trust & Sentiment
-    let trustScore = 100;
+    // 🤖 Rigorous AI Sentiment Analysis & Mathematical Trust Scoring System
+    let trustScore = 60; // Start with base 60
     let isSpam = false;
     let sentiment = 'Neutral';
 
-    if (process.env.MOCK_GEMINI === 'true' || true) {
-      const lowerComment = (comment || '').toLowerCase();
-      
-      // 1. Bot Spammy (Repetitive Gibberish)
-      const words = lowerComment.split(/\s+/);
-      const uniqueWords = new Set(words);
-      if (words.length > 3 && uniqueWords.size === 1) {
-        sentiment = 'Positive'; // "nice nice nice"
-        trustScore = 15;
-        isSpam = true;
-      } else {
-        // 2. Sentiment Analysis
-        if (lowerComment.includes('amazing') || lowerComment.includes('great') || lowerComment.includes('incredible')) {
-          sentiment = 'Positive';
-        } else if (lowerComment.includes('bad') || lowerComment.includes('worst')) {
-          sentiment = 'Negative';
-        }
+    // A. Mathematical calculation logic (always computed as core heuristic or baseline)
+    const lowerComment = reviewText.toLowerCase();
 
-        // 3. Mismatch Rating Fraud (e.g. 1 star but says "amazing")
-        if (sentiment === 'Positive' && rating <= 2) {
-          trustScore = 35;
-          isSpam = true;
-        } else if (sentiment === 'Negative' && rating >= 4) {
-          trustScore = 35;
-          isSpam = true;
-        } else if (sentiment === 'Positive' && rating >= 4) {
-          // Authentic Positive
-          trustScore = 100;
-        }
-      }
-
-      // Base Trust adjustments
-      if (!confirmedBooking) trustScore = Math.min(trustScore, 80); // Unverified purchase drops trust
+    // 1. Verified Booking adjustment
+    if (confirmedBooking) {
+      trustScore += 20; // +20 for verified purchases
+    } else {
+      trustScore -= 15; // -15 unverified reviews penalty
     }
 
-    // 4. Provider auto-linking logic
+    // 2. Verified Account / Trusted User
+    if (userDoc && (userDoc.isVerified || userDoc.role === 'admin')) {
+      trustScore += 10;
+    }
+
+    // 3. Detail & Word Count bonus
+    const words = lowerComment.split(/\s+/).filter(Boolean);
+    if (words.length > 15) {
+      trustScore += 10;
+    }
+
+    // 4. Sentiment Analysis (Positive, Negative, Neutral, Mixed keywords)
+    const positiveKeywords = ['amazing', 'great', 'incredible', 'luxury', 'perfect', 'beautiful', 'wonderful', 'happy', 'excellent', 'love'];
+    const negativeKeywords = ['scam', 'cheat', 'bad service', 'overpriced', 'hidden fee', 'stole', 'fake', 'robbed', 'worst', 'poor', 'disappointing'];
+
+    const hasPos = positiveKeywords.some(w => lowerComment.includes(w));
+    const hasNeg = negativeKeywords.some(w => lowerComment.includes(w));
+
+    if (hasPos && hasNeg) {
+      sentiment = 'Mixed';
+    } else if (hasPos) {
+      sentiment = 'Positive';
+    } else if (hasNeg) {
+      sentiment = 'Negative';
+    } else {
+      sentiment = 'Neutral';
+    }
+
+    // 5. severe Fraud Word penalizations (-45 points)
+    const severeFraudWords = ['scam', 'cheat', 'fake', 'stole', 'robbed'];
+    const hasSevereFraud = severeFraudWords.some(w => lowerComment.includes(w));
+    if (hasSevereFraud) {
+      trustScore -= 45;
+    }
+
+    // 6. Moderate Negatives check (-20 points)
+    const moderateNegativeWords = ['overpriced', 'hidden fee', 'bad service'];
+    const hasModerateNeg = moderateNegativeWords.some(w => lowerComment.includes(w));
+    if (hasModerateNeg) {
+      trustScore -= 20;
+    }
+
+    // 7. Mismatch rating/sentiment conflict penalty (-30 points)
+    if (sentiment === 'Positive' && rating <= 2) {
+      trustScore -= 30;
+      isSpam = true;
+    } else if (sentiment === 'Negative' && rating >= 4) {
+      trustScore -= 30;
+      isSpam = true;
+    }
+
+    // 8. Bot Spammy Check (gibberish/repetitive)
+    const uniqueWords = new Set(words);
+    if (words.length > 3 && uniqueWords.size === 1) {
+      trustScore = 10; // Extreme penalty for bot reviews
+      isSpam = true;
+    }
+
+    // Clamp Trust Score between 0 and 100
+    trustScore = Math.max(0, Math.min(100, trustScore));
+
+    // B. Real-time Gemini LLM AI Sentiment Analysis (If configured)
+    let aiSentiment = `AI: ${sentiment}`;
+    let aiTrustScore = trustScore;
+
+    const apiKey = devConfig.GEMINI_API_KEY;
+    if (apiKey && apiKey !== "YOUR_GEMINI_API_KEY" && apiKey.trim() !== "") {
+      try {
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({
+          model: "gemini-flash-latest",
+          generationConfig: { responseMimeType: "application/json" }
+        });
+
+        const prompt = `
+          Analyze the following customer review text for a tour package:
+          Review Text: "${reviewText}"
+          Rating: ${rating} Stars
+          Verified Purchase: ${!!confirmedBooking}
+
+          Classify the sentiment strictly into one of these: "AI: Positive", "AI: Negative", "AI: Neutral", or "AI: Mixed". Do not default.
+          Calculate an AI Trust Score (0-100) based on review genuineness, text clarity, and whether there are indicators of fraud/scams (severe penalty) or helpful details.
+          
+          Respond ONLY with a JSON object containing keys "aiSentiment" and "aiTrustScore".
+        `;
+
+        const response = await model.generateContent(prompt);
+        const aiResult = JSON.parse(response.response.text());
+        if (aiResult.aiSentiment) aiSentiment = aiResult.aiSentiment;
+        if (aiResult.aiTrustScore !== undefined) aiTrustScore = Number(aiResult.aiTrustScore);
+      } catch (err) {
+        console.error("Gemini Real-time Review Sentiment error:", err);
+      }
+    }
+
+    // Sync base fields to AI-computed fields for database persistence
+    sentiment = aiSentiment.replace("AI: ", "");
+    trustScore = aiTrustScore;
+
+    // Provider auto-linking logic
     let providerId = data.provider || null;
     if (!providerId) {
-      const expDoc = await mongoose.model("Experience").findById(experience);
       if (expDoc && expDoc.itinerary && expDoc.itinerary.length > 0) {
         for (const day of expDoc.itinerary) {
           if (day.activities && day.activities.length > 0) {
@@ -89,10 +174,17 @@ class ReviewService {
       isVerifiedBooking: !!confirmedBooking,
       trustScore,
       isSpam,
-      sentiment
+      sentiment,
+      
+      // Seed graduation persistable AI fields
+      customerName,
+      packageName,
+      reviewText,
+      aiSentiment,
+      aiTrustScore
     });
 
-    // 5. Update Provider's Trust Score in database
+    // Update Provider's Trust Score in database
     if (providerId) {
       try {
         const ProviderModel = mongoose.model("Provider");

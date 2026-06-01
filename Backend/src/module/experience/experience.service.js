@@ -486,8 +486,8 @@ class ExperienceService {
     const recommendedPrice = Math.round(costBasis * (1 + totalMarkup));
 
     // Reasoning in both Arabic and English
-    const reasoningAR = `تم احتساب السعر المقترح بقيمة $${recommendedPrice} بناءً على: موسم الحجز (${seasonName} بنسبة +${Math.round(seasonalityFactor * 100)}%)، سعة الرحلة (${experience.capacity} أفراد بنسبة ${Math.round(capacityFactor * 100)}%) وهامش المنافسين التنافسي (+${Math.round(competitorFactor * 100)}%).`;
-    const reasoningEN = `Recommended price of $${recommendedPrice} calculated based on: Booking Season (${seasonName} +${Math.round(seasonalityFactor * 100)}%), Capacity factor (${experience.capacity} seats ${Math.round(capacityFactor * 100)}%), and Competitor benchmark margin (+${Math.round(competitorFactor * 100)}%).`;
+    const reasoningAR = `تم احتساب السعر المقترح بقيمة ${recommendedPrice} ج.م بناءً على: موسم الحجز (${seasonName} بنسبة +${Math.round(seasonalityFactor * 100)}%)، سعة الرحلة (${experience.capacity} أفراد بنسبة ${Math.round(capacityFactor * 100)}%) وهامش المنافسين التنافسي (+${Math.round(competitorFactor * 100)}%).`;
+    const reasoningEN = `Recommended price of EGP ${recommendedPrice} calculated based on: Booking Season (${seasonName} +${Math.round(seasonalityFactor * 100)}%), Capacity factor (${experience.capacity} seats ${Math.round(capacityFactor * 100)}%), and Competitor benchmark margin (+${Math.round(competitorFactor * 100)}%).`;
 
     return {
       currentPrice: experience.base_price,

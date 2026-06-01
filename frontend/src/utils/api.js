@@ -287,6 +287,13 @@ export const recommendSupervisors = async (payload) =>
     body: JSON.stringify(payload)
   });
 
+export const matchSupervisorByBio = async (packageLocation) =>
+  apiCall(`${BASE_URL}/supervisors/ai-match`, {
+    method: 'POST',
+    headers: getHeaders(true),
+    body: JSON.stringify({ packageLocation })
+  });
+
 export const getTripExtensions = async (currentTripEndDate) =>
   apiCall(`${BASE_URL}/experience/extensions?currentTripEndDate=${currentTripEndDate}`, {
     method: 'GET',

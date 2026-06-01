@@ -14,46 +14,108 @@ export const createNewBooking = async (userId, data) => {
     }
 
     let bookingData = { user: userId, status: 'Pending' };
-    
     let basePrice = 0;
     let extraActivitiesCount = 0;
     let originalAmount = 0;
+    let snapshot = {};
 
     if (customTrip) {
-        const trip = await CustomTrip.findById(customTrip).populate("experience");
+        const trip = await CustomTrip.findById(customTrip)
+            .populate("experience")
+            .populate("combinedExperiences")
+            .populate("itinerary.activities.activity")
+            .populate("extra_activities.activity");
         if (!trip) throw new Error("Custom Trip not found");
         bookingData.customTrip = customTrip;
         bookingData.booking_type = 'Trip';
         
-        // Sum up experience base_price and custom trip's activities total_price
+        // Sum up experience base_price, custom trip's activities total_price and combinedExperiences base prices
         const expBase = trip.experience ? (trip.experience.base_price || 0) : 0;
-        basePrice = trip.total_price + expBase;
-        originalAmount = (trip.original_price || trip.total_price) + expBase;
+        let combinedBaseTotal = 0;
+        if (trip.combinedExperiences && trip.combinedExperiences.length > 0) {
+            combinedBaseTotal = trip.combinedExperiences.reduce((sum, item) => sum + (item.base_price || item.price || 0), 0);
+        }
+        basePrice = trip.total_price + expBase + combinedBaseTotal;
+        originalAmount = (trip.original_price || trip.total_price) + expBase + combinedBaseTotal;
         if (trip.ai_discount_applied) {
             bookingData.discount_amount = trip.discount_amount;
             bookingData.ai_discount_applied = true;
         }
         extraActivitiesCount += trip.extra_activities ? trip.extra_activities.length : 0;
+ 
+        snapshot = {
+            title: trip.experience?.name || "Customized Trip",
+            description: trip.experience?.description || "",
+            image: trip.experience?.image || "",
+            duration_days: trip.experience?.duration_days || 1,
+            priceBreakdown: trip.experience?.priceBreakdown || [],
+            combinedPackages: (trip.combinedExperiences || []).map(exp => ({
+                packageId: exp._id,
+                title: exp.name,
+                description: exp.description || "",
+                image: exp.image || exp.images?.[0] || "",
+                duration_days: exp.duration_days || 1,
+                base_price: exp.base_price || exp.price || 0
+            })),
+            itinerary: (trip.itinerary || []).map(day => ({
+                day_number: day.day_number,
+                title: day.title,
+                description: day.description,
+                activities: (day.activities || []).map(act => ({
+                    name: act.activity?.name || act.name || "",
+                    price: act.price || 0,
+                    image: act.image || act.activity?.image || "",
+                    activityId: act.activity?._id?.toString() || ""
+                }))
+            })),
+            addons: (trip.experience?.addons || []).map(add => ({
+                name: add.name,
+                price: add.price,
+                description: add.description
+            })),
+            selectedAddons: data.selectedAddons || [],
+            hotel: trip.hotel || trip.experience?.hotel || "5-Star Premium Hotel",
+            transportation: trip.transportation || trip.experience?.transportation || "Private AC Sedan"
+        };
     } else if (experienceId) {
         const exp = await Experience.findById(experienceId).populate("itinerary.activities.activity");
         if (!exp) throw new Error("Experience not found");
         bookingData.experience = experienceId;
         bookingData.booking_type = 'Package';
         
-        // Calculate base price
-        let total = exp.base_price;
-        if (exp.itinerary) {
-          exp.itinerary.forEach(day => {
-            if (day.activities) {
-              day.activities.forEach(act => {
-                total += act.price || 0;
-              });
-            }
-          });
-        }
-        basePrice = total;
-        originalAmount = total;
+        // Directly use base_price since it already represents the computed Total Price (including activities and breakdown)
+        basePrice = exp.base_price;
+        originalAmount = exp.base_price;
+
+        snapshot = {
+            title: exp.name,
+            description: exp.description || "",
+            image: exp.image || "",
+            duration_days: exp.duration_days || 1,
+            priceBreakdown: exp.priceBreakdown || [],
+            itinerary: (exp.itinerary || []).map(day => ({
+                day_number: day.day_number,
+                title: day.title,
+                description: day.description,
+                activities: (day.activities || []).map(act => ({
+                    name: act.activity?.name || act.name || "",
+                    price: act.price || 0,
+                    image: act.image || act.activity?.image || "",
+                    activityId: act.activity?._id?.toString() || ""
+                }))
+            })),
+            addons: (exp.addons || []).map(add => ({
+                name: add.name,
+                price: add.price,
+                description: add.description
+            })),
+            selectedAddons: data.selectedAddons || [],
+            hotel: exp.hotel || "5-Star Premium Hotel",
+            transportation: exp.transportation || "Private AC Sedan"
+        };
     }
+
+    bookingData.snapshot = snapshot;
 
     if (travel_date) {
         bookingData.travel_date = new Date(travel_date);
@@ -91,7 +153,8 @@ export const createNewBooking = async (userId, data) => {
     originalAmount = (originalAmount * (bookingData.numberOfGuests || 1)) + addonsTotal;
 
     // AI-Based Fixed-Price Package Optimization (Bundle Discount check for frontend Addons)
-    // If they didn't already get the discount via CustomTrip, check again with addons
+    // DISABLED by request: Do not make discounts without entering the code.
+    /*
     if (!bookingData.ai_discount_applied && extraActivitiesCount >= 3) {
         bookingData.ai_discount_applied = true;
         bookingData.discount_amount = subtotal * 0.10; // 10%
@@ -101,6 +164,9 @@ export const createNewBooking = async (userId, data) => {
         // We'll keep it simple and just apply a flat discount on everything if they qualify.
         // Actually, just let the subtotal be discounted
     }
+    */
+    bookingData.ai_discount_applied = false;
+    bookingData.discount_amount = 0;
 
     bookingData.total_amount = subtotal;
     bookingData.original_amount = originalAmount; // Need to add original_amount to schema if we want, or just let frontend rely on total
@@ -144,11 +210,20 @@ export const getMyBookings = async (userId) => {
             path: 'customTrip',
             populate: [
                 { path: 'experience' },
+                { path: 'combinedExperiences' },
                 { path: 'itinerary.activities.activity' },
-                { path: 'itinerary.activities.provider' }
+                { path: 'itinerary.activities.provider' },
+                { path: 'extra_activities.activity' }
             ]
         })
         .populate('experience')
+        .populate({
+            path: 'sequentialBookings',
+            populate: [
+                { path: 'experience' },
+                { path: 'customTrip', populate: { path: 'experience' } }
+            ]
+        })
         .sort({ createdAt: -1 });
 };
 
@@ -159,11 +234,20 @@ export const getBookingById = async (bookingId, userId) => {
             path: 'customTrip',
             populate: [
                 { path: 'experience' },
+                { path: 'combinedExperiences' },
                 { path: 'itinerary.activities.activity' },
-                { path: 'itinerary.activities.provider' }
+                { path: 'itinerary.activities.provider' },
+                { path: 'extra_activities.activity' }
             ]
         })
-        .populate('experience');
+        .populate('experience')
+        .populate({
+            path: 'sequentialBookings',
+            populate: [
+                { path: 'experience' },
+                { path: 'customTrip', populate: { path: 'experience' } }
+            ]
+        });
     if (!booking) throw new Error("Booking not found");
     return booking;
 };
@@ -223,6 +307,34 @@ export const cancelBookingById = async (bookingId, userId) => {
 
         await booking.save();
 
+        // Cascade cancellation to sequential bookings
+        const cascadeCancel = async (bId) => {
+            const b = await Booking.findById(bId);
+            if (b) {
+                b.status = 'Cancelled';
+                b.cancellationInfo = {
+                    canceledAt: now,
+                    feePercent: 0,
+                    feeAmount: 0,
+                    refundedAmount: 0,
+                    autoCharged: false,
+                    chargeReason: 'Cancelled due to parent chain cancellation'
+                };
+                await b.save();
+                if (b.sequentialBookings && b.sequentialBookings.length > 0) {
+                    for (const seqId of b.sequentialBookings) {
+                        await cascadeCancel(seqId);
+                    }
+                }
+            }
+        };
+
+        if (booking.sequentialBookings && booking.sequentialBookings.length > 0) {
+            for (const seqId of booking.sequentialBookings) {
+                await cascadeCancel(seqId);
+            }
+        }
+
         return booking;
 };
 
@@ -254,21 +366,34 @@ export const updateBookingStatus = async (bookingId, status) => {
     if (!['Confirmed', 'Pending', 'Cancelled'].includes(status)) {
         throw new Error("Invalid status type");
     }
-    const booking = await Booking.findByIdAndUpdate(
-        bookingId,
-        { status },
-        { new: true }
-    ).populate('user', 'firstName lastName email')
-     .populate({
-         path: 'customTrip',
-         populate: [
-             { path: 'experience' },
-             { path: 'itinerary.activities.activity' },
-             { path: 'itinerary.activities.provider' }
-         ]
-     })
-     .populate('experience');
+    const cascadeUpdateBookingStatus = async (bId, newStatus) => {
+        const b = await Booking.findByIdAndUpdate(
+            bId,
+            { status: newStatus },
+            { new: true }
+        );
+        if (b && b.sequentialBookings && b.sequentialBookings.length > 0) {
+            for (const seqId of b.sequentialBookings) {
+                await cascadeUpdateBookingStatus(seqId, newStatus);
+            }
+        }
+        return b;
+    };
 
+    const booking = await cascadeUpdateBookingStatus(bookingId, status);
     if (!booking) throw new Error("Booking not found");
-    return booking;
+
+    const populatedBooking = await Booking.findById(booking._id)
+        .populate('user', 'firstName lastName email')
+        .populate({
+            path: 'customTrip',
+            populate: [
+                { path: 'experience' },
+                { path: 'itinerary.activities.activity' },
+                { path: 'itinerary.activities.provider' }
+            ]
+        })
+        .populate('experience');
+
+    return populatedBooking;
 };

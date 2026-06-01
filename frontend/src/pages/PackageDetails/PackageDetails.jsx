@@ -33,6 +33,7 @@ import {
   getTripExtensions
 } from '../../utils/api';
 import './PackageDetailsNew.css';
+import AISupervisorMatch from '../../components/AISupervisorMatch';
 
 const PackageDetails = () => {
   const { id } = useParams();
@@ -83,9 +84,27 @@ const PackageDetails = () => {
   const [showAddExtra, setShowAddExtra] = useState(false);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [customizationError, setCustomizationError] = useState('');
-  const { isDarkMode } = useContext(ThemeContext);
+  const { isDarkMode, toggleTheme } = useContext(ThemeContext);
   const { lang, setLang } = useContext(LanguageContext);
-  const { currency, formatPrice } = useContext(CurrencyContext);
+  const { currency, toggleCurrency, formatPrice } = useContext(CurrencyContext);
+
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.add('tw-dark');
+      document.body.classList.add('tw-bg-[#0a0b0d]', 'tw-text-white');
+      document.body.classList.remove('tw-bg-slate-50', 'tw-text-slate-900');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.remove('tw-dark');
+      document.body.classList.add('tw-bg-slate-50', 'tw-text-slate-900');
+      document.body.classList.remove('tw-bg-[#0a0b0d]', 'tw-text-white');
+    }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
   const [guestCount, setGuestCount] = useState(1);
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [suggestedPackages, setSuggestedPackages] = useState([]);
@@ -591,8 +610,30 @@ const PackageDetails = () => {
     }
   };
 
-  const handleToggleCustomization = () => {
-    setIsCustomizing(!isCustomizing);
+  const handleToggleCustomization = async (forcedPlan) => {
+    const nextIsCustomizing = forcedPlan ? (forcedPlan === 'custom') : !isCustomizing;
+    
+    if (!nextIsCustomizing) {
+      setIsCustomizing(false);
+      setCustomTrip(null); // Clear/nullify customized trip state to reset price to standard
+      localStorage.removeItem('customTripPrice');
+      localStorage.setItem('selectedPlan', 'standard');
+    } else {
+      setIsCustomizing(true);
+      localStorage.setItem('selectedPlan', 'custom');
+      try {
+        const response = await getFinalTrip(id);
+        if (response && response.source === 'customTrip') {
+          setCustomTrip(response.data);
+        } else {
+          await createCustomTrip(id);
+          const fresh = await getFinalTrip(id);
+          setCustomTrip(fresh.data);
+        }
+      } catch (err) {
+        console.error('Failed to initialize custom trip:', err);
+      }
+    }
   };
 
   const handleToggleDayCheckbox = async (day_number) => {
@@ -860,37 +901,14 @@ const PackageDetails = () => {
     try {
       setBookingLoading(true);
       
-      // 1. Create booking for the current package
-      let res1;
-      if (isCustomizing && customTrip) {
-        res1 = await createBooking({ customTrip: customTrip._id, numberOfGuests: guestCount, selectedAddons });
-      } else {
-        res1 = await createBooking({ experienceId: packageData._id, numberOfGuests: guestCount, selectedAddons });
-      }
-      
-      const booking1 = res1.data || res1.booking || res1;
-      if (!booking1 || !booking1._id) {
-        throw new Error('Could not create booking for current trip.');
-      }
-      
-      // 2. Create booking for the chained package starting next day
-      const res2 = await createBooking({ experienceId: selectedChainExp._id, numberOfGuests: guestCount, selectedAddons: [] });
-      const booking2 = res2.data || res2.booking || res2;
-      
-      localStorage.setItem('currentBookingId', booking1._id);
-      if (booking2 && booking2._id) {
-        localStorage.setItem('chainedBookingId', booking2._id);
-      }
-      
-      // Dynamic Chain item representation in local storage
-      // Use customTrip.total_price if available (includes activities + base), else base_price
+      // Dynamic Chain item representation in local storage (without creating backend bookings immediately)
       const chainCurrentAddonsTotal = selectedAddons.reduce((sum, addonId) => {
         const addon = packageData?.addons?.find(a => a._id === addonId);
         return sum + (addon ? addon.price : 0);
       }, 0);
-      const chainCurrentSinglePrice = customTrip
-        ? customTrip.total_price
-        : (packageData.calculatedPrice || packageData.base_price || packageData.price || 0);
+      const chainCurrentSinglePrice = !isCustomizing
+        ? (packageData.base_price || packageData.price || 4300)
+        : (customTrip?.total_price || 7100);
       const chainCurrentTotalPrice = (chainCurrentSinglePrice * guestCount) + chainCurrentAddonsTotal;
 
       const chainItemCurrent = {
@@ -901,7 +919,9 @@ const PackageDetails = () => {
         end: endFormatted,
         guestCount: guestCount,
         price: chainCurrentTotalPrice,
-        isCustomized: isCustomizing || !!customTrip
+        selectedAddons: selectedAddons,
+        isCustomized: isCustomizing || !!customTrip,
+        customTripId: customTrip?._id || null
       };
       
       const chainItemNext = {
@@ -912,16 +932,23 @@ const PackageDetails = () => {
         end: new Date(end.getTime() + ((selectedChainExp.duration_days || 1) - 1) * 86400000).toLocaleDateString(lang === 'AR' ? 'ar-EG' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
         guestCount: guestCount,
         price: selectedChainExp.calculatedPrice || selectedChainExp.base_price,
-        isCustomized: false
+        selectedAddons: [],
+        isCustomized: false,
+        customTripId: null
       };
+
+      if ((isCustomizing || customTrip) && customTrip?._id) {
+        await combineDestination(customTrip._id, selectedChainExp._id);
+      }
       
       localStorage.setItem('clearpath_trip_chain', JSON.stringify([chainItemCurrent, chainItemNext]));
+      window.dispatchEvent(new Event('tripChainUpdated'));
       
-      alert(lang === 'AR' ? 'تم ربط سلسلة الرحلات وحجز الرحلتين بنجاح! جاري تحويلك لصفحة الدفع...' : 'Trip chain successfully locked and both trips booked! Redirecting to checkout...');
-      window.location.href = '/payment';
+      alert(lang === 'AR' ? 'تم قفل سلسلة الرحلات بنجاح! تم حفظ رحلاتك المتسلسلة في حجوزاتك المعلقة.' : 'Trip chain successfully locked! Your chained trips have been saved to your pending bookings.');
+      window.location.href = '/my-bookings?tab=pending';
     } catch (err) {
-      console.error('Failed to chain trips booking:', err);
-      alert(err.message || 'Failed to lock trip chain.');
+      console.error('Failed to chain trips:', err);
+      alert(err.message || 'Failed to assemble trip chain.');
     } finally {
       setBookingLoading(false);
     }
@@ -1055,7 +1082,7 @@ const PackageDetails = () => {
     return Math.round((count / stats.totalReviews) * 100);
   };
 
-  const displayItinerary = customTrip && customTrip.itinerary && customTrip.itinerary.length > 0
+  const displayItinerary = isCustomizing && customTrip && customTrip.itinerary && customTrip.itinerary.length > 0
     ? customTrip.itinerary
     : (packageData ? packageData.itinerary : []);
   const { start, end } = (() => {
@@ -1123,27 +1150,34 @@ const PackageDetails = () => {
             {/* Main Grid */}
             <div className="package-grid">
                 {/* Hero Header & Quick Overview */}
-                <div className="experience-hero-header" style={{ marginBottom: '25px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', flexWrap: 'wrap' }}>
-                    <span style={{ background: '#f59e0b', color: '#000', padding: '5px 12px', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.85rem' }}>
-                      <i className="fa-solid fa-tag"></i> {packageData.type} ({packageData.type === 'Trip' ? `${packageData.duration_days} Days` : 'Day Use'})
-                    </span>
-                    <div className="hero-rating" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '5px' }}>
-                        <div>
-                          {stats.totalReviews > 0 ? (
-                            <span style={{ color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <i className="fa-solid fa-star"></i> {stats.averageRating}
-                              <span style={{ color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.85rem', marginLeft: '10px' }}>
-                                <i className="fa-solid fa-shield-halved"></i> {stats.averageTrustScore || 100}/100 Trust Score
+                <div className="experience-hero-header" style={{ marginBottom: '25px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '20px', flexWrap: 'wrap' }}>
+                  <div style={{ flex: 1, minWidth: '280px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                      <span style={{ background: '#f59e0b', color: '#000', padding: '5px 12px', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                        <i className="fa-solid fa-tag"></i> {packageData.type} ({packageData.type === 'Trip' ? `${packageData.duration_days} Days` : 'Day Use'})
+                      </span>
+                      <div className="hero-rating" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '5px' }}>
+                          <div>
+                            {stats.totalReviews > 0 ? (
+                              <span style={{ color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <i className="fa-solid fa-star"></i> {stats.averageRating}
+                                <span style={{ color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.85rem', marginLeft: '10px' }}>
+                                  <i className="fa-solid fa-shield-halved"></i> {stats.averageTrustScore || 100}/100 Trust Score
+                                </span>
+                                <span style={{ color: '#94a3b8', fontSize: '0.9rem', marginLeft: '5px' }}>
+                                  ({stats.totalReviews} verified reviews)
+                                </span>
                               </span>
-                              <span style={{ color: '#94a3b8', fontSize: '0.9rem', marginLeft: '5px' }}>
-                                ({stats.totalReviews} verified reviews)
+                            ) : (
+                              <span style={{ color: 'rgba(255,255,255,0.7)' }}>
+                                <i className="fa-solid fa-star"></i> New (Unrated)
                               </span>
-                            </span>
-                          ) : (
-                            <span style={{ color: 'rgba(255,255,255,0.7)' }}>
-                              <i className="fa-solid fa-star"></i> New (Unrated)
-                            </span>
+                            )}
+                          </div>
+                          {stats.totalReviews > 0 && (
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '5px 12px', borderRadius: '20px', color: '#34d399', fontSize: '0.85rem', fontWeight: 'bold', marginTop: '5px' }}>
+                              <i className="fa-solid fa-shield-halved"></i> AI-Verified Authentic Reviews
+                            </div>
                           )}
                         </div>
                         {stats.totalReviews > 0 && (
@@ -1243,15 +1277,10 @@ const PackageDetails = () => {
                         }, 0);
                         
                         const extraActivitiesCount = selectedAddons.length + (customTrip?.extra_activities?.length || 0);
-                        const aiDiscountApplied = customTrip?.ai_discount_applied || extraActivitiesCount >= 3;
+                        const aiDiscountApplied = false; // DISABLED: No automatic discounts without entering a code.
                         
                         let totalPrice = (singlePrice * guestCount) + addonsTotal;
                         let originalTotalPrice = originalSinglePrice * guestCount + addonsTotal;
-                        
-                        if (!customTrip?.ai_discount_applied && extraActivitiesCount >= 3) {
-                           const discount = totalPrice * 0.10;
-                           totalPrice -= discount;
-                        }
 
                         return (
                           <>
@@ -1670,7 +1699,7 @@ const PackageDetails = () => {
                               </button>
                             ) : (
                               <button 
-                                onClick={handleToggleCustomization} 
+                                onClick={() => handleToggleCustomization(isCustomizing ? 'standard' : 'custom')} 
                                 style={{
                                   background: 'rgba(255,255,255,0.02)',
                                   border: '1px solid rgba(255, 255, 255, 0.12)',
@@ -1709,7 +1738,7 @@ const PackageDetails = () => {
                     <h2 className="tw-text-slate-900 dark:tw-text-white tw-font-bold tw-text-2xl tw-mb-6">{isCustomizing ? '⚡ Your Customized Itinerary' : 'Planned Itinerary'}</h2>
                     {token && customTrip && (
                       <button 
-                        onClick={handleToggleCustomization} 
+                        onClick={() => handleToggleCustomization(isCustomizing ? 'standard' : 'custom')} 
                         className="btn-toggle-custom"
                         style={{
                           background: 'rgba(212, 175, 55, 0.1)',
@@ -2573,8 +2602,8 @@ const PackageDetails = () => {
                   );
                 })()}
 
-                {/* 🤝 SMART CERTIFIED PROVIDER SECTION */}
-                {(() => {
+                 {/* 🤝 SMART CERTIFIED PROVIDER SECTION */}
+                 {(() => {
                   const getSmartProvider = () => {
                     const supervisorId = packageData?.supervisor?._id || packageData?.supervisor;
                     const supervisorObj = usersMap[supervisorId] || packageData?.supervisor;
@@ -3720,7 +3749,6 @@ const PackageDetails = () => {
           </div>
         </div>
       )}
-
       <Footer />
     </div>
   );

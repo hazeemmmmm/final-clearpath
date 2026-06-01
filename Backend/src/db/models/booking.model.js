@@ -39,6 +39,10 @@ const bookingSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Booking"
   }],
+  snapshot: {
+    type: mongoose.Schema.Types.Mixed,
+    required: false
+  },
   cancellationInfo: {
     canceledAt: { type: Date },
     feePercent: { type: Number },

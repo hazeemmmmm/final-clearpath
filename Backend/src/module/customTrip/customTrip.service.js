@@ -1,5 +1,6 @@
 import { CustomTrip } from "../../db/models/customtrip.model.js";
 import { Experience } from "../../db/models/experience.model.js";
+import mongoose from "mongoose";
 
 class CustomTripService {
 
@@ -11,11 +12,20 @@ class CustomTripService {
 
     if (!exp) throw new Error("Experience not found");
 
-    // prevent duplicate
-    const existing = await CustomTrip.findOne({
+    // prevent duplicate - only return active, unbooked customization
+    const customTrips = await CustomTrip.find({
       user: userId,
       experience: experienceId,
-    });
+    }).sort({ createdAt: -1 });
+
+    let existing = null;
+    for (const trip of customTrips) {
+      const isBooked = await mongoose.model("Booking").findOne({ customTrip: trip._id });
+      if (!isBooked) {
+        existing = trip;
+        break;
+      }
+    }
 
     if (existing) return existing;
 
@@ -54,14 +64,24 @@ class CustomTripService {
   // =========================
   async getFinalTrip(userId, experienceId) {
 
-    const custom = await CustomTrip.findOne({
+    // Find custom trips that are not booked yet
+    const customTrips = await CustomTrip.find({
       user: userId,
       experience: experienceId,
-    })
-      .populate("experience")
-      .populate("combinedExperiences")
-      .populate("itinerary.activities.activity")
-      .populate("extra_activities.activity");
+    }).sort({ createdAt: -1 });
+
+    let custom = null;
+    for (const trip of customTrips) {
+      const isBooked = await mongoose.model("Booking").findOne({ customTrip: trip._id });
+      if (!isBooked) {
+        custom = await CustomTrip.findById(trip._id)
+          .populate("experience")
+          .populate("combinedExperiences")
+          .populate("itinerary.activities.activity")
+          .populate("extra_activities.activity");
+        break;
+      }
+    }
 
     // 🔵 NO CUSTOMIZATION → return experience
     if (!custom) {
@@ -106,12 +126,12 @@ class CustomTripService {
     let aiDiscountApplied = false;
     let discountAmount = 0;
 
-    // AI-Based Fixed-Price Package Optimization (Bundle Discount)
-    if (extraActivitiesCount >= 3) {
-      aiDiscountApplied = true;
-      discountAmount = total * 0.10; // 10% discount for 3+ extra activities
-      total = total - discountAmount;
-    }
+    // AI-Based Fixed-Price Package Optimization (Bundle Discount) - DISABLED by request
+    // if (extraActivitiesCount >= 3) {
+    //   aiDiscountApplied = true;
+    //   discountAmount = total * 0.10; // 10% discount for 3+ extra activities
+    //   total = total - discountAmount;
+    // }
 
     // Add base_price from the experience!
     let basePrice = custom.experience ? custom.experience.base_price : 0;

@@ -71,7 +71,37 @@ const Payment = () => {
           return res.booking || res.data || res;
         })
       );
-      setChainBookings(results.filter(Boolean));
+      const validBookings = results.filter(Boolean);
+      setChainBookings(validBookings);
+
+      // Sync local storage cart to match the real booked prices
+      try {
+        const chain = JSON.parse(localStorage.getItem('clearpath_trip_chain') || '[]');
+        let updatedChain = false;
+        const newChain = chain.map(item => {
+          const matchedBooking = validBookings.find(b => {
+            const bExpId = b.experience?._id || b.experience;
+            const bCustomId = b.customTrip?._id || b.customTrip;
+            return (bExpId && bExpId.toString() === item.id?.toString()) ||
+                   (bCustomId && bCustomId.toString() === item.customTripId?.toString());
+          });
+          if (matchedBooking) {
+            const realPrice = matchedBooking.total_amount || matchedBooking.totalPrice || matchedBooking.price || 0;
+            if (item.price !== realPrice) {
+              item.price = realPrice;
+              updatedChain = true;
+            }
+          }
+          return item;
+        });
+        if (updatedChain) {
+          localStorage.setItem('clearpath_trip_chain', JSON.stringify(newChain));
+          window.dispatchEvent(new Event('tripChainUpdated'));
+        }
+      } catch (storageErr) {
+        console.error('Failed to sync trip chain storage:', storageErr);
+      }
+
     } catch (err) {
       console.error('Failed to load chain booking details', err);
       setMessage(lang === 'AR' ? 'فشل في تحميل تفاصيل الحجوزات.' : 'Failed to load booking details.');
@@ -122,12 +152,9 @@ const Payment = () => {
     setMessage('');
     try {
       if (isChainPayment) {
-        // Pay for all chain bookings sequentially — redirect to first Stripe URL
-        // Store remaining IDs so PaymentSuccess can chain them
-        const [firstId, ...remainingIds] = chainBookingIds;
-        if (remainingIds.length > 0) {
-          localStorage.setItem('pendingChainBookingIds', JSON.stringify(remainingIds));
-        }
+        // Pay for all chain bookings combined in a single transaction on the backend!
+        const firstId = chainBookingIds[0];
+        localStorage.removeItem('pendingChainBookingIds'); // Prevent sequential multi-payment loops
         localStorage.removeItem('currentChainBookingIds');
         localStorage.setItem('currentBookingId', firstId);
 
@@ -350,8 +377,8 @@ const Payment = () => {
                     }}>
                       <i className="fa-solid fa-circle-info" style={{ color: '#f59e0b', marginRight: '6px' }}></i>
                       {lang === 'AR'
-                        ? 'سيتم معالجة الدفع لكل رحلة على حدة عبر Stripe بشكل متسلسل.'
-                        : 'Payment will be processed for each trip sequentially via Stripe.'}
+                        ? 'سيتم معالجة الدفع لجميع الرحلات معاً دفعة واحدة في معاملة آمنة وموحدة.'
+                        : 'All trips in the chain will be processed and paid together in a single secure transaction.'}
                     </div>
                   )}
 

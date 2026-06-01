@@ -165,7 +165,20 @@ const EditPackageModal = ({ experience, onClose, onUpdate, activitiesList, provi
     setLoading(true);
     setError('');
     try {
-      await updateExperience(experience._id, formData);
+      const activitiesSum = (formData.itinerary || []).reduce((acc, day) => {
+        return acc + (day.activities || []).reduce((dAcc, act) => dAcc + (Number(act.price) || 0), 0);
+      }, 0);
+      const breakdownSum = (formData.priceBreakdown || []).reduce((acc, item) => {
+        return acc + (Number(item.amount) || 0);
+      }, 0);
+      const computedTotal = activitiesSum + breakdownSum;
+      
+      const payload = {
+        ...formData,
+        base_price: computedTotal
+      };
+      
+      await updateExperience(experience._id, payload);
       onUpdate();
       onClose();
     } catch (err) {
@@ -206,8 +219,18 @@ const EditPackageModal = ({ experience, onClose, onUpdate, activitiesList, provi
               <input type="text" name="name" value={formData.name} onChange={handleInputChange} style={{ width: '100%', padding: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px' }} required />
             </div>
             <div>
-              <label style={{ display: 'block', color: '#a4a4b4', marginBottom: '5px' }}>Base Price ($)</label>
-              <input type="number" name="base_price" value={formData.base_price} onChange={handleInputChange} style={{ width: '100%', padding: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px' }} required />
+              <label style={{ display: 'block', color: '#a4a4b4', marginBottom: '5px' }}>Total Price (EGP)</label>
+              <div style={{ width: '100%', padding: '10px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', color: '#34d399', borderRadius: '6px', fontWeight: 'bold' }}>
+                EGP {(() => {
+                  const activitiesSum = (formData.itinerary || []).reduce((acc, day) => {
+                    return acc + (day.activities || []).reduce((dAcc, act) => dAcc + (Number(act.price) || 0), 0);
+                  }, 0);
+                  const breakdownSum = (formData.priceBreakdown || []).reduce((acc, item) => {
+                    return acc + (Number(item.amount) || 0);
+                  }, 0);
+                  return (activitiesSum + breakdownSum).toLocaleString();
+                })()}
+              </div>
             </div>
             <div>
               <label style={{ display: 'block', color: '#a4a4b4', marginBottom: '5px' }}>Destination</label>

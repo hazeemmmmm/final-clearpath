@@ -7,7 +7,8 @@ import * as AppError from '../../utils/error/index.js';
 // ─── 1. Create Stripe Checkout Session (Mapped to createPayPalOrder for compatibility) ───
 
 export const createPayPalOrder = async (userId, bookingId, currency = 'EGP') => {
-    const booking = await Booking.findOne({ _id: bookingId, user: userId, status: 'Pending' });
+    const booking = await Booking.findOne({ _id: bookingId, user: userId, status: 'Pending' })
+        .populate('sequentialBookings');
     if (!booking) throw new AppError.BadRequestException('Booking not found or already processed');
 
     const existing = await Payment.findOne({ booking: bookingId, status: { $ne: 'Failed' } });
@@ -19,10 +20,17 @@ export const createPayPalOrder = async (userId, bookingId, currency = 'EGP') => 
     try {
         const EGP_TO_USD = 50;
         const finalCurrency = (currency || 'EGP').toLowerCase();
-        let finalAmount = booking.total_amount; // Default EGP
+        
+        // Sum up total amount of the main booking and all sequential/chained bookings
+        let combinedTotal = booking.total_amount || 0;
+        if (booking.sequentialBookings && booking.sequentialBookings.length > 0) {
+            combinedTotal += booking.sequentialBookings.reduce((sum, seq) => sum + (seq.total_amount || 0), 0);
+        }
+
+        let finalAmount = combinedTotal; // Default EGP
 
         if (finalCurrency === 'usd') {
-            finalAmount = parseFloat((booking.total_amount / EGP_TO_USD).toFixed(2));
+            finalAmount = parseFloat((combinedTotal / EGP_TO_USD).toFixed(2));
         }
 
         // Create Stripe checkout session
@@ -33,8 +41,12 @@ export const createPayPalOrder = async (userId, bookingId, currency = 'EGP') => 
                     price_data: {
                         currency: finalCurrency,
                         product_data: {
-                            name: `ClearPath Tour Booking #${bookingId}`,
-                            description: `Seamless travel booking for ${booking.numberOfGuests || 1} guest(s)`,
+                            name: booking.sequentialBookings && booking.sequentialBookings.length > 0 
+                                ? `ClearPath Chained Tour Booking #${bookingId}` 
+                                : `ClearPath Tour Booking #${bookingId}`,
+                            description: booking.sequentialBookings && booking.sequentialBookings.length > 0
+                                ? `Includes primary booking and ${booking.sequentialBookings.length} chained extension trip(s)`
+                                : `Seamless travel booking for ${booking.numberOfGuests || 1} guest(s)`,
                         },
                         unit_amount: Math.round(finalAmount * 100), // Stripe expects cents
                     },
@@ -99,8 +111,17 @@ export const capturePayPalOrder = async (userId, orderId) => {
             { new: true }
         );
 
-        // Confirm booking
-        await Booking.findByIdAndUpdate(payment.booking, { status: 'Confirmed' });
+        // Confirm booking and all nested/sequential bookings cascadingly
+        const cascadeConfirmBooking = async (bookingId) => {
+            await Booking.findByIdAndUpdate(bookingId, { status: 'Confirmed' });
+            const b = await Booking.findById(bookingId);
+            if (b && b.sequentialBookings && b.sequentialBookings.length > 0) {
+                for (const seqId of b.sequentialBookings) {
+                    await cascadeConfirmBooking(seqId);
+                }
+            }
+        };
+        await cascadeConfirmBooking(payment.booking);
 
         return { captureId: session.payment_intent, status: 'COMPLETED', payment: updatedPayment };
     } catch (err) {
@@ -178,11 +199,18 @@ export const chargeCancellationFee = async (userId, bookingId, amountEGP) => {
 // ─── 5. Bank Transfer Payment ────────────────────────────────────────────────
 
 export const bankPayment = async (userId, bookingId, currency = 'EGP') => {
-    const booking = await Booking.findOne({ _id: bookingId, user: userId, status: 'Pending' });
+    const booking = await Booking.findOne({ _id: bookingId, user: userId, status: 'Pending' })
+        .populate('sequentialBookings');
     if (!booking) throw new AppError.BadRequestException('Booking not found or already processed');
 
     const EGP_TO_USD = 50;
-    const amount_egp = booking.total_amount;
+    
+    let combinedTotal = booking.total_amount || 0;
+    if (booking.sequentialBookings && booking.sequentialBookings.length > 0) {
+        combinedTotal += booking.sequentialBookings.reduce((sum, seq) => sum + (seq.total_amount || 0), 0);
+    }
+
+    const amount_egp = combinedTotal;
     const amount_usd = parseFloat((amount_egp / EGP_TO_USD).toFixed(2));
     const paidAmount = currency === 'USD' ? amount_usd : amount_egp;
 
@@ -197,7 +225,17 @@ export const bankPayment = async (userId, bookingId, currency = 'EGP') => {
         payment_date: new Date(),
     });
 
-    await Booking.findByIdAndUpdate(bookingId, { status: 'Confirmed' });
+    // Confirm booking and all nested/sequential bookings cascadingly
+    const cascadeConfirmBooking = async (bId) => {
+        await Booking.findByIdAndUpdate(bId, { status: 'Confirmed' });
+        const b = await Booking.findById(bId);
+        if (b && b.sequentialBookings && b.sequentialBookings.length > 0) {
+            for (const seqId of b.sequentialBookings) {
+                await cascadeConfirmBooking(seqId);
+            }
+        }
+    };
+    await cascadeConfirmBooking(bookingId);
 
     return { payment, amount_egp, amount_usd };
 };

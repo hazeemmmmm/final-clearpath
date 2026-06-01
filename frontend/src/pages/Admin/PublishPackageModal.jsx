@@ -678,21 +678,16 @@ const PublishPackageModal = ({
             <div className="ppm-summary-card">
               <h3 className="ppm-section-title" style={{ borderBottom: 'none', marginBottom: '15px' }}><i className="fa-solid fa-receipt"></i> Financial Breakdown</h3>
               
-              <div className="ppm-input-group" style={{ marginBottom: '25px' }}>
-                <label style={{ color: '#fff' }}>Base Price ($)</label>
-                <input type="number" name="base_price" value={formData.base_price} onChange={handleInputChange} className="ppm-input large" style={{ background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(250,204,21,0.5)' }} required />
-              </div>
-
-              <div className="ppm-summary-row">
+              <div className="ppm-summary-row" style={{ marginBottom: '15px' }}>
                 <span>Total Activities Cost</span>
-                <span>${(calculateEstimatedPackagePrice?.() || 0) - (Number(formData.base_price) || 0)}</span>
+                <span>EGP {(calculateEstimatedPackagePrice?.() || 0).toLocaleString()}</span>
               </div>
               
               <div className="ppm-summary-divider"></div>
               
               <div className="ppm-summary-total">
-                <span>Estimated Final Price</span>
-                <strong style={{ color: '#10b981', textShadow: '0 0 10px rgba(16,185,129,0.3)' }}>${calculateEstimatedPackagePrice?.() || 0}</strong>
+                <span>Total Price (EGP)</span>
+                <strong style={{ color: '#10b981', textShadow: '0 0 10px rgba(16,185,129,0.3)' }}>EGP {(calculateEstimatedPackagePrice?.() || 0).toLocaleString()}</strong>
               </div>
               
               <button type="submit" className="ppm-btn-solid" style={{ width: '100%', justifyContent: 'center', marginTop: '20px', padding: '15px', fontSize: '1.1rem' }} disabled={submittingPkg}>
@@ -887,9 +882,9 @@ const PublishPackageModal = ({
               {/* Price Footer */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', background: 'linear-gradient(135deg, rgba(212,175,55,0.08), rgba(212,175,55,0.04))', border: '1px solid rgba(212,175,55,0.2)', borderRadius: '12px' }}>
                 <div>
-                  <p style={{ color: '#71717a', fontSize: '0.72rem', margin: '0 0 3px 0' }}>BASE PRICE FROM</p>
+                  <p style={{ color: '#71717a', fontSize: '0.72rem', margin: '0 0 3px 0' }}>TOTAL PRICE (EGP)</p>
                   <strong style={{ color: '#d4af37', fontSize: '1.6rem', fontWeight: 800 }}>
-                    {formData.base_price ? `$${Number(formData.base_price).toLocaleString()}` : <span style={{ color: '#3f3f46', fontSize: '1rem' }}>Price not set</span>}
+                    EGP {(calculateEstimatedPackagePrice?.() || 0).toLocaleString()}
                   </strong>
                 </div>
                 <div style={{ background: '#d4af37', color: '#000', padding: '10px 20px', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 700, opacity: 0.8 }}>

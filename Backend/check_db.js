@@ -1,19 +1,26 @@
 import mongoose from 'mongoose';
+import { Booking } from './src/db/models/booking.model.js';
 
-const DB_URL = "mongodb+srv://alaamahmoudhussein186_db_user:CmkZRyTgPESdmgCq@cluster0.c2lajdn.mongodb.net/ClearPath?retryWrites=true&w=majority&appName=Cluster0";
+const mongooseUri = 'mongodb://127.0.0.1:27017/clearpath';
 
 async function check() {
-  await mongoose.connect(DB_URL);
+  await mongoose.connect(mongooseUri);
+  console.log("Connected to MongoDB.");
   
-  const collections = await mongoose.connection.db.listCollections().toArray();
-  console.log('Collections:', collections.map(c => c.name));
+  const bookings = await Booking.find({});
+  console.log(`Total bookings in DB: ${bookings.length}`);
   
-  const experiences = await mongoose.connection.db.collection('experiences').find({}).toArray();
-  console.log('Packages count:', experiences.length);
-  experiences.forEach(e => {
-    console.log(`- ${e.name} (${e.type}) [ID: ${e._id}]`);
+  bookings.forEach(b => {
+    console.log(`\n- Booking ID: ${b._id}`);
+    console.log(`  Experience ID: ${b.experience}`);
+    console.log(`  CustomTrip ID: ${b.customTrip}`);
+    console.log(`  Status: ${b.status}, Total Amount: ${b.total_amount}`);
+    console.log(`  Parent Booking: ${b.parentBooking}`);
+    console.log(`  Sequential Bookings:`, b.sequentialBookings);
+    console.log(`  Snapshot Title:`, b.snapshot?.title);
   });
-  
-  mongoose.connection.close();
+
+  process.exit(0);
 }
-check();
+
+check().catch(console.error);
