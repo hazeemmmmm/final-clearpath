@@ -1,4 +1,5 @@
 import CustomTripService from "./customTrip.service.js";
+import { logActivity } from "../../utils/analyticsHelper.js";
 
 class CustomTripController {
 
@@ -9,6 +10,18 @@ class CustomTripController {
         req.user._id,
         req.body.experienceId
       );
+
+      if (data) {
+        logActivity({
+          userId: req.user._id,
+          action: "customize_trip",
+          packageId: data.experience || data.experienceId || req.body.experienceId || null,
+          category: "custom_itinerary",
+          metadata: {
+            customTripId: data._id
+          }
+        });
+      }
 
       res.status(201).json({
         message: "CustomTrip created successfully",

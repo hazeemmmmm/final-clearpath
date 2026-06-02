@@ -299,3 +299,9 @@ export const getTripExtensions = async (currentTripEndDate) =>
     method: 'GET',
     headers: getHeaders(true)
   });
+
+export const getUserPreferenceAnalytics = async (demo = false) =>
+  apiCall(`${BASE_URL}/admin/analytics/preferences?demo=${demo}`, {
+    method: 'GET',
+    headers: getHeaders(true)
+  });

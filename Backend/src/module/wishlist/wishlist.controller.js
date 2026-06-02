@@ -1,4 +1,5 @@
 import * as wishlistService from './wishlist.service.js';
+import { logActivity } from '../../utils/analyticsHelper.js';
 
 export const getWishlist = async (req, res) => {
     const wishlist = await wishlistService.getUserWishlist(req.user.id);
@@ -8,6 +9,14 @@ export const getWishlist = async (req, res) => {
 export const addToWishlist = async (req, res) => {
     const { experienceId } = req.body;
     const wishlist = await wishlistService.addToWishlist(req.user.id, experienceId);
+    
+    // Log wishlist addition activity
+    logActivity({
+      userId: req.user.id || req.user._id,
+      action: "wishlist_add",
+      packageId: experienceId
+    });
+
     return res.status(200).json({ message: "Added to wishlist", wishlist });
 };
 

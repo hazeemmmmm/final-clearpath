@@ -1,8 +1,21 @@
 import * as bookingService from './booking.service.js';
+import { logActivity } from '../../utils/analyticsHelper.js';
 
 export const createBooking = async (req, res, next) => {
     try {
         const booking = await bookingService.createNewBooking(req.user._id, req.body);
+        if (booking) {
+            logActivity({
+                userId: req.user._id,
+                action: "book_trip",
+                packageId: booking.experience || null,
+                category: booking.booking_type === "Package" ? "Package" : "Trip",
+                metadata: {
+                    totalAmount: booking.total_amount,
+                    bookingType: booking.booking_type
+                }
+            });
+        }
         return res.status(201).json({ message: "Booking created successfully", booking });
     } catch (error) {
         return next(new Error(error.message, { cause: 400 }));
@@ -30,6 +43,17 @@ export const getOneBooking = async (req, res, next) => {
 export const cancelBooking = async (req, res, next) => {
     try {
         const booking = await bookingService.cancelBookingById(req.params.bookingId, req.user._id);
+        if (booking) {
+            logActivity({
+                userId: req.user._id,
+                action: "cancel_booking",
+                packageId: booking.experience || null,
+                category: booking.booking_type === "Package" ? "Package" : "Trip",
+                metadata: {
+                    totalAmount: booking.total_amount
+                }
+            });
+        }
         return res.status(200).json({ message: "Booking has been cancelled", booking });
     } catch (error) {
         return next(new Error(error.message, { cause: 400 }));

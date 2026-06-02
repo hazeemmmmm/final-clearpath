@@ -1,10 +1,23 @@
 import ReviewService from "./review.service.js";
+import { logActivity } from "../../utils/analyticsHelper.js";
 
 class ReviewController {
   // POST / — authenticated user submits a review
   create = async (req, res, next) => {
     try {
       const data = await ReviewService.create(req.user._id, req.body);
+      if (data) {
+        logActivity({
+          userId: req.user._id,
+          action: "submit_review",
+          packageId: data.experience?._id || data.experience || req.body.experience || null,
+          category: "review",
+          metadata: {
+            rating: data.rating,
+            comment: data.comment
+          }
+        });
+      }
       res.status(201).json({ message: "Review submitted successfully", data });
     } catch (err) {
       next(err);

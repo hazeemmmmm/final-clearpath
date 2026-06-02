@@ -20,6 +20,7 @@ import {
   adminCreateSupervisor
 } from '../../utils/api';
 import AdminIntelligence from './AdminIntelligence';
+import AdminAnalytics from './AdminAnalytics';
 import PublishPackageModal from './PublishPackageModal';
 import EditPackageModal from './EditPackageModal';
 import PackingGuidesAdmin from './PackingGuidesAdmin';
@@ -832,6 +833,10 @@ const AdminDashboard = () => {
               <i className="fa-solid fa-chart-line" style={{ color: '#06b6d4' }}></i>
               <span style={{ color: '#06b6d4', fontWeight: 'bold' }}>AI Forecast</span>
             </li>
+            <li className={activeTab === 'analytics' ? 'active' : ''} onClick={() => setActiveTab('analytics')}>
+              <i className="fa-solid fa-chart-column" style={{ color: '#e5c158' }}></i>
+              <span style={{ color: '#e5c158', fontWeight: 'bold' }}>Behavior Analytics</span>
+            </li>
             <li className={activeTab === 'bookings' ? 'active' : ''} onClick={() => setActiveTab('bookings')}>
               <i className="fa-solid fa-calendar-check"></i>
               <span>Manage Bookings</span>
@@ -1409,6 +1414,11 @@ const AdminDashboard = () => {
                 <div className="tab-pane animate-fade-in">
                   <AdminIntelligence />
                 </div>
+              )}
+
+              {/* TAB 2.6: BEHAVIOR ANALYTICS */}
+              {activeTab === 'analytics' && (
+                <AdminAnalytics />
               )}
 
               {/* TAB 3: BOOKINGS */}

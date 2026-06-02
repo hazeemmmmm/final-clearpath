@@ -1,5 +1,6 @@
 import ExperienceService from "./experience.service.js";
 import { User } from "../../db/models/user.model.js";
+import { logActivity } from "../../utils/analyticsHelper.js";
 
 class ExperienceController {
 
@@ -35,6 +36,16 @@ class ExperienceController {
     try {
       const result = await ExperienceService.getAll(req.query);
 
+      // Track Search Activity
+      if (req.query.search || req.query.destination || req.query.type) {
+        logActivity({
+          userId: req.user?._id || null,
+          action: "search",
+          category: req.query.type || "general",
+          metadata: { searchTerm: req.query.search || req.query.destination || req.query.type }
+        });
+      }
+
       res.status(200).json({
         message: "Experiences fetched successfully",
         ...result,
@@ -68,6 +79,15 @@ class ExperienceController {
           message: "Experience not found",
         });
       }
+
+      // Track View Package Activity
+      logActivity({
+        userId: req.user?._id || null,
+        action: "view_package",
+        packageId: data._id,
+        category: data.type || "general",
+        destinationId: data.destination?._id || data.destination || null
+      });
 
       res.status(200).json({
         data,

@@ -11,4 +11,7 @@ router.get("/intelligence", authMiddleware, allowTo("admin"), adminController.ge
 router.patch("/flag-user/:userId", authMiddleware, allowTo("admin"), adminController.flagUser);
 router.patch("/unflag-user/:userId", authMiddleware, allowTo("admin"), adminController.unflagUser);
 
+// User Preference & Behavior Analytics
+router.get("/analytics/preferences", authMiddleware, allowTo("admin"), adminController.getUserPreferenceAnalytics);
+
 export default router;
