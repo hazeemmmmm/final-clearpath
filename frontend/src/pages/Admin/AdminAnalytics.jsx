@@ -286,48 +286,6 @@ const AdminAnalytics = () => {
 
       </div>
 
-      {/* AI Recommendation Banner */}
-      <div 
-        className="ai-recommendation-banner"
-        style={{
-          background: 'linear-gradient(135deg, rgba(229, 193, 88, 0.15) 0%, rgba(115, 116, 155, 0.05) 100%)',
-          border: '1.5px solid rgba(229, 193, 88, 0.3)',
-          borderRadius: '16px',
-          padding: '25px',
-          marginBottom: '40px',
-          position: 'relative',
-          overflow: 'hidden',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
-          backdropFilter: 'blur(8px)'
-        }}
-      >
-        <div style={{ position: 'absolute', right: lang === 'en' ? '-10px' : 'auto', left: lang === 'ar' ? '-10px' : 'auto', top: '-10px', fontSize: '6rem', opacity: 0.08, pointerEvents: 'none' }}>
-          <i className="fa-solid fa-robot"></i>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ backgroundColor: '#e5c158', color: 'black', fontWeight: 'bold', fontSize: '0.75rem', padding: '3px 8px', borderRadius: '30px', textTransform: 'uppercase' }}>
-              {lang === 'en' ? 'AI Insight' : 'تحليل الذكاء الاصطناعي'}
-            </span>
-            <h4 style={{ margin: 0, fontSize: '1.15rem', color: '#e5c158', fontWeight: 'bold' }}>{aiRec.title}</h4>
-          </div>
-          <p style={{ margin: 0, fontSize: '0.92rem', color: 'var(--text-main)', lineHeight: 1.6, maxWidth: '85%' }}>{aiRec.desc}</p>
-          <button 
-            className="btn-primary" 
-            onClick={handleDeployCampaign}
-            style={{ 
-              marginTop: '10px', 
-              alignSelf: 'flex-start',
-              background: 'linear-gradient(135deg, #e5c158 0%, #d4af37 100%)',
-              color: 'black',
-              fontWeight: '700'
-            }}
-          >
-            <i className="fa-solid fa-wand-magic-sparkles"></i> {aiRec.action}
-          </button>
-        </div>
-      </div>
-
       {/* Two-Column Grid */}
       <div className="dashboard-insights-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '30px', marginBottom: '30px' }}>
         
