@@ -19,7 +19,7 @@ async function run() {
       city: 'Alexandria',
       country: 'Egypt',
       description: 'Egypt\'s Mediterranean jewel – ancient catacombs, historic citadels, and beautiful seaside walkways.',
-      image: 'https://images.unsplash.com/photo-1543966888-7c1dc482a810?auto=format&fit=crop&w=800&q=80'
+      image: 'https://images.unsplash.com/photo-1572252009286-268acec5ca0a?auto=format&fit=crop&w=800&q=80'
     });
     console.log(`📍 Created destination: Alexandria (${alexDest._id})`);
   } else {
