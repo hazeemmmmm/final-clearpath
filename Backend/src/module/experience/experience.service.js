@@ -438,9 +438,9 @@ class ExperienceService {
   async optimizePrice(id, targetMonth) {
     const experience = await Experience.findById(id).populate("itinerary.activities.activity");
     if (!experience) throw new Error("Experience not found");
-
+ 
     // 1. Cost Basis calculation
-    let costBasis = experience.base_price;
+    let costBasis = experience.price;
     if (experience.itinerary) {
       experience.itinerary.forEach(day => {
         if (day.activities) {
@@ -450,7 +450,7 @@ class ExperienceService {
         }
       });
     }
-
+ 
     // 2. Rule 1: Seasonality Markup
     let seasonalityFactor = 0;
     let seasonName = "Standard / معتدل";
@@ -469,7 +469,7 @@ class ExperienceService {
       seasonalityFactor = -0.10; // -10% discount
       seasonName = "Off-Peak Season / موسم ركود";
     }
-
+ 
     // 3. Rule 2: Capacity Utility Margin
     let capacityFactor = 0;
     if (experience.capacity < 6) {
@@ -477,20 +477,20 @@ class ExperienceService {
     } else if (experience.capacity > 20) {
       capacityFactor = -0.05; // Group pricing (-5%)
     }
-
+ 
     // 4. Rule 3: Competitor Benchmark Markup
     const competitorFactor = 0.04; // +4% simulated benchmark
-
+ 
     // 5. Total markup
     const totalMarkup = seasonalityFactor + capacityFactor + competitorFactor;
     const recommendedPrice = Math.round(costBasis * (1 + totalMarkup));
-
+ 
     // Reasoning in both Arabic and English
     const reasoningAR = `تم احتساب السعر المقترح بقيمة ${recommendedPrice} ج.م بناءً على: موسم الحجز (${seasonName} بنسبة +${Math.round(seasonalityFactor * 100)}%)، سعة الرحلة (${experience.capacity} أفراد بنسبة ${Math.round(capacityFactor * 100)}%) وهامش المنافسين التنافسي (+${Math.round(competitorFactor * 100)}%).`;
     const reasoningEN = `Recommended price of EGP ${recommendedPrice} calculated based on: Booking Season (${seasonName} +${Math.round(seasonalityFactor * 100)}%), Capacity factor (${experience.capacity} seats ${Math.round(capacityFactor * 100)}%), and Competitor benchmark margin (+${Math.round(competitorFactor * 100)}%).`;
-
+ 
     return {
-      currentPrice: experience.base_price,
+      currentPrice: experience.price,
       recommendedPrice,
       costBasis,
       seasonName,
@@ -501,11 +501,11 @@ class ExperienceService {
       reasoningEN
     };
   }
-
+ 
   async applyOptimizedPrice(id, price) {
     const experience = await Experience.findByIdAndUpdate(
       id,
-      { base_price: Number(price) },
+      { price: Number(price) },
       { new: true }
     );
     if (!experience) throw new Error("Experience not found");

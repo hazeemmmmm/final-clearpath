@@ -101,12 +101,12 @@ const buildFlattenedPaidCards = (paidBookings, allBookings = []) => {
     );
 
     const parentFromParts = booking.customTrip
-      ? (Number(expObj?.base_price) || 0) + (Number(booking.customTrip.total_price) || 0)
+      ? (Number(expObj?.price) || 0) + (Number(booking.customTrip.total_price) || 0)
       : null;
     const parentDisplayPrice =
       chainItems.length > 0
         ? parentFromParts ?? Math.max((Number(booking.total_amount) || 0) - chainSum, 0)
-        : Number(booking.total_amount) || Number(expObj?.base_price) || 0;
+        : Number(booking.total_amount) || Number(expObj?.price) || 0;
 
     allPaidCards.push({
       ...booking,
@@ -191,49 +191,29 @@ const MyBookings = () => {
       const createdBookingIds = [];
       const firstItem = tripChain[0];
 
-      // Persist chain packages onto the custom trip in DB (single booking document model)
-      if (firstItem.isCustomized && firstItem.customTripId && tripChain.length > 1) {
-        for (let i = 1; i < tripChain.length; i++) {
-          const nextItem = tripChain[i];
-          if (!nextItem.isCustomized && nextItem.id) {
-            await combineDestination(firstItem.customTripId, nextItem.id);
-          }
+      let previousBookingId = null;
+      for (const item of tripChain) {
+        let payload;
+        if (item.isCustomized && item.customTripId) {
+          payload = {
+            customTrip: item.customTripId,
+            numberOfGuests: item.guestCount,
+            selectedAddons: item.selectedAddons || [],
+            parentBookingId: previousBookingId,
+          };
+        } else {
+          payload = {
+            experienceId: item.id,
+            numberOfGuests: item.guestCount,
+            selectedAddons: item.selectedAddons || [],
+            parentBookingId: previousBookingId,
+          };
         }
-
-        const res = await createBooking({
-          customTrip: firstItem.customTripId,
-          numberOfGuests: firstItem.guestCount,
-          selectedAddons: firstItem.selectedAddons || [],
-        });
+        const res = await createBooking(payload);
         const booking = res.booking || res.data || res;
         if (booking?._id) {
           createdBookingIds.push(booking._id);
-        }
-      } else {
-        let previousBookingId = null;
-        for (const item of tripChain) {
-          let payload;
-          if (item.isCustomized && item.customTripId) {
-            payload = {
-              customTrip: item.customTripId,
-              numberOfGuests: item.guestCount,
-              selectedAddons: item.selectedAddons,
-              parentBookingId: previousBookingId,
-            };
-          } else {
-            payload = {
-              experienceId: item.id,
-              numberOfGuests: item.guestCount,
-              selectedAddons: item.selectedAddons,
-              parentBookingId: previousBookingId,
-            };
-          }
-          const res = await createBooking(payload);
-          const booking = res.booking || res.data || res;
-          if (booking?._id) {
-            createdBookingIds.push(booking._id);
-            previousBookingId = booking._id;
-          }
+          previousBookingId = booking._id;
         }
       }
 
@@ -839,7 +819,7 @@ const MyBookings = () => {
                                               </span>
                                             </div>
                                             <span className="tw-block tw-text-xs tw-font-bold tw-text-slate-950 dark:tw-text-white tw-truncate">{subTitle}</span>
-                                            <span className="tw-block tw-text-[10px] tw-text-slate-400">{lang === 'AR' ? `السعر الأساسي: ${subPrice} ج.م` : `Base Price: ${subPrice} EGP`}</span>
+                                            <span className="tw-block tw-text-[10px] tw-text-slate-400">{lang === 'AR' ? `السعر الإجمالي: ${subPrice} ج.م` : `Total Price: ${subPrice} EGP`}</span>
                                           </div>
                                         </div>
                                       );

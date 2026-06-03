@@ -51,7 +51,7 @@ const EditPackageModal = ({ experience, onClose, onUpdate, activitiesList, provi
         name: experience.name || '',
         type: experience.type || 'Trip',
         description: experience.description || '',
-        base_price: experience.base_price || '',
+        base_price: experience.price || experience.base_price || '',
         duration_days: experience.duration_days || '',
         capacity: experience.capacity || '',
         destination: experience.destination?._id || experience.destination || '',
@@ -175,6 +175,7 @@ const EditPackageModal = ({ experience, onClose, onUpdate, activitiesList, provi
       
       const payload = {
         ...formData,
+        price: computedTotal,
         base_price: computedTotal
       };
       

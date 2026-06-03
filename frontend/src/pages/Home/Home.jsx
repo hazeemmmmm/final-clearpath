@@ -9,7 +9,7 @@ import { getTrips, getFilterOptions, trackInteraction } from '../../utils/api';
 
 const ExperienceCard = ({ pkg, lang, navigate }) => {
   const { currency, convertPrice } = useContext(CurrencyContext);
-  const displayedPrice = convertPrice(pkg.base_price);
+  const displayedPrice = convertPrice(pkg.price);
 
   return (
     <div 

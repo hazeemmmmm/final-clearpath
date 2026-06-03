@@ -660,6 +660,7 @@ const PackageDetails = () => {
       await removeDayFromCustomTrip(activeTrip._id, day_number);
       const viewRes = await getFinalTrip(id);
       setCustomTrip(viewRes.data);
+      setIsCustomizing(true); // mark as customized after any modification
     } catch (err) {
       console.error('Failed to toggle day', err);
       alert(err.message || 'Failed to update day.');
@@ -686,6 +687,7 @@ const PackageDetails = () => {
       await removeActivityFromCustomTrip(activeTrip._id, day_number, activityId);
       const viewRes = await getFinalTrip(id);
       setCustomTrip(viewRes.data);
+      setIsCustomizing(true); // mark as customized after any modification
     } catch (err) {
       console.error('Failed to toggle activity', err);
       alert(err.message || 'Failed to update activity.');
@@ -727,6 +729,7 @@ const PackageDetails = () => {
 
       const viewRes = await getFinalTrip(id);
       setCustomTrip(viewRes.data);
+      setIsCustomizing(true); // mark as customized after any modification
     } catch (err) {
       console.error('Failed to toggle optional activity', err);
       alert(err.message || 'Failed to update optional activity.');
@@ -830,7 +833,10 @@ const PackageDetails = () => {
       }
     }
 
-    const singlePrice = latestCustomTrip
+    // Only use customTrip.total_price when the user is ACTIVELY customizing.
+    // If no customization was made, always use the standard base_price to avoid
+    // inflated prices from stale customTrip records that include activity costs.
+    const singlePrice = (isCustomizing && latestCustomTrip)
       ? latestCustomTrip.total_price
       : (packageData.base_price || packageData.price || 0);
 
@@ -848,8 +854,8 @@ const PackageDetails = () => {
       guestCount: guestCount,
       price: totalPrice,
       selectedAddons: selectedAddons,
-      isCustomized: !!latestCustomTrip || isCustomizing,
-      customTripId: latestCustomTrip?._id || customTrip?._id || null
+      isCustomized: isCustomizing && !!latestCustomTrip,
+      customTripId: isCustomizing ? (latestCustomTrip?._id || customTrip?._id || null) : null
     };
 
     const currentChain = JSON.parse(localStorage.getItem('clearpath_trip_chain') || '[]');
@@ -924,8 +930,8 @@ const PackageDetails = () => {
         guestCount: guestCount,
         price: chainCurrentTotalPrice,
         selectedAddons: selectedAddons,
-        isCustomized: isCustomizing || !!customTrip,
-        customTripId: customTrip?._id || null
+        isCustomized: isCustomizing,
+        customTripId: isCustomizing ? (customTrip?._id || null) : null
       };
       
       const chainItemNext = {
@@ -940,10 +946,6 @@ const PackageDetails = () => {
         isCustomized: false,
         customTripId: null
       };
-
-      if ((isCustomizing || customTrip) && customTrip?._id) {
-        await combineDestination(customTrip._id, selectedChainExp._id);
-      }
       
       localStorage.setItem('clearpath_trip_chain', JSON.stringify([chainItemCurrent, chainItemNext]));
       window.dispatchEvent(new Event('tripChainUpdated'));
@@ -1281,10 +1283,14 @@ const PackageDetails = () => {
                         }, 0);
                         
                         const extraActivitiesCount = selectedAddons.length + (customTrip?.extra_activities?.length || 0);
-                        const aiDiscountApplied = false; // DISABLED: No automatic discounts without entering a code.
+                                               const aiDiscountApplied = false; // DISABLED: No automatic discounts without entering a code.
+                        const standardPackagePrice = packageData ? (packageData.base_price || packageData.price || 0) : 0;
                         
-                        let totalPrice = (singlePrice * guestCount) + addonsTotal;
-                        let originalTotalPrice = originalSinglePrice * guestCount + addonsTotal;
+                        let totalPrice = isCustomizing && customTrip
+                          ? customTrip.total_price * guestCount
+                          : standardPackagePrice * guestCount;
+                        
+                        let originalTotalPrice = totalPrice;
 
                         return (
                           <>
@@ -1325,43 +1331,163 @@ const PackageDetails = () => {
                                 {lang === 'AR' ? 'عرض تفاصيل السعر (شفافية كاملة) ←' : 'View Price Breakdown (Full Transparency) →'}
                               </button>
                               
-                              {showBreakdown && (
-                                <div style={{ marginTop: '10px', background: 'rgba(255,255,255,0.04)', borderRadius: '8px', padding: '12px', fontSize: '0.85rem', color: '#cbd5e1', width: '90%' }}>
-                                  {packageData.priceBreakdown && packageData.priceBreakdown.length > 0 ? (
-                                    packageData.priceBreakdown.map((item, idx) => (
-                                      <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                                        <span>{item.label}</span>
-                                        <span>{formatPrice(item.amount * guestCount)}</span>
-                                      </div>
-                                    ))
-                                  ) : (
-                                    <>
-                                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                                        <span>{lang === 'AR' ? 'رسوم وتصاريح:' : 'Fees / Permits:'}</span>
-                                        <span>{formatPrice(totalPrice * 0.15)}</span>
-                                      </div>
-                                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                                        <span>{lang === 'AR' ? 'النقل (سيارة مكيفة):' : 'Transportation:'}</span>
-                                        <span>{formatPrice(totalPrice * 0.25)}</span>
-                                      </div>
-                                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                                        <span>{lang === 'AR' ? 'وجبات ومشروبات:' : 'Meals & Drinks:'}</span>
-                                        <span>{formatPrice(totalPrice * 0.15)}</span>
-                                      </div>
-                                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                                        <span>{lang === 'AR' ? 'أنشطة وتجارب:' : 'Activities & Experiences:'}</span>
-                                        <span>{formatPrice(totalPrice * 0.45)}</span>
-                                      </div>
-                                    </>
-                                  )}
-                                  {aiDiscountApplied && (
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981', fontWeight: 'bold', marginTop: '5px', paddingTop: '5px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                                      <span>{lang === 'AR' ? 'خصم (10%):' : 'Discount (10%):'}</span>
-                                      <span>- {formatPrice((originalTotalPrice - totalPrice))}</span>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
+                              {showBreakdown && (() => {
+                                  let transportCost = 150;
+                                  let taxCost = 100;
+                                  let feeCost = 50;
+                                  let currentActivitiesPrice = 0;
+                                  let customSubtotal = totalPrice;
+                                  let accommodationCost = 0;
+                                  const stdActPrice = (packageData?.itinerary || []).reduce((acc, day) => {
+                                    return acc + (day.activities || []).reduce((sum, act) => sum + (act.price || act.activity?.price || 0), 0);
+                                  }, 0);
+
+                                  if (isCustomizing && customTrip && customTrip.breakdown) {
+                                    transportCost = customTrip.breakdown.transportCost;
+                                    taxCost = customTrip.breakdown.taxes;
+                                    feeCost = customTrip.breakdown.serviceFees;
+                                    currentActivitiesPrice = customTrip.breakdown.extraActivitiesCost;
+                                    customSubtotal = customTrip.breakdown.subtotal * guestCount + addonsTotal;
+                                    accommodationCost = Math.max(0, customTrip.breakdown.basePrice - currentActivitiesPrice - transportCost);
+                                  } else {
+                                    const breakdownItems = packageData?.priceBreakdown || [];
+                                    const transportKeywords = ['transport', 'transit', 'transfer', 'commute', 'pickup', 'bus', 'yacht', 'felucca', 'cruise', 'flight', 'انتقال', 'توصيل', 'طيران', 'أتوبيس', 'يخت', 'فلوكة'];
+                                    const taxKeywords = ['tax', 'ضرائب', 'ضريبة'];
+                                    const feeKeywords = ['fee', 'رسوم', 'خدمة', 'منصة'];
+
+                                    let expTransport = 0;
+                                    let expTax = 0;
+                                    let expFee = 0;
+                                    let expAccommodation = 0;
+
+                                    breakdownItems.forEach(item => {
+                                      const labelLower = item.label.toLowerCase();
+                                      if (transportKeywords.some(kw => labelLower.includes(kw))) {
+                                        expTransport += item.amount;
+                                      } else if (taxKeywords.some(kw => labelLower.includes(kw))) {
+                                        expTax = item.amount;
+                                      } else if (feeKeywords.some(kw => labelLower.includes(kw))) {
+                                        expFee = item.amount;
+                                      } else {
+                                        expAccommodation += item.amount;
+                                      }
+                                    });
+
+                                    transportCost = expTransport || 150;
+                                    taxCost = expTax || 0;
+                                    feeCost = expFee || 0;
+                                    accommodationCost = expAccommodation;
+                                    customSubtotal = totalPrice - (taxCost + feeCost) * guestCount;
+                                  }
+
+                                 return (
+                                   <div style={{ marginTop: '10px', background: 'rgba(255,255,255,0.04)', borderRadius: '8px', padding: '12px', fontSize: '0.85rem', color: '#cbd5e1', width: '90%' }}>
+                                     {isCustomizing && customTrip ? (
+                                       <>
+                                         {/* CUSTOM PLAN BREAKDOWN */}
+                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '4px' }}>
+                                           <strong style={{ color: '#f59e0b' }}>{lang === 'AR' ? 'تفصيل السعر المخصص:' : 'Custom Plan Itemization:'}</strong>
+                                         </div>
+                                         
+                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                           <span>{lang === 'AR' ? 'أنشطة وفعاليات الرحلة (متغير):' : 'Trip Activities (Dynamic):'}</span>
+                                           <span style={{ color: '#fff', fontWeight: 'bold' }}>{formatPrice(currentActivitiesPrice * guestCount)}</span>
+                                         </div>
+
+                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                           <span>{lang === 'AR' ? 'وسائل الانتقال والمواصلات:' : 'Transportation & Commutes:'}</span>
+                                           <span>{formatPrice(transportCost * guestCount)}</span>
+                                         </div>
+
+                                         {accommodationCost > 0 && (
+                                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                             <span>{lang === 'AR' ? 'الإقامة والخدمات الأساسية:' : 'Accommodation & Lodging:'}</span>
+                                             <span>{formatPrice(accommodationCost * guestCount)}</span>
+                                           </div>
+                                         )}
+
+                                         {addonsTotal > 0 && (
+                                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', borderTop: '1px dashed rgba(255,255,255,0.08)', paddingTop: '5px' }}>
+                                             <span>{lang === 'AR' ? 'الخدمات الإضافية المختارة:' : 'Selected Add-ons:'}</span>
+                                             <span style={{ color: '#f59e0b', fontWeight: 'bold' }}>{formatPrice(addonsTotal)}</span>
+                                           </div>
+                                         )}
+
+                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '5px' }}>
+                                           <span>{lang === 'AR' ? 'المجموع الفرعي:' : 'Subtotal:'}</span>
+                                           <span>{formatPrice(customSubtotal)}</span>
+                                         </div>
+
+                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                           <span>{lang === 'AR' ? 'الضرائب (10%):' : 'Taxes (10%):'}</span>
+                                           <span style={{ color: '#ef4444' }}>+{formatPrice(taxCost * guestCount)}</span>
+                                         </div>
+
+                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                           <span>{lang === 'AR' ? 'رسوم الخدمة والمنصة (5%):' : 'Platform Service Fees (5%):'}</span>
+                                           <span style={{ color: '#ef4444' }}>+{formatPrice(feeCost * guestCount)}</span>
+                                         </div>
+                                       </>
+                                     ) : (
+                                       <>
+                                         {/* STANDARD PLAN BREAKDOWN */}
+                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '4px' }}>
+                                           <strong style={{ color: '#10b981' }}>{lang === 'AR' ? 'تفصيل السعر الثابت (شامل كل شيء):' : 'Standard All-Inclusive Itemization:'}</strong>
+                                         </div>
+
+                                         {/* Activities price */}
+                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                           <span>{lang === 'AR' ? 'الأنشطة والفعاليات المشمولة:' : 'Included Trip Activities:'}</span>
+                                           <span style={{ color: '#10b981', fontWeight: 'bold' }}>
+                                             {lang === 'AR' ? "مشمولة (" + formatPrice(stdActPrice * guestCount) + ")" : "Included (" + formatPrice(stdActPrice * guestCount) + ")"}
+                                           </span>
+                                         </div>
+
+                                         {/* Transportation */}
+                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                           <span>{lang === 'AR' ? 'وسائل الانتقال (سيارات مكيفة):' : 'Included Transportation (AC Coach):'}</span>
+                                           <span style={{ color: '#10b981', fontWeight: 'bold' }}>
+                                             {lang === 'AR' ? "مشمولة (" + formatPrice(transportCost * guestCount) + ")" : "Included (" + formatPrice(transportCost * guestCount) + ")"}
+                                           </span>
+                                         </div>
+
+                                         {/* Accommodation / breakdown items */}
+                                         {accommodationCost > 0 && (
+                                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                             <span>{lang === 'AR' ? 'الإقامة والخدمات المشمولة:' : 'Included Accommodation:'}</span>
+                                             <span style={{ color: '#10b981', fontWeight: 'bold' }}>
+                                               {lang === 'AR' ? "مشمولة (" + formatPrice(accommodationCost * guestCount) + ")" : "Included (" + formatPrice(accommodationCost * guestCount) + ")"}
+                                             </span>
+                                           </div>
+                                         )}
+
+                                         {addonsTotal > 0 && (
+                                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', borderTop: '1px dashed rgba(255,255,255,0.08)', paddingTop: '5px' }}>
+                                             <span>{lang === 'AR' ? 'الخدمات الإضافية المختارة:' : 'Selected Add-ons:'}</span>
+                                             <span style={{ color: '#f59e0b', fontWeight: 'bold' }}>{formatPrice(addonsTotal)}</span>
+                                           </div>
+                                         )}
+
+                                         {/* Taxes (Fixed but fully included in standard) */}
+                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '5px' }}>
+                                           <span>{lang === 'AR' ? 'الضرائب (10%):' : 'Taxes (10%):'}</span>
+                                           <span style={{ color: '#10b981', fontWeight: 'bold' }}>
+                                             {lang === 'AR' ? "مشمولة (" + formatPrice(taxCost * guestCount) + ")" : "Included (" + formatPrice(taxCost * guestCount) + ")"}
+                                           </span>
+                                         </div>
+
+                                         {/* Fees (Fixed but fully included in standard) */}
+                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                           <span>{lang === 'AR' ? 'رسوم الخدمة والمنصة (5%):' : 'Platform Service Fees (5%):'}</span>
+                                           <span style={{ color: '#10b981', fontWeight: 'bold' }}>
+                                             {lang === 'AR' ? "مشمولة (" + formatPrice(feeCost * guestCount) + ")" : "Included (" + formatPrice(feeCost * guestCount) + ")"}
+                                           </span>
+                                         </div>
+                                       </>
+                                     )}
+                                   </div>
+                                 );
+                               })()}
                               
                               {guestCount > 1 && (
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '90%', borderTop: '1px dashed rgba(255,255,255,0.08)', paddingTop: '10px', marginTop: '10px' }}>
@@ -2471,7 +2597,7 @@ const PackageDetails = () => {
                                     {pkg.duration_days} {pkg.duration_days > 1 ? (lang === 'AR' ? 'أيام' : 'Days') : (lang === 'AR' ? 'يوم' : 'Day')}
                                   </span>
                                   <strong style={{ color: '#f59e0b', fontSize: '0.95rem' }}>
-                                    {pkg.base_price} EGP
+                                    {pkg.price || pkg.base_price || 0} EGP
                                   </strong>
                                 </div>
 
@@ -3648,10 +3774,10 @@ const PackageDetails = () => {
                           }}>
                             <div>
                               <span style={{ fontSize: '0.7rem', color: '#64748b', display: 'block' }}>
-                                {lang === 'AR' ? 'سعر الباقة يبدأ من' : 'Base Price'}
+                                {lang === 'AR' ? 'إجمالي السعر' : 'Total Price'}
                               </span>
                               <span style={{ fontSize: '1rem', fontWeight: 'bold', color: '#fff' }}>
-                                {formatPrice ? formatPrice(exp.base_price) : `${exp.base_price} EGP`}
+                                {formatPrice ? formatPrice(exp.price || exp.base_price || 0) : `${exp.price || exp.base_price || 0} EGP`}
                               </span>
                             </div>
 

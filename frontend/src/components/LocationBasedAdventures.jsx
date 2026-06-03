@@ -313,7 +313,7 @@ const LocationBasedAdventures = () => {
                                   {lang === 'AR' ? 'السعر الثابت' : 'FIXED PRICE'}
                                 </span>
                                 <span className="tw-text-sm tw-font-bold tw-text-amber-500">
-                                  {formatPrice(pkg.base_price)}
+                                  {formatPrice(pkg.price || pkg.base_price)}
                                 </span>
                               </div>
                               <button 

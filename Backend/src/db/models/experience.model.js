@@ -82,7 +82,7 @@ const experienceSchema = new mongoose.Schema(
       required: true,
     },
 
-    base_price: {
+    price: {
       type: Number,
       required: true,
     },
@@ -180,19 +180,7 @@ const experienceSchema = new mongoose.Schema(
 // calculatedPrice (محسن)
 
 experienceSchema.virtual("calculatedPrice").get(function () {
-  let total = this.base_price;
-
-  if (!this.itinerary) return total;
-
-  this.itinerary.forEach((day) => {
-    if (day.activities) {
-      day.activities.forEach((act) => {
-        total += act.price || 0;
-      });
-    }
-  });
-
-  return total;
+  return this.price;
 });
 
 export const Experience = mongoose.model("Experience", experienceSchema);

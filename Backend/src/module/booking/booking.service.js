@@ -2,6 +2,9 @@ import { Booking } from '../../db/models/booking.model.js';
 import { CustomTrip } from '../../db/models/customtrip.model.js';
 import { Experience } from '../../db/models/experience.model.js';
 import * as paymentService from '../payment/payment.service.js';
+import { calculateBookingTotal } from '../../utils/pricingHelper.js';
+
+export { calculateBookingTotal };
 
 // 1. Create Booking
 export const createNewBooking = async (userId, data) => {
@@ -18,6 +21,10 @@ export const createNewBooking = async (userId, data) => {
     let extraActivitiesCount = 0;
     let originalAmount = 0;
     let snapshot = {};
+    let packagePrice = 0;
+    let extraActivitiesCost = 0;
+    let taxes = 0;
+    let fees = 0;
 
     if (customTrip) {
         const trip = await CustomTrip.findById(customTrip)
@@ -29,18 +36,80 @@ export const createNewBooking = async (userId, data) => {
         bookingData.customTrip = customTrip;
         bookingData.booking_type = 'Trip';
         
-        // Sum up experience base_price, custom trip's activities total_price and combinedExperiences base prices
-        const expBase = trip.experience ? (trip.experience.base_price || 0) : 0;
-        let combinedBaseTotal = 0;
+        let combinedPrice = 0;
         if (trip.combinedExperiences && trip.combinedExperiences.length > 0) {
-            combinedBaseTotal = trip.combinedExperiences.reduce((sum, item) => sum + (item.base_price || item.price || 0), 0);
+            combinedPrice = trip.combinedExperiences.reduce((sum, item) => sum + (item.price || 0), 0);
         }
-        basePrice = trip.total_price + expBase + combinedBaseTotal;
-        originalAmount = (trip.original_price || trip.total_price) + expBase + combinedBaseTotal;
-        if (trip.ai_discount_applied) {
-            bookingData.discount_amount = trip.discount_amount;
-            bookingData.ai_discount_applied = true;
+        packagePrice = (trip.experience ? (trip.experience.price || 0) : 0) + combinedPrice;
+
+        // Calculate sum of active activities in custom itinerary & extra activities
+        let activeActivitiesPrice = 0;
+        if (trip.itinerary) {
+          trip.itinerary.forEach(day => {
+            if (day.status !== "removed" && day.activities) {
+              day.activities.forEach(act => {
+                if (act.status === "active") {
+                  activeActivitiesPrice += act.price || 0;
+                }
+              });
+            }
+          });
         }
+        if (trip.extra_activities) {
+          trip.extra_activities.forEach(act => {
+            if (act.status === "active") {
+              activeActivitiesPrice += act.price || 0;
+            }
+          });
+        }
+
+        // Calculate fixed transport cost from experience breakdown
+        const breakdownItems = trip.experience?.priceBreakdown || [];
+        let transportCost = 0;
+        const transportKeywords = ['transport', 'transit', 'transfer', 'commute', 'pickup', 'bus', 'yacht', 'felucca', 'cruise', 'flight', 'انتقال', 'توصيل', 'طيران', 'أتوبيس', 'يخت', 'فلوكة'];
+        breakdownItems.forEach(item => {
+          const lbl = item.label.toLowerCase();
+          if (transportKeywords.some(kw => lbl.includes(kw))) {
+            transportCost += item.amount;
+          }
+        });
+        if (transportCost === 0) {
+          transportCost = 150;
+        }
+
+        // Calculate fixed taxes & service fees
+        let taxCost = 100;
+        let feeCost = 50;
+        breakdownItems.forEach(item => {
+          const lbl = item.label.toLowerCase();
+          if (lbl.includes('tax') || lbl.includes('ضرائب') || lbl.includes('ضريبة')) taxCost = item.amount;
+          if (lbl.includes('fee') || lbl.includes('رسوم') || lbl.includes('خدمة')) feeCost = item.amount;
+        });
+
+        // Add combined experiences (lodging/accommodation) to the base price of custom trip if any
+        let accommodationCost = combinedPrice;
+        breakdownItems.forEach(item => {
+          const lbl = item.label.toLowerCase();
+          const isTransport = transportKeywords.some(kw => lbl.includes(kw));
+          const isTax = lbl.includes('tax') || lbl.includes('ضرائب') || lbl.includes('ضريبة');
+          const isFee = lbl.includes('fee') || lbl.includes('رسوم') || lbl.includes('خدمة');
+          if (!isTransport && !isTax && !isFee) {
+            accommodationCost += item.amount;
+          }
+        });
+
+        // Set backend taxes & fees
+        taxes = taxCost;
+        fees = feeCost;
+
+        // Calculate standard activities sum to find difference
+        const stdActPriceBackend = (trip.experience?.itinerary || []).reduce((acc, day) => {
+          return acc + (day.activities || []).reduce((sum, act) => sum + (act.price || 0), 0);
+        }, 0);
+
+        // Custom base price = standard package price + difference in activities
+        basePrice = packagePrice + (activeActivitiesPrice - stdActPriceBackend);
+        originalAmount = basePrice;
         extraActivitiesCount += trip.extra_activities ? trip.extra_activities.length : 0;
  
         snapshot = {
@@ -55,7 +124,7 @@ export const createNewBooking = async (userId, data) => {
                 description: exp.description || "",
                 image: exp.image || exp.images?.[0] || "",
                 duration_days: exp.duration_days || 1,
-                base_price: exp.base_price || exp.price || 0
+                price: exp.price || 0
             })),
             itinerary: (trip.itinerary || []).map(day => ({
                 day_number: day.day_number,
@@ -65,7 +134,10 @@ export const createNewBooking = async (userId, data) => {
                     name: act.activity?.name || act.name || "",
                     price: act.price || 0,
                     image: act.image || act.activity?.image || "",
-                    activityId: act.activity?._id?.toString() || ""
+                    activityId: act.activity?._id?.toString() || "",
+                    date: act.date || "",
+                    startTime: act.startTime || "",
+                    endTime: act.endTime || ""
                 }))
             })),
             addons: (trip.experience?.addons || []).map(add => ({
@@ -75,7 +147,12 @@ export const createNewBooking = async (userId, data) => {
             })),
             selectedAddons: data.selectedAddons || [],
             hotel: trip.hotel || trip.experience?.hotel || "5-Star Premium Hotel",
-            transportation: trip.transportation || trip.experience?.transportation || "Private AC Sedan"
+            transportation: trip.transportation || trip.experience?.transportation || "Private AC Sedan",
+            packagePrice,
+            extraActivitiesCost,
+            taxes,
+            fees,
+            isCustom: true
         };
     } else if (experienceId) {
         const exp = await Experience.findById(experienceId).populate("itinerary.activities.activity");
@@ -83,9 +160,13 @@ export const createNewBooking = async (userId, data) => {
         bookingData.experience = experienceId;
         bookingData.booking_type = 'Package';
         
-        // Directly use base_price since it already represents the computed Total Price (including activities and breakdown)
-        basePrice = exp.base_price;
-        originalAmount = exp.base_price;
+        // Standard Package is All-Inclusive, so taxes and fees are 0 (included in price)
+        packagePrice = exp.price || 0;
+        extraActivitiesCost = 0;
+        taxes = 0;
+        fees = 0;
+        basePrice = packagePrice;
+        originalAmount = packagePrice;
 
         snapshot = {
             title: exp.name,
@@ -111,7 +192,12 @@ export const createNewBooking = async (userId, data) => {
             })),
             selectedAddons: data.selectedAddons || [],
             hotel: exp.hotel || "5-Star Premium Hotel",
-            transportation: exp.transportation || "Private AC Sedan"
+            transportation: exp.transportation || "Private AC Sedan",
+            packagePrice,
+            extraActivitiesCost,
+            taxes,
+            fees,
+            isCustom: false
         };
     }
 
@@ -125,51 +211,35 @@ export const createNewBooking = async (userId, data) => {
         bookingData.numberOfGuests = Number(numberOfGuests);
     }
 
-    // Process Addons
-    let addonsTotal = 0;
-    if (data.selectedAddons && data.selectedAddons.length > 0) {
-        // Fetch original package to find addon prices
-        let targetExpId = experienceId;
-        if (customTrip && bookingData.customTrip) {
-            const cTrip = await CustomTrip.findById(customTrip);
-            if (cTrip) targetExpId = cTrip.experience;
-        }
-        
-        if (targetExpId) {
-            const expWithAddons = await Experience.findById(targetExpId);
-            if (expWithAddons && expWithAddons.addons) {
-                data.selectedAddons.forEach(addonId => {
-                    const addon = expWithAddons.addons.find(a => a._id.toString() === addonId.toString());
-                    if (addon) {
-                        addonsTotal += addon.price;
-                        extraActivitiesCount++;
-                    }
-                });
-            }
+    // Call unified pricing authority
+    const pricing = await calculateBookingTotal({
+        booking_type: bookingData.booking_type,
+        customTrip: bookingData.customTrip,
+        experience: bookingData.experience,
+        numberOfGuests: bookingData.numberOfGuests,
+        selectedAddons: data.selectedAddons || [],
+        couponCode: data.couponCode || null,
+        snapshot: snapshot
+    });
+
+    // Price mismatch detection: If frontend price is sent -> validate against backend -> reject
+    if (data.totalPrice !== undefined || data.total_amount !== undefined) {
+        const sentPrice = Number(data.totalPrice !== undefined ? data.totalPrice : data.total_amount);
+        if (Math.abs(sentPrice - pricing.bookingTotalOnly) > 2) {
+            throw new Error(`Price mismatch detected! Current correct price is ${pricing.bookingTotalOnly} EGP. Please refresh.`);
         }
     }
 
-    let subtotal = (basePrice * (bookingData.numberOfGuests || 1)) + addonsTotal;
-    originalAmount = (originalAmount * (bookingData.numberOfGuests || 1)) + addonsTotal;
-
-    // AI-Based Fixed-Price Package Optimization (Bundle Discount check for frontend Addons)
-    // DISABLED by request: Do not make discounts without entering the code.
-    /*
-    if (!bookingData.ai_discount_applied && extraActivitiesCount >= 3) {
-        bookingData.ai_discount_applied = true;
-        bookingData.discount_amount = subtotal * 0.10; // 10%
-        subtotal -= bookingData.discount_amount;
-    } else if (bookingData.ai_discount_applied) {
-        // If CustomTrip already had discount, just apply it to addons too maybe? 
-        // We'll keep it simple and just apply a flat discount on everything if they qualify.
-        // Actually, just let the subtotal be discounted
-    }
-    */
     bookingData.ai_discount_applied = false;
-    bookingData.discount_amount = 0;
+    bookingData.discount_amount = pricing.discountAmount;
 
-    bookingData.total_amount = subtotal;
-    bookingData.original_amount = originalAmount; // Need to add original_amount to schema if we want, or just let frontend rely on total
+    bookingData.total_amount = pricing.bookingTotalOnly;
+    bookingData.original_amount = pricing.subtotal;
+
+    // Sync snapshot with accurate backend calculated taxes and service fees
+    bookingData.snapshot.taxes = pricing.taxes;
+    bookingData.snapshot.fees = pricing.serviceFees;
+    bookingData.snapshot.extraActivitiesCost = pricing.extraActivitiesCost || 0;
 
     // AI Fraud & Risk Detection Heuristic
     let riskScore = 0;

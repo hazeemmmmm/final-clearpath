@@ -3,6 +3,7 @@ import { Payment } from '../../db/models/payment.model.js';
 import { Booking } from '../../db/models/booking.model.js';
 import { devConfig } from '../../config/env/dev.config.js';
 import * as AppError from '../../utils/error/index.js';
+import { calculateBookingTotal } from '../../utils/pricingHelper.js';
 
 // ─── 1. Create Stripe Checkout Session (Mapped to createPayPalOrder for compatibility) ───
 
@@ -14,24 +15,43 @@ export const createPayPalOrder = async (userId, bookingId, currency = 'EGP') => 
     const existing = await Payment.findOne({ booking: bookingId, status: { $ne: 'Failed' } });
     if (existing) throw new AppError.conflictException('A payment has already been initiated for this booking');
 
+    // Recalculate and lock final price from DB state
+    const pricing = await calculateBookingTotal(booking._id);
+    booking.total_amount = pricing.bookingTotalOnly;
+    await booking.save();
+
+    // Lock sequential bookings recursively
+    const lockSequentialBookings = async (b) => {
+        if (b.sequentialBookings && b.sequentialBookings.length > 0) {
+            for (const seq of b.sequentialBookings) {
+                const populatedSeq = await Booking.findById(seq._id).populate('sequentialBookings');
+                if (populatedSeq) {
+                    const seqPricing = await calculateBookingTotal(populatedSeq._id);
+                    populatedSeq.total_amount = seqPricing.bookingTotalOnly;
+                    await populatedSeq.save();
+                    await lockSequentialBookings(populatedSeq);
+                }
+            }
+        }
+    };
+    await lockSequentialBookings(booking);
+
     // Initialize Stripe
     const stripe = new Stripe(devConfig.STRIPE_SECRET_KEY);
 
     try {
         const EGP_TO_USD = 50;
         const finalCurrency = (currency || 'EGP').toLowerCase();
-        
-        // Sum up total amount of the main booking and all sequential/chained bookings
-        let combinedTotal = booking.total_amount || 0;
-        if (booking.sequentialBookings && booking.sequentialBookings.length > 0) {
-            combinedTotal += booking.sequentialBookings.reduce((sum, seq) => sum + (seq.total_amount || 0), 0);
-        }
+
+        // Get the accurate combined total from the pricing helper
+        const combinedTotal = pricing.totalAmount;
 
         let finalAmount = combinedTotal; // Default EGP
 
         if (finalCurrency === 'usd') {
             finalAmount = parseFloat((combinedTotal / EGP_TO_USD).toFixed(2));
         }
+
 
         // Create Stripe checkout session
         const session = await stripe.checkout.sessions.create({
@@ -203,12 +223,29 @@ export const bankPayment = async (userId, bookingId, currency = 'EGP') => {
         .populate('sequentialBookings');
     if (!booking) throw new AppError.BadRequestException('Booking not found or already processed');
 
+    // Recalculate and lock final price from DB state
+    const pricing = await calculateBookingTotal(booking._id);
+    booking.total_amount = pricing.bookingTotalOnly;
+    await booking.save();
+
+    // Lock sequential bookings recursively
+    const lockSequentialBookings = async (b) => {
+        if (b.sequentialBookings && b.sequentialBookings.length > 0) {
+            for (const seq of b.sequentialBookings) {
+                const populatedSeq = await Booking.findById(seq._id).populate('sequentialBookings');
+                if (populatedSeq) {
+                    const seqPricing = await calculateBookingTotal(populatedSeq._id);
+                    populatedSeq.total_amount = seqPricing.bookingTotalOnly;
+                    await populatedSeq.save();
+                    await lockSequentialBookings(populatedSeq);
+                }
+            }
+        }
+    };
+    await lockSequentialBookings(booking);
+
     const EGP_TO_USD = 50;
-    
-    let combinedTotal = booking.total_amount || 0;
-    if (booking.sequentialBookings && booking.sequentialBookings.length > 0) {
-        combinedTotal += booking.sequentialBookings.reduce((sum, seq) => sum + (seq.total_amount || 0), 0);
-    }
+    const combinedTotal = pricing.totalAmount;
 
     const amount_egp = combinedTotal;
     const amount_usd = parseFloat((amount_egp / EGP_TO_USD).toFixed(2));

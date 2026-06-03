@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-import { processPayment, getBookingDetails, applyCoupon } from '../../utils/api';
+import { processPayment, getBookingDetails, applyCoupon, calculateBookingPrice } from '../../utils/api';
 import { LanguageContext } from '../../context/LanguageContext';
 import './Payment.css';
 
@@ -14,6 +14,7 @@ const Payment = () => {
   const [chainBookings, setChainBookings] = useState([]);       // multiple bookings (chain)
   const [selectedCurrency, setSelectedCurrency] = useState('EGP');
   const [message, setMessage] = useState('');
+  const [backendPrice, setBackendPrice] = useState(0);
 
   // Promo Code State
   const [promoCode, setPromoCode] = useState('');
@@ -53,6 +54,9 @@ const Payment = () => {
       const res = await getBookingDetails(bookingId);
       const booking = res.booking || res.data || res;
       setBookingData(booking);
+
+      const calcRes = await calculateBookingPrice({ bookingId: booking._id });
+      setBackendPrice(calcRes?.pricing?.totalAmount || 0);
     } catch (err) {
       console.error('Failed to load booking details', err);
       setMessage(lang === 'AR' ? 'فشل في تحميل تفاصيل الحجز.' : 'Failed to load booking details.');
@@ -73,6 +77,9 @@ const Payment = () => {
       );
       const validBookings = results.filter(Boolean);
       setChainBookings(validBookings);
+
+      const calcRes = await calculateBookingPrice({ bookingId: ids[0] });
+      setBackendPrice(calcRes?.pricing?.totalAmount || 0);
 
       // Sync local storage cart to match the real booked prices
       try {
@@ -152,9 +159,18 @@ const Payment = () => {
     setMessage('');
     try {
       if (isChainPayment) {
-        // Pay for all chain bookings combined in a single transaction on the backend!
+        // Save items to completed chain
+        const completedItems = chainBookings.map(b => ({
+          name: b.experience?.name || b.customTrip?.experience?.name || (lang === 'AR' ? 'رحلة مخصصة' : 'Customized Experience'),
+          image: b.snapshot?.image || b.experience?.image || '',
+          price: b.total_amount,
+          guestCount: b.numberOfGuests || 1,
+          isCustomized: !!b.customTrip
+        }));
+        localStorage.setItem('clearpath_trip_chain_completed', JSON.stringify(completedItems));
+
         const firstId = chainBookingIds[0];
-        localStorage.removeItem('pendingChainBookingIds'); // Prevent sequential multi-payment loops
+        localStorage.removeItem('pendingChainBookingIds'); 
         localStorage.removeItem('currentChainBookingIds');
         localStorage.setItem('currentBookingId', firstId);
 
@@ -165,6 +181,17 @@ const Payment = () => {
           setMessage(lang === 'AR' ? 'تم إنشاء جلسة الدفع، ولكن لم يتم إرجاع رابط التوجيه.' : 'Payment session created, but no redirect URL was returned.');
         }
       } else {
+        if (bookingData) {
+          const completedItems = [{
+            name: bookingData.experience?.name || bookingData.customTrip?.experience?.name || (lang === 'AR' ? 'رحلة مخصصة' : 'Customized Experience'),
+            image: bookingData.snapshot?.image || bookingData.experience?.image || '',
+            price: finalEgp,
+            guestCount: bookingData.numberOfGuests || 1,
+            isCustomized: !!bookingData.customTrip
+          }];
+          localStorage.setItem('clearpath_trip_chain_completed', JSON.stringify(completedItems));
+        }
+
         const response = await processPayment(bookingId, selectedCurrency);
         if (response.approvalUrl) {
           window.location.href = response.approvalUrl;
@@ -181,13 +208,8 @@ const Payment = () => {
   };
 
   // ── Price calculations ──────────────────────────────────────────────────────
-  let originalEgp, finalEgp;
-  if (isChainPayment && chainBookings.length > 0) {
-    originalEgp = chainBookings.reduce((sum, b) => sum + (b?.total_amount || b?.totalPrice || b?.price || 0), 0);
-  } else {
-    originalEgp = bookingData?.total_amount || bookingData?.totalPrice || bookingData?.price || 0;
-  }
-  finalEgp = originalEgp - (originalEgp * (discountPercent / 100));
+  let originalEgp = backendPrice;
+  let finalEgp = backendPrice;
   const calculatedUsd = parseFloat((finalEgp / 50).toFixed(2));
 
   // ── Primary booking ref display ─────────────────────────────────────────────

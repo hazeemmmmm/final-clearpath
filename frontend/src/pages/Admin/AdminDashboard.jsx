@@ -361,6 +361,7 @@ const AdminDashboard = () => {
         ...formData,
         supervisor: formData.supervisor || undefined,
         type: formData.type.toLowerCase() === 'dayuse' ? 'Package' : 'Trip',
+        price: computedTotal,
         base_price: computedTotal,
         duration_days: Number(formData.duration_days),
         capacity: Number(formData.capacity),
@@ -1191,7 +1192,7 @@ const AdminDashboard = () => {
                               <tr key={pkg._id}>
                                 <td><strong className="pkg-emphasis">{pkg.name}</strong></td>
                                 <td><i className="fa-solid fa-location-dot location-marker"></i> {pkg.destination?.name || pkg.destination || 'Unspecified'}</td>
-                                <td><span className="price-tag">EGP {pkg.base_price?.toLocaleString()}</span></td>
+                                <td><span className="price-tag">EGP {(pkg.price || pkg.base_price)?.toLocaleString()}</span></td>
                                 <td><span className="badge-duration">{pkg.duration_days} Days</span></td>
                                 <td>{pkg.capacity} Guests max</td>
                                 <td style={{ textAlign: 'right' }}>
@@ -1358,7 +1359,7 @@ const AdminDashboard = () => {
                                     </span>
                                     <p className="desc-truncated" style={{ fontSize: '0.82rem', color: '#94a3b8', lineHeight: '1.5', marginBottom: '14px' }}>{pkg.description}</p>
                                     <div className="card-stats-footer">
-                                      <span className="price-tag-large">EGP {pkg.base_price?.toLocaleString()}</span>
+                                      <span className="price-tag-large">EGP {(pkg.price || pkg.base_price)?.toLocaleString()}</span>
                                       <span className="badge-duration">{pkg.duration_days} Days</span>
                                     </div>
                                   </div>

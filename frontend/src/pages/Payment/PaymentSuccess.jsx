@@ -127,94 +127,114 @@ const PaymentSuccess = () => {
             </div>
           )}
 
-          {!loading && !error && (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
-              <div style={{ width: '80px', height: '80px', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.25)', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '10px' }}>
-                <i className="fa-solid fa-circle-check" style={{ fontSize: '3.2rem', color: '#10b981' }}></i>
-              </div>
-
-              <h2 style={{ fontSize: '1.9rem', fontWeight: '800', color: '#10b981' }}>
-                {lang === 'AR' ? 'تم تأكيد الحجز بنجاح!' : 'Booking Confirmed!'}
-              </h2>
-
-              {remainingChainCount > 0 ? (
-                <>
-                  <div style={{
-                    background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)',
-                    borderRadius: '14px', padding: '14px 18px', width: '100%', textAlign: 'center'
-                  }}>
-                    <i className="fa-solid fa-link" style={{ color: '#f59e0b', marginBottom: '6px', display: 'block', fontSize: '1.4rem' }}></i>
-                    <p style={{ color: '#f59e0b', fontWeight: '700', margin: '0 0 4px 0', fontSize: '0.95rem' }}>
-                      {lang === 'AR'
-                        ? `تبقّى ${remainingChainCount} ${remainingChainCount === 1 ? 'رحلة' : 'رحلات'} في السلسلة`
-                        : `${remainingChainCount} more trip${remainingChainCount > 1 ? 's' : ''} remaining in your chain`}
-                    </p>
-                    <p style={{ color: '#94a3b8', fontSize: '0.82rem', margin: 0 }}>
-                      {lang === 'AR' ? 'سيتم توجيهك لإتمام دفع الرحلة التالية.' : 'You will be redirected to complete payment for the next trip.'}
-                    </p>
+          {!loading && !error && (() => {
+            const chainRaw = localStorage.getItem('clearpath_trip_chain_completed');
+            const completedChain = chainRaw ? JSON.parse(chainRaw) : [];
+            
+            return (
+              <>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+                  <div style={{ width: '80px', height: '80px', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.25)', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '10px' }}>
+                    <i className="fa-solid fa-circle-check" style={{ fontSize: '3.2rem', color: '#10b981' }}></i>
                   </div>
 
-                  <p style={{ color: '#f59e0b', fontSize: '0.9rem', fontWeight: '700', background: 'rgba(245,158,11,0.1)', padding: '8px 18px', borderRadius: '20px', border: '1px solid rgba(245,158,11,0.25)', marginTop: '4px' }}>
-                    <i className="fa-solid fa-circle-notch fa-spin" style={{ marginRight: '8px' }}></i>
+                  <h2 style={{ fontSize: '1.9rem', fontWeight: '800', color: '#10b981' }}>
+                    {lang === 'AR' ? 'تم تأكيد الحجز بنجاح!' : 'Booking Confirmed!'}
+                  </h2>
+
+                  {completedChain && completedChain.length > 0 && (
+                    <div style={{ width: '100%', textAlign: 'left', margin: '10px 0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '700', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '8px' }}>
+                        {lang === 'AR' ? 'تفاصيل باقات السفر المؤكدة:' : 'Confirmed Travel Experiences:'}
+                      </h3>
+                      {completedChain.map((item, idx) => (
+                        <div key={idx} style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: '12px', padding: '14px', position: 'relative' }}>
+                          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                            <img src={item.image} alt={item.name} style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover' }} />
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <h4 style={{ color: '#fff', fontSize: '0.92rem', fontWeight: '700', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {item.name}
+                              </h4>
+                              <div style={{ color: '#94a3b8', fontSize: '0.78rem', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                <span>{item.guestCount} {lang === 'AR' ? 'مسافر' : 'Guests'}</span>
+                                <span>•</span>
+                                <span>{item.isCustomized ? (lang === 'AR' ? 'مخصصة' : 'Customized') : (lang === 'AR' ? 'عادية' : 'Standard')}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', paddingTop: '8px', borderTop: '1px dashed rgba(255,255,255,0.06)' }}>
+                            <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+                              {lang === 'AR' ? 'المجموع شامل:' : 'Total (Inclusive):'}
+                            </span>
+                            <span style={{ color: '#f59e0b', fontSize: '0.95rem', fontWeight: '900' }}>
+                              {Number(item.price).toLocaleString()} EGP
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+
+                      <div style={{ background: 'rgba(16, 185, 129, 0.08)', borderRadius: '12px', padding: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid rgba(16, 185, 129, 0.3)', marginTop: '8px' }}>
+                        <strong style={{ color: '#fff', fontSize: '0.95rem' }}>
+                          {lang === 'AR' ? 'المبلغ الإجمالي المدفوع:' : 'Total Amount Paid:'}
+                        </strong>
+                        <span style={{ color: '#10b981', fontSize: '1.25rem', fontWeight: '900' }}>
+                          {completedChain.reduce((sum, item) => sum + (Number(item.price) || 0), 0).toLocaleString()} EGP
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <p style={{ color: '#94a3b8', fontSize: '0.92rem', lineHeight: '1.5' }}>
                     {lang === 'AR'
-                      ? `الانتقال للدفع التالي خلال ${countdown} ثوانٍ...`
-                      : `Moving to next payment in ${countdown} seconds...`}
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p style={{ color: '#94a3b8', fontSize: '0.98rem', lineHeight: '1.6' }}>
-                    {lang === 'AR'
-                      ? 'تم استلام الدفعة المالية بنجاح. تفاصيل الحجز والبرنامج السياحي مؤكدة بالكامل الآن!'
-                      : 'Your payment was received successfully. Your experience booking is now fully Confirmed.'}
+                      ? 'تم استلام الدفعة المالية بنجاح. تم تأكيد البرنامج السياحي بالكامل وسيتم التنسيق معك قريباً.'
+                      : 'Your payment was received successfully. Your experiences are now fully Confirmed and ready.'}
                   </p>
 
-                  <p style={{ color: '#d4af37', fontSize: '0.9rem', fontWeight: '700', background: 'rgba(212, 175, 55, 0.1)', padding: '8px 18px', borderRadius: '20px', border: '1px solid rgba(212, 175, 55, 0.2)', marginTop: '8px', animation: 'pulse-gold 2s infinite' }}>
+                  <p style={{ color: '#d4af37', fontSize: '0.85rem', fontWeight: '700', background: 'rgba(212, 175, 55, 0.1)', padding: '8px 18px', borderRadius: '20px', border: '1px solid rgba(212, 175, 55, 0.2)', marginTop: '8px' }}>
                     <i className="fa-solid fa-circle-notch fa-spin" style={{ marginRight: lang === 'AR' ? '0' : '8px', marginLeft: lang === 'AR' ? '8px' : '0' }}></i>
                     {lang === 'AR'
-                      ? `سيتم توجيهك تلقائياً لصفحة حسابك وحجوزاتك خلال ${countdown} ثوانٍ...`
+                      ? `سيتم توجيهك تلقائياً لصفحة حجوزاتك خلال ${countdown} ثوانٍ...`
                       : `Redirecting you to your bookings page in ${countdown} seconds...`}
                   </p>
-                </>
-              )}
-
-              <div style={{ borderTop: '1px dashed rgba(255,255,255,0.08)', width: '100%', margin: '15px 0' }}></div>
-              
-              <div style={{ display: 'flex', gap: '15px', width: '100%' }}>
-                <button 
-                  onClick={() => navigate('/my-bookings')} 
-                  style={{ 
-                    flex: 1, 
-                    background: 'linear-gradient(135deg, #d4af37, #aa8c2c)', 
-                    color: '#0b0f19', 
-                    padding: '12px', 
-                    border: 'none', 
-                    borderRadius: '10px', 
-                    fontWeight: '700', 
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 15px rgba(212, 175, 55, 0.3)'
-                  }}
-                >
-                  {lang === 'AR' ? 'حجوزاتي' : 'My Bookings'}
-                </button>
-                <button 
-                  onClick={() => navigate('/')} 
-                  style={{ 
-                    flex: 1, 
-                    background: 'rgba(255,255,255,0.04)', 
-                    color: '#fff', 
-                    border: '1px solid rgba(255,255,255,0.1)', 
-                    padding: '12px', 
-                    borderRadius: '10px', 
-                    fontWeight: '700', 
-                    cursor: 'pointer' 
-                  }}
-                >
-                  {lang === 'AR' ? 'الرئيسية' : 'Go Home'}
-                </button>
-              </div>
-            </div>
-          )}
+                </div>
+                <div style={{ borderTop: '1px dashed rgba(255,255,255,0.08)', width: '100%', margin: '15px 0' }}></div>
+                
+                <div style={{ display: 'flex', gap: '15px', width: '100%' }}>
+                  <button 
+                    onClick={() => navigate('/my-bookings')} 
+                    style={{ 
+                      flex: 1, 
+                      background: 'linear-gradient(135deg, #d4af37, #aa8c2c)', 
+                      color: '#0b0f19', 
+                      padding: '12px', 
+                      border: 'none', 
+                      borderRadius: '10px', 
+                      fontWeight: '700', 
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 15px rgba(212, 175, 55, 0.3)'
+                    }}
+                  >
+                    {lang === 'AR' ? 'حجوزاتي' : 'My Bookings'}
+                  </button>
+                  <button 
+                    onClick={() => navigate('/')} 
+                    style={{ 
+                      flex: 1, 
+                      background: 'rgba(255,255,255,0.04)', 
+                      color: '#fff', 
+                      border: '1px solid rgba(255,255,255,0.1)', 
+                      padding: '12px', 
+                      borderRadius: '10px', 
+                      fontWeight: '700', 
+                      cursor: 'pointer' 
+                    }}
+                  >
+                    {lang === 'AR' ? 'الرئيسية' : 'Go Home'}
+                  </button>
+                </div>
+              </>
+            );
+          })()}
         </div>
       </main>
 

@@ -1,6 +1,7 @@
 import { CustomTrip } from "../../db/models/customtrip.model.js";
 import { Experience } from "../../db/models/experience.model.js";
 import mongoose from "mongoose";
+import { calculateBookingTotal } from "../../utils/pricingHelper.js";
 
 class CustomTripService {
 
@@ -97,51 +98,12 @@ class CustomTripService {
       };
     }
 
-    // 🔥 CUSTOM TRIP → calculate final result
-    let total = 0;
-    let extraActivitiesCount = 0;
-
-    if (custom.itinerary) {
-      custom.itinerary.forEach(day => {
-        if (day.status !== "removed" && day.activities) {
-          day.activities.forEach(act => {
-            if (act.status === "active") {
-              total += act.price || 0;
-            }
-          });
-        }
-      });
-    }
-
-    if (custom.extra_activities) {
-      custom.extra_activities.forEach(act => {
-        if (act.status === "active") {
-          total += act.price || 0;
-          extraActivitiesCount++;
-        }
-      });
-    }
-
-    let originalTotal = total;
-    let aiDiscountApplied = false;
-    let discountAmount = 0;
-
-    // AI-Based Fixed-Price Package Optimization (Bundle Discount) - DISABLED by request
-    // if (extraActivitiesCount >= 3) {
-    //   aiDiscountApplied = true;
-    //   discountAmount = total * 0.10; // 10% discount for 3+ extra activities
-    //   total = total - discountAmount;
-    // }
-
-    // Add base_price from the experience!
-    let basePrice = custom.experience ? custom.experience.base_price : 0;
-    if (custom.combinedExperiences) {
-      custom.combinedExperiences.forEach(exp => {
-        basePrice += exp.base_price || 0;
-      });
-    }
-    total += basePrice;
-    originalTotal += basePrice;
+    // 🔥 CUSTOM TRIP → calculate final result using unified pricing authority
+    const pricing = await calculateBookingTotal({
+      booking_type: "Trip",
+      customTrip: custom._id,
+      numberOfGuests: 1
+    });
 
     return {
       source: "customTrip",
@@ -152,10 +114,19 @@ class CustomTripService {
         combinedExperiences: custom.combinedExperiences || [],
         itinerary: custom.itinerary || [],
         extra_activities: custom.extra_activities || [],
-        total_price: total,
-        original_price: originalTotal,
-        ai_discount_applied: aiDiscountApplied,
-        discount_amount: discountAmount
+        total_price: pricing.bookingTotalOnly,
+        original_price: pricing.subtotal,
+        ai_discount_applied: false,
+        discount_amount: pricing.discountAmount,
+        breakdown: {
+          basePrice: pricing.basePrice,
+          transportCost: pricing.transportCost,
+          subtotal: pricing.subtotal,
+          taxes: pricing.taxes,
+          serviceFees: pricing.serviceFees,
+          extraActivitiesCost: pricing.extraActivitiesCost,
+          totalPrice: pricing.bookingTotalOnly
+        }
       },
     };
   }
@@ -196,6 +167,75 @@ class CustomTripService {
     const trip = await CustomTrip.findById(tripId);
 
     if (!trip) throw new Error("Trip not found");
+
+    const newDate = activityObj.date;
+    const newStart = activityObj.startTime;
+    const newEnd = activityObj.endTime;
+
+    if (newDate && newStart && newEnd) {
+      const isOverlap = (d1, s1, e1, d2, s2, e2) => {
+        if (d1 !== d2) return false;
+        return s1 < e2 && s2 < e1;
+      };
+
+      // 1. Check current trip's itinerary
+      if (trip.itinerary) {
+        for (const d of trip.itinerary) {
+          if (d.status !== "removed" && d.activities) {
+            for (const act of d.activities) {
+              if (act.status !== "removed" && act.date === newDate && act.startTime && act.endTime) {
+                if (isOverlap(newDate, newStart, newEnd, act.date, act.startTime, act.endTime)) {
+                  const err = new Error("Schedule Conflict Detected. This activity overlaps with another booked activity.");
+                  err.statusCode = 400;
+                  throw err;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // 2. Check other bookings for the same user
+      const Booking = mongoose.model("Booking");
+      const userBookings = await Booking.find({ user: trip.user, status: { $ne: "Cancelled" } })
+        .populate({
+          path: "customTrip",
+          populate: "itinerary.activities.activity"
+        });
+      
+      for (const booking of userBookings) {
+        if (booking.snapshot && booking.snapshot.itinerary) {
+          for (const d of booking.snapshot.itinerary) {
+            if (d.activities) {
+              for (const act of d.activities) {
+                if (act.date === newDate && act.startTime && act.endTime) {
+                  if (isOverlap(newDate, newStart, newEnd, act.date, act.startTime, act.endTime)) {
+                    const err = new Error("Schedule Conflict Detected. This activity overlaps with another booked activity.");
+                    err.statusCode = 400;
+                    throw err;
+                  }
+                }
+              }
+            }
+          }
+        }
+        if (booking.customTrip && booking.customTrip.itinerary) {
+          for (const d of booking.customTrip.itinerary) {
+            if (d.status !== "removed" && d.activities) {
+              for (const act of d.activities) {
+                if (act.status !== "removed" && act.date === newDate && act.startTime && act.endTime) {
+                  if (isOverlap(newDate, newStart, newEnd, act.date, act.startTime, act.endTime)) {
+                    const err = new Error("Schedule Conflict Detected. This activity overlaps with another booked activity.");
+                    err.statusCode = 400;
+                    throw err;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
 
     let day = trip.itinerary.find(d => d.day_number === dayNumber);
 

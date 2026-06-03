@@ -61,4 +61,10 @@ router.post('/:bookingId/apply-coupon',
     bookingController.applyCoupon
 );
 
+// حساب السعر
+router.post('/calculate',
+    authMiddleware,
+    bookingController.calculatePrice
+);
+
 export default router;

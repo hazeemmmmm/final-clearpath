@@ -253,7 +253,7 @@ class ReviewService {
 
   async getMyReviews(userId) {
     return await Review.find({ user: userId })
-      .populate("experience", "name base_price")
+      .populate("experience", "name price base_price")
       .sort("-createdAt");
   }
 

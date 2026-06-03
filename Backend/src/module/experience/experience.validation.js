@@ -40,7 +40,7 @@ export const createExperienceSchema = Joi.object({
   type: Joi.string().optional(),
   description: Joi.string().optional(),
   duration_days: Joi.number().integer().positive().optional(),
-  base_price: Joi.number().positive().optional(),
+  price: Joi.number().positive().optional(),
   destination: destinationField.optional(),
   capacity: Joi.number().integer().positive().optional(),
   image: Joi.string().optional(),
@@ -65,7 +65,7 @@ export const updateExperienceSchema = Joi.object({
   type: Joi.string().valid("Trip", "Package"),
   description: Joi.string(),
   duration_days: Joi.number().integer().positive(),
-  base_price: Joi.number().positive(),
+  price: Joi.number().positive(),
   destination: destinationField,
   capacity: Joi.number().integer().positive(),
   image: Joi.string(),
@@ -97,6 +97,6 @@ export const experienceQuerySchema = Joi.object({
   destination: objectId.optional(),
   minPrice: Joi.number().positive().optional(),
   maxPrice: Joi.number().positive().optional(),
-  sort: Joi.string().valid("name", "base_price", "createdAt").optional(),
+  sort: Joi.string().valid("name", "price", "createdAt").optional(),
   order: Joi.string().valid("asc", "desc").optional()
 });

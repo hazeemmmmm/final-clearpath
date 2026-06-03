@@ -364,7 +364,7 @@ const Chatbot = () => {
                                   <i className="fa-regular fa-clock"></i> {pkg.duration_days} {lang === 'AR' ? 'أيام' : 'days'}
                                 </span>
                                 <span className="chatbot-package-price">
-                                  {formatPrice(pkg.base_price)}
+                                  {formatPrice(pkg.price || pkg.base_price)}
                                 </span>
                               </div>
                               <div className="chatbot-package-actions">

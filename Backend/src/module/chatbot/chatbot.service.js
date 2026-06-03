@@ -164,7 +164,7 @@ User message: "${userMessage}"
       }
 
       if (extractedBudget) {
-        query.base_price = { $lte: Number(extractedBudget) };
+        query.price = { $lte: Number(extractedBudget) };
       }
 
       const ExperienceModel = (await import("../../db/models/experience.model.js")).Experience;
@@ -216,7 +216,7 @@ User message: "${userMessage}"
           // If packages are found, inject them into Gemini system context
           let systemInstructionText = SYSTEM_INSTRUCTION;
           if (recommendedPackages.length > 0) {
-            const pkgListStr = recommendedPackages.map(p => `"${p.name}" (Price: ${p.base_price} EGP, Duration: ${p.duration_days} days)`).join(", ");
+            const pkgListStr = recommendedPackages.map(p => `"${p.name}" (Price: ${p.price || p.base_price} EGP, Duration: ${p.duration_days} days)`).join(", ");
             systemInstructionText += `\n\n[DATABASE RECOMMENDATION CONTEXT]: We found these actual trips/packages in our database matching the user's search: ${pkgListStr}. In your response, politely mention that you have found these matching premium packages (which will be displayed as interactive cards below the chat bubble) and briefly describe them to get the user excited to book. Do not invent any other packages. Keep the response friendly and aligned with their preferred language.`;
           }
 

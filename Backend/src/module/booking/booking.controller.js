@@ -130,3 +130,16 @@ export const applyCoupon = async (req, res, next) => {
         return next(new Error(error.message, { cause: 500 }));
     }
 };
+
+export const calculatePrice = async (req, res, next) => {
+    try {
+        const pricing = await bookingService.calculateBookingTotal(req.body);
+        return res.status(200).json({
+            success: true,
+            pricing
+        });
+    } catch (error) {
+        return next(new Error(error.message, { cause: 400 }));
+    }
+};
+

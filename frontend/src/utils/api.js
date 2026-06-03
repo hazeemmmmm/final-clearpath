@@ -194,6 +194,14 @@ export const getBookingDetails = async (bookingId) =>
     headers: getHeaders(true)
   });
 
+export const calculateBookingPrice = async (calcData) =>
+  apiCall(`${BASE_URL}/booking/calculate`, {
+    method: 'POST',
+    headers: getHeaders(true),
+    body: JSON.stringify(calcData)
+  });
+
+
 export const updateProfile = async (updateData) => fetchUpdateProfile(updateData);
 export const changePassword = async (passwordData) => fetchChangePassword(passwordData);
 export const deleteAccount = async () => fetchDeleteAccount();

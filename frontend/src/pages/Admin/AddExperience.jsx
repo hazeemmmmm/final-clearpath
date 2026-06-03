@@ -310,6 +310,7 @@ const AddExperience = () => {
       // Map base_price for backward compatibility
       const payload = {
         ...form,
+        price: Number(form.price),
         base_price: Number(form.price),
         capacity: Number(form.capacity)
       };

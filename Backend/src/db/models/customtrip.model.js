@@ -4,6 +4,9 @@ const customActivitySchema = new mongoose.Schema({
   activity: { type: mongoose.Schema.Types.ObjectId, ref: "Activity", required: true },
   provider: { type: mongoose.Schema.Types.ObjectId, ref: "Provider", required: false },
   price: { type: Number, required: true },
+  date: { type: String },
+  startTime: { type: String },
+  endTime: { type: String },
   status: { type: String, enum: ["active", "removed"], default: "active" }
 }, { _id: false });
 
