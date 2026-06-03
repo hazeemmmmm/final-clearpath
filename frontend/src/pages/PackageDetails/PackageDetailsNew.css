@@ -1,17 +1,35 @@
 /* PackageDetails.css - Premium Web App Design System */
 
+/* Light Mode Default (Default theme variables) */
 :root {
-  --primary-color: #ffffff;
+  --primary-color: #0f172a;
   --secondary-color: #f59e0b;
   --accent-color: #f59e0b;
-  --bg-main: #060709;
+  --bg-main: #f8fafc;
+  --card-bg: #ffffff;
+  --text-dark: #0f172a;
+  --text-muted: #64748b;
+  --border-light: rgba(0, 0, 0, 0.06);
+  --success-color: #10b981;
+  --error-color: #ef4444;
+  --font-family: 'Outfit', 'Inter', sans-serif;
+  --box-shadow-soft: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
+  --box-shadow-hover: 0 20px 50px rgba(0, 0, 0, 0.08);
+}
+
+/* Dark Mode Overrides */
+.dark,
+.tw-dark,
+:root.dark,
+:root.tw-dark,
+[class*="dark"],
+[class*="tw-dark"] {
+  --primary-color: #ffffff;
+  --bg-main: #0a0b0d;
   --card-bg: #111317;
   --text-dark: #f8fafc;
   --text-muted: #a4a4b4;
   --border-light: rgba(255, 255, 255, 0.06);
-  --success-color: #10b981;
-  --error-color: #ef4444;
-  --font-family: 'Outfit', 'Inter', sans-serif;
   --box-shadow-soft: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
   --box-shadow-hover: 0 20px 50px rgba(0, 0, 0, 0.6);
 }
@@ -242,7 +260,8 @@
 
 .description-text {
   font-size: 1.05rem;
-  color: #475569;
+  color: var(--text-dark);
+  opacity: 0.9;
   line-height: 1.75;
   margin-bottom: 35px;
 }
@@ -294,11 +313,11 @@
 }
 
 .day-content {
-  background: #f8fafc;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 18px 22px;
   flex-grow: 1;
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--border-light);
 }
 
 .activity-list {
