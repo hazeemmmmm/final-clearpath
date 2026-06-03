@@ -1,0 +1,2629 @@
+{
+  "destinations": [
+    {
+      "_id": "6a1c33181557e8d5209290a8",
+      "name": "Cairo",
+      "country": "Egypt",
+      "city": "Cairo",
+      "image": "https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=800&q=80",
+      "description": "The grand capital of history, culture, bustling bazaars, Islamic heritage, and ancient pyramids.",
+      "createdAt": "2026-05-31T13:09:44.940Z",
+      "updatedAt": "2026-06-03T19:51:32.145Z",
+      "__v": 0,
+      "coordinates": {
+        "type": "Point",
+        "coordinates": [
+          31.2357,
+          30.0444
+        ]
+      }
+    },
+    {
+      "_id": "6a1f1f33e72d296302f4d85c",
+      "name": "Alexandria",
+      "country": "Egypt",
+      "city": "Alexandria",
+      "image": "/alexandria.png",
+      "description": "Egypt's Mediterranean jewel – ancient catacombs, historic citadels, and beautiful seaside walkways.",
+      "createdAt": "2026-06-02T18:21:39.358Z",
+      "updatedAt": "2026-06-03T19:51:32.161Z",
+      "__v": 0,
+      "coordinates": {
+        "type": "Point",
+        "coordinates": [
+          29.9187,
+          31.2001
+        ]
+      }
+    },
+    {
+      "_id": "6a20782cac82b92dcf9206a1",
+      "name": "Sharm El Sheikh",
+      "country": "Egypt",
+      "city": "Sharm El Sheikh",
+      "location": "South Sinai, Red Sea Coast",
+      "image": "/tiran_island_snorkeling.jpeg",
+      "description": "Egypt's premier Red Sea resort city on the southern tip of the Sinai Peninsula. World-famous for its vibrant coral reefs, crystal-clear diving waters, Ras Mohammed National Park, and thrilling Sinai desert safaris.",
+      "createdAt": "2026-06-03T18:53:32.033Z",
+      "updatedAt": "2026-06-03T19:51:32.164Z",
+      "__v": 0,
+      "coordinates": {
+        "type": "Point",
+        "coordinates": [
+          34.4309,
+          27.9158
+        ]
+      }
+    },
+    {
+      "_id": "6a207db38fb238b3281abe86",
+      "name": "Ain Sokhna",
+      "country": "Egypt",
+      "city": "Ain Sokhna",
+      "location": "Suez Governorate, Red Sea Coast",
+      "image": "/ilmonte_galala_pool_mountain.jpeg",
+      "description": "Egypt's closest Red Sea resort getaway, just 120 km from Cairo. Famous for crystal-clear waters, mountain-backed resorts perched on Galala cliffs, and the iconic Galala Cable Car — the ultimate weekend escape for Cairenes.",
+      "createdAt": "2026-06-03T19:17:07.139Z",
+      "updatedAt": "2026-06-03T19:51:32.167Z",
+      "__v": 0,
+      "coordinates": {
+        "type": "Point",
+        "coordinates": [
+          32.3481,
+          29.6077
+        ]
+      }
+    }
+  ],
+  "experiences": [
+    {
+      "_id": "6a206aa368ba31db4623bef5",
+      "name": "Mohamed Mounir Concert - Gomhouria Theatre",
+      "type": "Package",
+      "description": "An unforgettable evening at the historic Gomhouria Theatre in Downtown Cairo. Experience 'The King' Mohamed Mounir live on stage in a 3-hour soulful performance blending Nubian jazz, folk, and classic Arabic hits.",
+      "duration_days": 1,
+      "price": 1800,
+      "isFeatured": false,
+      "destination": "6a1c33181557e8d5209290a8",
+      "capacity": 300,
+      "availableDates": [
+        {
+          "date": "2026-07-05T00:00:00.000Z",
+          "availableSeats": 300,
+          "_id": "6a206aa368ba31db4623bef6"
+        },
+        {
+          "date": "2026-07-19T00:00:00.000Z",
+          "availableSeats": 300,
+          "_id": "6a206aa368ba31db4623bef7"
+        },
+        {
+          "date": "2026-08-02T00:00:00.000Z",
+          "availableSeats": 300,
+          "_id": "6a206aa368ba31db4623bef8"
+        }
+      ],
+      "image": "/mounir_concert_stage.png",
+      "images": [
+        "/mounir_concert_stage.png",
+        "/mounir_performing.png",
+        "/gomhouria_theatre_interior.png",
+        "/mounir_concert_night.png"
+      ],
+      "included": [
+        "Concert ticket for Mohamed Mounir live performance",
+        "Event programme booklet",
+        "Classic Gomhouria Theatre seating",
+        "Check-in & guest reception service"
+      ],
+      "excluded": [
+        "Transportation to/from Gomhouria Theatre",
+        "Food & beverages",
+        "Parking fees"
+      ],
+      "priceBreakdown": [
+        {
+          "label": "Mohamed Mounir Live Concert Ticket (incl. programme booklet)",
+          "amount": 1800,
+          "_id": "6a206aa368ba31db4623bef9"
+        }
+      ],
+      "airportPickup": false,
+      "packingGuide": "6a206aa368ba31db4623befb",
+      "itinerary": [
+        {
+          "day_number": 1,
+          "title": "A Night with The King — Mohamed Mounir Live",
+          "image": "/gomhouria_theatre_interior.png",
+          "description": "Arrive at Gomhouria Theatre by 5:30 PM for check-in and seat selection. The live concert begins at 7:00 PM with a 3-hour performance of legendary Nubian and Arabic classics.",
+          "culturalGuide": "",
+          "activities": [
+            {
+              "activity": "6a206aa368ba31db4623bee8",
+              "provider": "6a2053dd127c722edbb57527",
+              "image": "/gomhouria_theatre_interior.png",
+              "price": 0
+            },
+            {
+              "activity": "6a206aa368ba31db4623beec",
+              "provider": "6a204e4612a3e371fc4703d2",
+              "image": "/mounir_performing.png",
+              "price": 1800
+            }
+          ]
+        }
+      ],
+      "addons": [],
+      "createdAt": "2026-06-03T17:55:47.435Z",
+      "updatedAt": "2026-06-03T17:55:47.444Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a206aa368ba31db4623bf12",
+      "name": "Al-Hussein Mosque & Al-Muizz Street Heritage Walk",
+      "type": "Package",
+      "description": "A 5-hour cultural immersion into the heart of Islamic Cairo — from the revered Al-Hussein Mosque and its vibrant square, through 1,000 years of Fatimid architecture along Al-Muizz Street, ending with a traditional coffee stop at the legendary El Fishawy Cafe in Khan El Khalili.",
+      "duration_days": 1,
+      "price": 850,
+      "isFeatured": false,
+      "destination": "6a1c33181557e8d5209290a8",
+      "capacity": 20,
+      "availableDates": [
+        {
+          "date": "2026-06-15T00:00:00.000Z",
+          "availableSeats": 20,
+          "_id": "6a206aa368ba31db4623bf13"
+        },
+        {
+          "date": "2026-06-22T00:00:00.000Z",
+          "availableSeats": 20,
+          "_id": "6a206aa368ba31db4623bf14"
+        },
+        {
+          "date": "2026-07-06T00:00:00.000Z",
+          "availableSeats": 20,
+          "_id": "6a206aa368ba31db4623bf15"
+        },
+        {
+          "date": "2026-07-20T00:00:00.000Z",
+          "availableSeats": 20,
+          "_id": "6a206aa368ba31db4623bf16"
+        }
+      ],
+      "image": "/al_muizz_minarets_night.png",
+      "images": [
+        "/al_muizz_minarets_night.png",
+        "/al_hussein_mosque_interior.png",
+        "/al_muizz_architecture.jpg",
+        "/khan_khalili_bazaar.png",
+        "/khan_khalili_alley.png",
+        "/khan_khalili_shop.png"
+      ],
+      "included": [
+        "Licensed professional tour guide",
+        "Al-Hussein Mosque & square guided visit",
+        "Al-Muizz Street open-air museum walk (Bab El Futuh to Bab Zuweila)",
+        "Traditional coffee stop at El Fishawy Cafe in Khan El Khalili"
+      ],
+      "excluded": [
+        "Transportation to/from Islamic Cairo",
+        "Lunch",
+        "Shopping at the bazaars (out of pocket)"
+      ],
+      "priceBreakdown": [
+        {
+          "label": "Al-Hussein & Al-Muizz Guided Heritage Walk (incl. guide & mosque entry)",
+          "amount": 850,
+          "_id": "6a206aa368ba31db4623bf17"
+        }
+      ],
+      "airportPickup": false,
+      "packingGuide": "6a206aa368ba31db4623bf19",
+      "itinerary": [
+        {
+          "day_number": 1,
+          "title": "Islamic Cairo — Mosques, Minarets & Medieval Streets",
+          "image": "/al_muizz_minarets_night.png",
+          "description": "Begin at Al-Hussein Mosque at 9:30 AM, walk Al-Muizz Street from Bab El Futuh to Bab Zuweila, and finish with a traditional coffee stop in the lively Khan El Khalili bazaar.",
+          "culturalGuide": "",
+          "activities": [
+            {
+              "activity": "6a206aa368ba31db4623bf00",
+              "provider": "6a201c5eca08a4fc0836aa07",
+              "image": "/al_hussein_mosque_interior.png",
+              "price": 0
+            },
+            {
+              "activity": "6a206aa368ba31db4623bf04",
+              "provider": "6a201c5eca08a4fc0836aa07",
+              "image": "/al_muizz_minarets_night.png",
+              "price": 850
+            },
+            {
+              "activity": "6a206aa368ba31db4623bf08",
+              "provider": "6a2053dd127c722edbb5752b",
+              "image": "/khan_khalili_bazaar.png",
+              "price": 0
+            }
+          ]
+        }
+      ],
+      "addons": [],
+      "createdAt": "2026-06-03T17:55:47.475Z",
+      "updatedAt": "2026-06-03T17:55:47.484Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a206acfdfbb73b7818bc474",
+      "name": "Islamic & Coptic Cairo Heritage Walk",
+      "type": "Trip",
+      "description": "A rich 2-day cultural immersion through Islamic and ancient Cairo — from the Grand Egyptian Museum to the medieval royal highway of Al-Muizz Street, with a comfortable city-center stay at the Steigenberger Hotel El Tahrir.",
+      "duration_days": 2,
+      "price": 5500,
+      "isFeatured": false,
+      "destination": "6a1c33181557e8d5209290a8",
+      "capacity": 18,
+      "availableDates": [
+        {
+          "date": "2026-06-20T00:00:00.000Z",
+          "availableSeats": 18,
+          "_id": "6a206acfdfbb73b7818bc475"
+        },
+        {
+          "date": "2026-07-10T00:00:00.000Z",
+          "availableSeats": 18,
+          "_id": "6a206acfdfbb73b7818bc476"
+        },
+        {
+          "date": "2026-07-25T00:00:00.000Z",
+          "availableSeats": 18,
+          "_id": "6a206acfdfbb73b7818bc477"
+        }
+      ],
+      "image": "/al_muizz_architecture.jpg",
+      "images": [
+        "/al_muizz_architecture.jpg",
+        "/al_muizz_walk.jpg",
+        "/gem_galleries.png",
+        "/gem_ramses.png",
+        "/nmec_museum.jpg",
+        "/menahouse_breakfast.png",
+        "/menahouse_dining.jpg"
+      ],
+      "included": [
+        "Accommodation for 1 night at Steigenberger Hotel El Tahrir (incl. daily breakfast buffet)",
+        "Grand Egyptian Museum guided tour with expert Egyptologist",
+        "Islamic Cairo Heritage Walk & Minaret Exploration with licensed guide",
+        "Hanging Obelisk & Grand Hall exploration",
+        "All transfers in modern, private air-conditioned vehicles",
+        "Government taxes and service charges"
+      ],
+      "excluded": [
+        "Flight tickets to/from Cairo",
+        "Personal purchases & souvenirs",
+        "Lunches, dinners, and extra beverages",
+        "GEM Promenade café stops (out of pocket)",
+        "Tipping for guides and drivers"
+      ],
+      "priceBreakdown": [
+        {
+          "label": "Steigenberger Hotel El Tahrir (1 Night)",
+          "amount": 1500,
+          "_id": "6a206acfdfbb73b7818bc478"
+        },
+        {
+          "label": "Grand Egyptian Museum Main Galleries Tour",
+          "amount": 2900,
+          "_id": "6a206acfdfbb73b7818bc479"
+        },
+        {
+          "label": "Islamic Cairo Heritage Walk & Minaret Exploration",
+          "amount": 1100,
+          "_id": "6a206acfdfbb73b7818bc47a"
+        }
+      ],
+      "airportPickup": false,
+      "packingGuide": "6a206acfdfbb73b7818bc47c",
+      "itinerary": [
+        {
+          "day_number": 1,
+          "title": "The Modern & Ancient Treasures",
+          "image": "/gem_galleries.png",
+          "description": "Explore the Grand Egyptian Museum — from the Hanging Obelisk and Ramses II statue to the vast main galleries housing millennia of pharaonic history.",
+          "culturalGuide": "",
+          "activities": [
+            {
+              "activity": "6a206acfdfbb73b7818bc455",
+              "provider": "6a2042dcdf7998978d5d59c0",
+              "image": "/menahouse_breakfast.png",
+              "price": 0
+            },
+            {
+              "activity": "6a206acfdfbb73b7818bc459",
+              "provider": "6a201c5eca08a4fc0836aa0a",
+              "image": "/gem_ramses.png",
+              "price": 0
+            },
+            {
+              "activity": "6a206acfdfbb73b7818bc45d",
+              "provider": "6a201c5eca08a4fc0836aa0a",
+              "image": "/gem_galleries.png",
+              "price": 2900
+            },
+            {
+              "activity": "6a206acfdfbb73b7818bc461",
+              "provider": "6a201c5eca08a4fc0836aa0a",
+              "image": "/nmec_museum.jpg",
+              "price": 0
+            }
+          ]
+        },
+        {
+          "day_number": 2,
+          "title": "The Medieval Royal Highway",
+          "image": "/al_muizz_walk.jpg",
+          "description": "Step into medieval Islamic Cairo — inspect the ancient stone gates, then walk the legendary Al-Muizz Street lined with Fatimid-era mosques, minarets, and centuries of living history.",
+          "culturalGuide": "",
+          "activities": [
+            {
+              "activity": "6a206acfdfbb73b7818bc455",
+              "provider": "6a2042dcdf7998978d5d59c0",
+              "image": "/menahouse_dining.jpg",
+              "price": 0
+            },
+            {
+              "activity": "6a206acfdfbb73b7818bc465",
+              "provider": "6a2042dcdf7998978d5d59c4",
+              "image": "/al_muizz_architecture.jpg",
+              "price": 0
+            },
+            {
+              "activity": "6a206acfdfbb73b7818bc469",
+              "provider": "6a2042dcdf7998978d5d59c4",
+              "image": "/al_muizz_walk.jpg",
+              "price": 1100
+            }
+          ]
+        }
+      ],
+      "addons": [],
+      "createdAt": "2026-06-03T17:56:31.880Z",
+      "updatedAt": "2026-06-03T17:56:31.893Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a206ad60aa6a4b3a7e0f335",
+      "name": "Giza Pyramids & Sphinx Explorer",
+      "type": "Trip",
+      "description": "An elite 4-day exploration of the Pyramids of Giza, Sphinx, Grand Egyptian Museum, and Khan El Khalili market. Complete with a 3-night luxury stay at the iconic Marriott Mena House hotel.",
+      "duration_days": 4,
+      "price": 9750,
+      "isFeatured": false,
+      "destination": "6a1c33181557e8d5209290a8",
+      "capacity": 20,
+      "availableDates": [
+        {
+          "date": "2026-06-15T00:00:00.000Z",
+          "availableSeats": 20,
+          "_id": "6a206ad60aa6a4b3a7e0f336"
+        },
+        {
+          "date": "2026-06-25T00:00:00.000Z",
+          "availableSeats": 20,
+          "_id": "6a206ad60aa6a4b3a7e0f337"
+        },
+        {
+          "date": "2026-07-05T00:00:00.000Z",
+          "availableSeats": 20,
+          "_id": "6a206ad60aa6a4b3a7e0f338"
+        }
+      ],
+      "image": "/menahouse_pool.jpg",
+      "images": [
+        "/menahouse_pool.jpg",
+        "/menahouse_breakfast.png",
+        "/menahouse_dining.jpg",
+        "/pyramids_camel.png",
+        "https://upload.wikimedia.org/wikipedia/commons/e/e3/Kheops-Pyramid.jpg",
+        "https://upload.wikimedia.org/wikipedia/commons/f/f6/Great_Sphinx_of_Giza_-_20080716a.jpg",
+        "https://upload.wikimedia.org/wikipedia/commons/a/af/All_Gizah_Pyramids.jpg",
+        "/gem_galleries.png",
+        "/gem_ramses.png",
+        "/al_muizz_walk.jpg",
+        "/khan_khalili_shop.png"
+      ],
+      "included": [
+        "Accommodation for 3 nights at Marriott Mena House (incl. daily breakfast buffet)",
+        "Entry fees to Giza Plateau, Grand Egyptian Museum, and Khan El-Khalili walking tour",
+        "All transfers in modern, private air-conditioned vehicles",
+        "Certified English-speaking private Egyptologist guides",
+        "Government taxes and service charges"
+      ],
+      "excluded": [
+        "Flight tickets to/from Cairo",
+        "Personal purchases & souvenirs",
+        "Luncheons, dinners, and extra beverages",
+        "Tipping for guides and drivers",
+        "Optional camel ride at Giza plateau (cash on site)"
+      ],
+      "priceBreakdown": [
+        {
+          "label": "Marriott Marriott Mena House Lodging (3 Nights)",
+          "amount": 4500,
+          "_id": "6a206ad60aa6a4b3a7e0f339"
+        },
+        {
+          "label": "Great Pyramid of Giza Tour",
+          "amount": 500,
+          "_id": "6a206ad60aa6a4b3a7e0f33a"
+        },
+        {
+          "label": "Pyramids Panorama View & Photo Session",
+          "amount": 450,
+          "_id": "6a206ad60aa6a4b3a7e0f33b"
+        },
+        {
+          "label": "Great Sphinx & Valley Temple Tour",
+          "amount": 500,
+          "_id": "6a206ad60aa6a4b3a7e0f33c"
+        },
+        {
+          "label": "GEM Exhibition Galleries Tour",
+          "amount": 1600,
+          "_id": "6a206ad60aa6a4b3a7e0f33d"
+        },
+        {
+          "label": "Hanging Obelisk & Grand Hall Tour",
+          "amount": 1300,
+          "_id": "6a206ad60aa6a4b3a7e0f33e"
+        },
+        {
+          "label": "Al-Muizz Street Guided Historic Walk",
+          "amount": 500,
+          "_id": "6a206ad60aa6a4b3a7e0f33f"
+        },
+        {
+          "label": "Khan El Khalili Bazaar Shopping",
+          "amount": 400,
+          "_id": "6a206ad60aa6a4b3a7e0f340"
+        }
+      ],
+      "airportPickup": false,
+      "packingGuide": "6a206ad60aa6a4b3a7e0f342",
+      "itinerary": [
+        {
+          "day_number": 1,
+          "title": "Giza Pyramids & Sphinx Private Tour",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/e/e3/Kheops-Pyramid.jpg",
+          "description": "Explore the Giza Pyramids, Great Sphinx, and Valley Temple with professional guides.",
+          "culturalGuide": "",
+          "activities": [
+            {
+              "activity": "6a206ad60aa6a4b3a7e0f300",
+              "provider": "6a2024d20601decfa74db1ff",
+              "image": "/menahouse_breakfast.png",
+              "price": 0
+            },
+            {
+              "activity": "6a206ad60aa6a4b3a7e0f304",
+              "provider": "6a201c5eca08a4fc0836aa07",
+              "image": "https://upload.wikimedia.org/wikipedia/commons/e/e3/Kheops-Pyramid.jpg",
+              "price": 500
+            },
+            {
+              "activity": "6a206ad60aa6a4b3a7e0f308",
+              "provider": "6a201c5eca08a4fc0836aa07",
+              "image": "https://upload.wikimedia.org/wikipedia/commons/a/af/All_Gizah_Pyramids.jpg",
+              "price": 450
+            },
+            {
+              "activity": "6a206ad60aa6a4b3a7e0f30c",
+              "provider": "6a201c5eca08a4fc0836aa07",
+              "image": "/pyramids_camel.png",
+              "price": 0
+            },
+            {
+              "activity": "6a206ad60aa6a4b3a7e0f310",
+              "provider": "6a201c5eca08a4fc0836aa07",
+              "image": "https://upload.wikimedia.org/wikipedia/commons/f/f6/Great_Sphinx_of_Giza_-_20080716a.jpg",
+              "price": 500
+            }
+          ]
+        },
+        {
+          "day_number": 2,
+          "title": "Grand Egyptian Museum Visit",
+          "image": "/gem_galleries.png",
+          "description": "A dedicated tour of the world's largest archaeological museum complex.",
+          "culturalGuide": "",
+          "activities": [
+            {
+              "activity": "6a206ad60aa6a4b3a7e0f300",
+              "provider": "6a2024d20601decfa74db1ff",
+              "image": "/menahouse_dining.jpg",
+              "price": 0
+            },
+            {
+              "activity": "6a206ad60aa6a4b3a7e0f314",
+              "provider": "6a201c5eca08a4fc0836aa0a",
+              "image": "/gem_galleries.png",
+              "price": 1600
+            },
+            {
+              "activity": "6a206ad60aa6a4b3a7e0f318",
+              "provider": "6a201c5eca08a4fc0836aa0a",
+              "image": "/gem_ramses.png",
+              "price": 1300
+            }
+          ]
+        },
+        {
+          "day_number": 3,
+          "title": "Khan El Khalili Historical Walk",
+          "image": "/al_muizz_walk.jpg",
+          "description": "Explore historic Cairo and walk through the legendary Khan El-Khalili bazaar.",
+          "culturalGuide": "",
+          "activities": [
+            {
+              "activity": "6a206ad60aa6a4b3a7e0f300",
+              "provider": "6a2024d20601decfa74db1ff",
+              "image": "/menahouse_breakfast.png",
+              "price": 0
+            },
+            {
+              "activity": "6a206ad60aa6a4b3a7e0f31c",
+              "provider": "6a201c5eca08a4fc0836aa07",
+              "image": "/al_muizz_walk.jpg",
+              "price": 500
+            },
+            {
+              "activity": "6a206ad60aa6a4b3a7e0f320",
+              "provider": "6a201c5eca08a4fc0836aa07",
+              "image": "/khan_khalili_shop.png",
+              "price": 400
+            }
+          ]
+        }
+      ],
+      "addons": [],
+      "createdAt": "2026-06-03T17:56:38.620Z",
+      "updatedAt": "2026-06-03T17:56:38.631Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e2c213451db7092525b",
+      "name": "Montazah Royal Beach & Gardens Escape",
+      "type": "Package",
+      "description": "A royal full-day escape to the legendary Montazah Gardens and Helnan Palestine Hotel's private Mediterranean beach. Begin with a guided morning walk through royal pine gardens, spend the afternoon in a luxury beach cabana, and end the day with a 3-course sunset seafood dinner on the water.",
+      "duration_days": 1,
+      "price": 3500,
+      "isFeatured": false,
+      "destination": "6a1f1f33e72d296302f4d85c",
+      "capacity": 15,
+      "availableDates": [
+        {
+          "date": "2026-06-20T00:00:00.000Z",
+          "availableSeats": 15,
+          "_id": "6a208e2c213451db7092525c"
+        },
+        {
+          "date": "2026-06-27T00:00:00.000Z",
+          "availableSeats": 15,
+          "_id": "6a208e2c213451db7092525d"
+        },
+        {
+          "date": "2026-07-04T00:00:00.000Z",
+          "availableSeats": 15,
+          "_id": "6a208e2c213451db7092525e"
+        },
+        {
+          "date": "2026-07-18T00:00:00.000Z",
+          "availableSeats": 15,
+          "_id": "6a208e2c213451db7092525f"
+        }
+      ],
+      "image": "/helnan_private_beach.jpg",
+      "images": [
+        "/helnan_private_beach.jpg",
+        "/montazah_palace_garden.jpg",
+        "/montazah_salamlek_palace.jpg",
+        "/alexandria_beach_lighthouse.jpg",
+        "/helnan_palestine_hotel.jpg",
+        "/montazah_morning_coffee.jpg",
+        "/helnan_sunset_dining.jpg"
+      ],
+      "included": [
+        "Guided morning walk through Montazah Royal Gardens with premium coffee",
+        "Full-day private beach cabana access at Helnan Palestine Hotel",
+        "Swimming in the Mediterranean & luxury beach stewardship service",
+        "3-course sunset seafood dinner at the hotel sea terrace",
+        "Free stroll around the private yacht marina"
+      ],
+      "excluded": [
+        "Transportation to/from Helnan Palestine Hotel",
+        "Extra beverages beyond the package allowance",
+        "Water sports & activities (available on site at extra cost)",
+        "Tipping for guides and hotel staff"
+      ],
+      "priceBreakdown": [
+        {
+          "label": "Helnan Palestine Private Beach & Cabana Day Use (incl. morning coffee & sunset dinner)",
+          "amount": 3500,
+          "_id": "6a208e2c213451db70925260"
+        }
+      ],
+      "airportPickup": false,
+      "packingGuide": "6a208e2c213451db70925262",
+      "itinerary": [
+        {
+          "day_number": 1,
+          "title": "A Royal Day at Montazah — Gardens, Beach & Sunset Dining",
+          "image": "/montazah_palace_garden.jpg",
+          "description": "Start at 9:00 AM with a guided garden walk and morning coffee. Check into your beach cabana at 12:00 PM for an afternoon of Mediterranean swimming and sunbathing. End the day at 5:00 PM with a lavish sunset seafood dinner on the water terrace.",
+          "culturalGuide": "",
+          "activities": [
+            {
+              "activity": "6a208e2c213451db70925250",
+              "provider": "6a206f3d008f727c041a2a94",
+              "image": "/montazah_palace_garden.jpg",
+              "price": 0
+            },
+            {
+              "activity": "6a208e2c213451db70925254",
+              "provider": "6a206f3d008f727c041a2a91",
+              "image": "/helnan_private_beach.jpg",
+              "price": 3500
+            },
+            {
+              "activity": "6a208e2c213451db70925258",
+              "provider": "6a206f3d008f727c041a2a91",
+              "image": "/helnan_sunset_dining.jpg",
+              "price": 0
+            }
+          ]
+        }
+      ],
+      "addons": [],
+      "createdAt": "2026-06-03T20:27:24.722Z",
+      "updatedAt": "2026-06-03T20:27:24.732Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e355b6fd2695b743263",
+      "name": "Mediterranean Yacht Cruise & Sunken Ruins Discovery",
+      "type": "Package",
+      "description": "A full day of high-sea adventure off the coast of Alexandria — begin with a panoramic walk at the Citadel of Qaitbay before boarding a luxury chartered yacht. Snorkel through the actual submerged ruins of Cleopatra's palace and the ancient Pharos lighthouse, then feast on freshly grilled seafood at sea as the Mediterranean sun sets over the city skyline.",
+      "duration_days": 1,
+      "price": 4200,
+      "isFeatured": false,
+      "destination": "6a1f1f33e72d296302f4d85c",
+      "capacity": 12,
+      "availableDates": [
+        {
+          "date": "2026-06-21T00:00:00.000Z",
+          "availableSeats": 12,
+          "_id": "6a208e355b6fd2695b743264"
+        },
+        {
+          "date": "2026-07-05T00:00:00.000Z",
+          "availableSeats": 12,
+          "_id": "6a208e355b6fd2695b743265"
+        },
+        {
+          "date": "2026-07-19T00:00:00.000Z",
+          "availableSeats": 12,
+          "_id": "6a208e355b6fd2695b743266"
+        },
+        {
+          "date": "2026-08-02T00:00:00.000Z",
+          "availableSeats": 12,
+          "_id": "6a208e355b6fd2695b743267"
+        }
+      ],
+      "image": "/qaitbay_harbour_boats.png",
+      "images": [
+        "/qaitbay_harbour_boats.png",
+        "/qaitbay_citadel.png",
+        "/qaitbay_fishing_boats.png",
+        "/sunken_city_statue.png",
+        "/sunken_ruins_underwater.png",
+        "/sunken_city_divers_wreck.png",
+        "/yacht_diver_wreck.png",
+        "/yacht_seafood_lunch.png",
+        "/yacht_sunset_cruise.png"
+      ],
+      "included": [
+        "Luxury multi-deck private yacht charter for the full day",
+        "Citadel of Qaitbay panoramic guided walk",
+        "VIP yacht boarding & welcome drink",
+        "Snorkeling over Cleopatra's Sunken Palace & Pharos ruins with expert diver guide",
+        "Full snorkeling gear, wetsuit, and dedicated safety boat",
+        "Freshly grilled seafood lunch prepared by onboard chef",
+        "Mediterranean sunset cruise over Alexandria skyline"
+      ],
+      "excluded": [
+        "Transportation to/from Eastern Harbour",
+        "Extra beverages beyond the package allowance",
+        "SCUBA diving (snorkeling only — upgrade available on request)",
+        "Tipping for crew and dive guides",
+        "Travel insurance"
+      ],
+      "priceBreakdown": [
+        {
+          "label": "Snorkeling Over Cleopatra's Sunken Palace (incl. gear, wetsuit & safety boat)",
+          "amount": 4200,
+          "_id": "6a208e355b6fd2695b743268"
+        }
+      ],
+      "airportPickup": false,
+      "packingGuide": "6a208e355b6fd2695b74326a",
+      "itinerary": [
+        {
+          "day_number": 1,
+          "title": "Yacht, Sunken Ruins & Sunset Over Alexandria",
+          "image": "/qaitbay_harbour_boats.png",
+          "description": "Meet at 10:00 AM at the Citadel of Qaitbay for a panoramic walk and VIP yacht boarding. By 12:00 PM the yacht anchors over the sunken ruins for a 3-hour guided snorkeling session. At 3:30 PM, the onboard chef fires up the grill for a fresh seafood feast as the yacht cruises out for the panoramic Mediterranean sunset, returning to port by 6:00 PM.",
+          "culturalGuide": "",
+          "activities": [
+            {
+              "activity": "6a208e355b6fd2695b743258",
+              "provider": "6a207540f8301b365291b7f1",
+              "image": "/qaitbay_citadel.png",
+              "price": 0
+            },
+            {
+              "activity": "6a208e355b6fd2695b74325c",
+              "provider": "6a207540f8301b365291b7f4",
+              "image": "/sunken_ruins_underwater.png",
+              "price": 4200
+            },
+            {
+              "activity": "6a208e355b6fd2695b743260",
+              "provider": "6a207540f8301b365291b7f7",
+              "image": "/yacht_seafood_lunch.png",
+              "price": 0
+            }
+          ]
+        }
+      ],
+      "addons": [],
+      "createdAt": "2026-06-03T20:27:33.598Z",
+      "updatedAt": "2026-06-03T20:27:33.608Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e41497026472325e738",
+      "name": "Galala Coastal Breeze & Yacht Dayuse",
+      "type": "Package",
+      "description": "A full-day luxury Red Sea escape launching from the exclusive Wadi El Dom Marina in Porto Sokhna. Board a private multi-deck yacht, snorkel over vibrant Red Sea coral reefs with expert guides, then feast on freshly grilled seafood as you cruise along the dramatic Galala mountain coastline at sunset.",
+      "duration_days": 1,
+      "price": 4200,
+      "isFeatured": false,
+      "destination": "6a207db38fb238b3281abe86",
+      "capacity": 14,
+      "availableDates": [
+        {
+          "date": "2026-06-20T00:00:00.000Z",
+          "availableSeats": 14,
+          "_id": "6a208e41497026472325e739"
+        },
+        {
+          "date": "2026-07-04T00:00:00.000Z",
+          "availableSeats": 14,
+          "_id": "6a208e41497026472325e73a"
+        },
+        {
+          "date": "2026-07-18T00:00:00.000Z",
+          "availableSeats": 14,
+          "_id": "6a208e41497026472325e73b"
+        },
+        {
+          "date": "2026-08-01T00:00:00.000Z",
+          "availableSeats": 14,
+          "_id": "6a208e41497026472325e73c"
+        }
+      ],
+      "image": "/galala_marina_pier.jpeg",
+      "images": [
+        "/galala_marina_pier.jpeg",
+        "/galala_yacht_cruise.jpeg",
+        "/sokhna_coral_reef_snorkeling.jpeg",
+        "/sokhna_yacht_sunset_dinner.jpeg"
+      ],
+      "included": [
+        "Luxury multi-deck private yacht charter for the full day",
+        "Safety briefing & VIP yacht boarding at Wadi El Dom Marina",
+        "Expert-guided snorkeling over Sokhna Red Sea coral reefs",
+        "Full snorkeling gear, wetsuit, and dedicated safety boat",
+        "Freshly grilled seafood lunch prepared by onboard chef",
+        "Galala mountain coastline sunset cruise"
+      ],
+      "excluded": [
+        "Transportation to/from Wadi El Dom Marina, Porto Sokhna",
+        "Extra beverages beyond package allowance",
+        "SCUBA diving (snorkeling only — upgrade available on request)",
+        "Tipping for crew and snorkel guides",
+        "Travel insurance"
+      ],
+      "priceBreakdown": [
+        {
+          "label": "Snorkeling Over Sokhna Coral Reefs (incl. gear, wetsuit & safety boat)",
+          "amount": 4200,
+          "_id": "6a208e41497026472325e73d"
+        }
+      ],
+      "airportPickup": false,
+      "packingGuide": "6a208e41497026472325e73f",
+      "itinerary": [
+        {
+          "day_number": 1,
+          "title": "Red Sea Snorkeling, Seafood & Galala Sunset",
+          "image": "/galala_marina_pier.jpeg",
+          "description": "Arrive at Wadi El Dom Marina by 9:00 AM for your safety briefing and VIP yacht boarding. By 11:00 AM the yacht anchors over the coral reefs for 3 hours of guided snorkeling. At 2:30 PM, the onboard chef grills a fresh seafood lunch as the yacht cruises along the Galala mountain coastline, returning to the marina by 6:00 PM with the sunset behind you.",
+          "culturalGuide": "",
+          "activities": [
+            {
+              "activity": "6a208e41497026472325e72d",
+              "provider": "6a207540f8301b365291b7f1",
+              "image": "/galala_marina_pier.jpeg",
+              "price": 0
+            },
+            {
+              "activity": "6a208e41497026472325e731",
+              "provider": "6a208236297511ea2af0e769",
+              "image": "/sokhna_coral_reef_snorkeling.jpeg",
+              "price": 4200
+            },
+            {
+              "activity": "6a208e41497026472325e735",
+              "provider": "6a208236297511ea2af0e76c",
+              "image": "/sokhna_yacht_sunset_dinner.jpeg",
+              "price": 0
+            }
+          ]
+        }
+      ],
+      "addons": [],
+      "createdAt": "2026-06-03T20:27:45.682Z",
+      "updatedAt": "2026-06-03T20:27:45.694Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e498f6c78e2e0a4915e",
+      "name": "Sharm El Sheikh Red Sea & Desert Explorer",
+      "type": "Trip",
+      "description": "An action-packed 3-day Red Sea adventure based at the luxurious Rixos Premium Seagate Ultra All-Inclusive resort. Dive Ras Mohammed's legendary Shark and Yolanda Reefs on Day 1, snorkel four world-famous coral reefs at Tiran Island and ride quad bikes through the Sinai desert by night on Day 2, then check out refreshed after a final morning at the resort's private Red Sea beach.",
+      "duration_days": 3,
+      "price": 10200,
+      "isFeatured": false,
+      "destination": "6a20782cac82b92dcf9206a1",
+      "capacity": 18,
+      "availableDates": [
+        {
+          "date": "2026-06-25T00:00:00.000Z",
+          "availableSeats": 18,
+          "_id": "6a208e498f6c78e2e0a4915f"
+        },
+        {
+          "date": "2026-07-09T00:00:00.000Z",
+          "availableSeats": 18,
+          "_id": "6a208e498f6c78e2e0a49160"
+        },
+        {
+          "date": "2026-07-23T00:00:00.000Z",
+          "availableSeats": 18,
+          "_id": "6a208e498f6c78e2e0a49161"
+        },
+        {
+          "date": "2026-08-06T00:00:00.000Z",
+          "availableSeats": 18,
+          "_id": "6a208e498f6c78e2e0a49162"
+        }
+      ],
+      "image": "/rixos_seagate_exterior.jpeg",
+      "images": [
+        "/rixos_seagate_exterior.jpeg",
+        "/rixos_seagate_restaurant.jpeg",
+        "/ras_mohammed_split.jpeg",
+        "/ras_mohammed_dive_boat.jpeg",
+        "/tiran_island_snorkeling.jpeg",
+        "/tiran_reef_snorkeling.jpeg",
+        "/sinai_desert_road.jpeg",
+        "/sinai_quad_camel_safari.jpeg",
+        "/rixos_breakfast_buffet.jpeg"
+      ],
+      "included": [
+        "2 nights accommodation at Rixos Premium Seagate (5-star Ultra All-Inclusive)",
+        "All meals, beverages & snacks at the resort (9 à-la-carte restaurants & 11 bars)",
+        "Ras Mohammed National Park guided scuba diving — 2 dives at Shark Reef & Yolanda Reef",
+        "All dive equipment, wetsuit, dive boat & PADI-certified guide",
+        "Tiran Island full-day snorkeling trip at 4 coral reefs (Jackson, Thomas, Woodhouse, Gordon)",
+        "Snorkeling gear & buffet lunch onboard for Tiran trip",
+        "Sinai Desert Safari: quad bikes, camel ride & authentic Bedouin camp dinner",
+        "All hotel-to-marina and resort transfers",
+        "Government taxes and service charges"
+      ],
+      "excluded": [
+        "Flights to/from Sharm El Sheikh",
+        "Travel insurance",
+        "Personal purchases & souvenirs",
+        "SCUBA certification fees (non-certified divers may substitute with snorkeling)",
+        "Tipping for guides, drivers, and resort staff"
+      ],
+      "priceBreakdown": [
+        {
+          "label": "Rixos Premium Seagate – 2 Nights Ultra All-Inclusive",
+          "amount": 4500,
+          "_id": "6a208e498f6c78e2e0a49163"
+        },
+        {
+          "label": "Ras Mohammed National Park – Guided Scuba Diving (2 Dives)",
+          "amount": 3000,
+          "_id": "6a208e498f6c78e2e0a49164"
+        },
+        {
+          "label": "Tiran Island Full-Day Snorkeling Boat Trip (4 Reefs + buffet lunch)",
+          "amount": 1750,
+          "_id": "6a208e498f6c78e2e0a49165"
+        },
+        {
+          "label": "Sinai Desert Safari (Quad Bike + Camel Ride + Bedouin Dinner)",
+          "amount": 950,
+          "_id": "6a208e498f6c78e2e0a49166"
+        }
+      ],
+      "airportPickup": false,
+      "packingGuide": "6a208e498f6c78e2e0a49168",
+      "itinerary": [
+        {
+          "day_number": 1,
+          "title": "Ras Mohammed National Park – Diving the Legendary Reefs",
+          "image": "/ras_mohammed_dive_boat.jpeg",
+          "description": "Arrive and check in to the Rixos resort. After a Red Sea-view breakfast, transfer to Sharm Marina for your dive briefing at Camel Dive Club. The afternoon brings two guided scuba dives at Ras Mohammed — Shark Reef and Yolanda Reef — in the crystal-clear Gulf of Aqaba alongside sea turtles and reef sharks.",
+          "culturalGuide": "",
+          "activities": [
+            {
+              "activity": "6a208e498f6c78e2e0a49143",
+              "provider": "6a20782cac82b92dcf9206a4",
+              "image": "/rixos_breakfast_buffet.jpeg",
+              "price": 0
+            },
+            {
+              "activity": "6a208e498f6c78e2e0a49147",
+              "provider": "6a20782cac82b92dcf9206a7",
+              "image": "/ras_mohammed_split.jpeg",
+              "price": 0
+            },
+            {
+              "activity": "6a208e498f6c78e2e0a4914b",
+              "provider": "6a20782cac82b92dcf9206a7",
+              "image": "/ras_mohammed_dive_boat.jpeg",
+              "price": 3000
+            }
+          ]
+        },
+        {
+          "day_number": 2,
+          "title": "Tiran Island Snorkeling & Sinai Desert Safari",
+          "image": "/tiran_island_snorkeling.jpeg",
+          "description": "A day of two contrasting worlds. Morning: board a boat to Tiran Island for a full day snorkeling four world-famous reefs with buffet lunch onboard. Afternoon/evening: swap the sea for the Sinai desert — quad bikes through Echo Mountain, camel ride at sunset, and an authentic Bedouin camp dinner under a sky full of stars.",
+          "culturalGuide": "",
+          "activities": [
+            {
+              "activity": "6a208e498f6c78e2e0a4914f",
+              "provider": "6a20782cac82b92dcf9206a4",
+              "image": "/rixos_breakfast_buffet.jpeg",
+              "price": 0
+            },
+            {
+              "activity": "6a208e498f6c78e2e0a49153",
+              "provider": "6a20782cac82b92dcf9206a4",
+              "image": "/tiran_reef_snorkeling.jpeg",
+              "price": 1750
+            },
+            {
+              "activity": "6a208e498f6c78e2e0a49157",
+              "provider": "6a20782cac82b92dcf9206a4",
+              "image": "/sinai_quad_camel_safari.jpeg",
+              "price": 950
+            }
+          ]
+        },
+        {
+          "day_number": 3,
+          "title": "Farewell Morning & Resort Leisure",
+          "image": "/rixos_seagate_restaurant.jpeg",
+          "description": "A relaxed final morning — enjoy the farewell breakfast at the Rixos and spend the rest of the morning at leisure: dip in one of the resort's 8 pools, walk the private Red Sea beach, or book a last-minute Anjana Spa treatment before hotel checkout.",
+          "culturalGuide": "",
+          "activities": [
+            {
+              "activity": "6a208e498f6c78e2e0a4915b",
+              "provider": "6a20782cac82b92dcf9206a4",
+              "image": "/rixos_seagate_restaurant.jpeg",
+              "price": 0
+            }
+          ]
+        }
+      ],
+      "addons": [],
+      "createdAt": "2026-06-03T20:27:53.328Z",
+      "updatedAt": "2026-06-03T20:27:53.339Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e55de083b8c104bf2e5",
+      "name": "Sharm El-Sheikh Luxury Sea & Safari",
+      "type": "Trip",
+      "description": "An ultra-premium 2-day Red Sea and Sinai adventure staying at the iconic Rixos Premium Seagate. Snorkel the world-class Ras Mohamed coral reefs from a private yacht, dine at L'Olivo Italian restaurant, race Sinai desert canyons on quad bikes, recover with a Hammam ritual at Anjana Spa, and end with a cliffside sunset at the legendary Farsha Mountain Lounge.",
+      "duration_days": 2,
+      "price": 13700,
+      "isFeatured": false,
+      "destination": "6a20782cac82b92dcf9206a1",
+      "capacity": 14,
+      "availableDates": [
+        {
+          "date": "2026-06-27T00:00:00.000Z",
+          "availableSeats": 14,
+          "_id": "6a208e55de083b8c104bf2e6"
+        },
+        {
+          "date": "2026-07-11T00:00:00.000Z",
+          "availableSeats": 14,
+          "_id": "6a208e55de083b8c104bf2e7"
+        },
+        {
+          "date": "2026-07-25T00:00:00.000Z",
+          "availableSeats": 14,
+          "_id": "6a208e55de083b8c104bf2e8"
+        },
+        {
+          "date": "2026-08-08T00:00:00.000Z",
+          "availableSeats": 14,
+          "_id": "6a208e55de083b8c104bf2e9"
+        }
+      ],
+      "image": "/rixos_seagate_pool_night.png",
+      "images": [
+        "/rixos_seagate_pool_night.png",
+        "/sharm_red_sea_coral_reef.png",
+        "/sharm_ras_mohamed_yacht.png",
+        "/rixos_fine_dining_lounge.png",
+        "/sinai_quad_biking.png",
+        "/anjana_hammam_spa.png",
+        "/farsha_lounge_sunset.png",
+        "/farsha_lounge_night.png"
+      ],
+      "included": [
+        "1 night accommodation at Rixos Premium Seagate, Nabq Bay (Ultra-All-Inclusive)",
+        "Private VIP fleet transfers: Airport â†” Rixos both ways",
+        "Private multi-deck yacht charter to Ras Mohamed National Park",
+        "Expert-guided snorkeling over Ras Mohamed coral reefs with all equipment",
+        "Gourmet seafood buffet lunch cooked live on board the private yacht",
+        "Premium 4-course dinner at L'Olivo Italian Restaurant",
+        "Private shuttle to Soho Square dancing fountain show",
+        "Premium international breakfast buffet at Rixos Main Terrace",
+        "Sinai Desert Quad Biking with Bedouin tent tea & flatbread",
+        "90-minute Anjana Spa Hammam, massage & hot stone therapy",
+        "Farsha Mountain Lounge cliffside sunset experience with refreshments"
+      ],
+      "excluded": [
+        "Flights to/from Sharm El-Sheikh",
+        "SCUBA diving certification (guided snorkeling included â€” certified dive upgrade available)",
+        "Extra beverages beyond resort all-inclusive allowance",
+        "Personal shopping at Soho Square",
+        "Tipping for crew, guides, and spa staff",
+        "Travel insurance"
+      ],
+      "priceBreakdown": [
+        {
+          "label": "Private Yacht Charter & Ras Mohamed Snorkeling (incl. seafood buffet lunch on board)",
+          "amount": 5500,
+          "_id": "6a208e55de083b8c104bf2ea"
+        },
+        {
+          "label": "Fine Dining at L'Olivo Italian Restaurant & Soho Square Private Shuttle",
+          "amount": 2200,
+          "_id": "6a208e55de083b8c104bf2eb"
+        },
+        {
+          "label": "Sinai Desert Quad Biking & Bedouin Eco-Adventure",
+          "amount": 2800,
+          "_id": "6a208e55de083b8c104bf2ec"
+        },
+        {
+          "label": "Anjana Luxury Spa, Hammam & Hot Stone Therapy (90 min)",
+          "amount": 3200,
+          "_id": "6a208e55de083b8c104bf2ed"
+        }
+      ],
+      "airportPickup": false,
+      "packingGuide": "6a208e55de083b8c104bf2ef",
+      "itinerary": [
+        {
+          "day_number": 1,
+          "title": "Arrival, Ras Mohamed Yacht & Fine Dining at L'Olivo",
+          "image": "/rixos_seagate_pool_night.png",
+          "description": "Arrive at Sharm El-Sheikh Airport at 8:30 AM and your private ClearPath luxury SUV transfers you to Rixos Premium Seagate. Board a private multi-deck yacht at 10:30 AM from the resort's marine jetty for a 5-hour guided snorkeling voyage to Ras Mohamed National Park â€” including a live-cooked seafood buffet lunch on board. VIP check-in at 4:30 PM, relax at the Nabq Bay infinity pool, then a premium 4-course dinner at L'Olivo followed by a late-night Soho Square fountain stroll.",
+          "culturalGuide": "",
+          "activities": [
+            {
+              "activity": "6a208e55de083b8c104bf2c2",
+              "provider": "6a207db38fb238b3281abe89",
+              "image": "/rixos_seagate_pool_night.png",
+              "price": 0
+            },
+            {
+              "activity": "6a208e55de083b8c104bf2c6",
+              "provider": "6a2082791dd461b7ffb83b71",
+              "image": "/sharm_ras_mohamed_yacht.png",
+              "price": 5500
+            },
+            {
+              "activity": "6a208e55de083b8c104bf2ca",
+              "provider": "6a20782cac82b92dcf9206a4",
+              "image": "/rixos_seagate_pool_night.png",
+              "price": 0
+            },
+            {
+              "activity": "6a208e55de083b8c104bf2ce",
+              "provider": "6a2082791dd461b7ffb83b74",
+              "image": "/rixos_fine_dining_lounge.png",
+              "price": 2200
+            }
+          ]
+        },
+        {
+          "day_number": 2,
+          "title": "Sinai Desert Safari, Hammam & Farsha Cliffside Sunset",
+          "image": "/sinai_quad_biking.png",
+          "description": "Start with an expansive international breakfast at the Rixos Main Terrace overlooking Nabq Bay. At 10:00 AM, race through Sinai mountain canyons on 400cc quad bikes, stopping at a hidden Bedouin tent for herbal tea. Return for a 90-minute recovery session at Anjana Luxury Spa â€” Hammam bath, body massage, and volcanic hot stone therapy. Close the trip at Farsha Mountain Lounge for a cliffside sunset, then your Mercedes fleet whisks you back to the airport.",
+          "culturalGuide": "",
+          "activities": [
+            {
+              "activity": "6a208e55de083b8c104bf2d2",
+              "provider": "6a20782cac82b92dcf9206a4",
+              "image": "/rixos_fine_dining_lounge.png",
+              "price": 0
+            },
+            {
+              "activity": "6a208e55de083b8c104bf2d6",
+              "provider": "6a2082791dd461b7ffb83b77",
+              "image": "/sinai_quad_biking.png",
+              "price": 2800
+            },
+            {
+              "activity": "6a208e55de083b8c104bf2da",
+              "provider": "6a2082791dd461b7ffb83b7a",
+              "image": "/anjana_hammam_spa.png",
+              "price": 3200
+            },
+            {
+              "activity": "6a208e55de083b8c104bf2de",
+              "provider": "6a2082791dd461b7ffb83b7d",
+              "image": "/farsha_lounge_sunset.png",
+              "price": 0
+            },
+            {
+              "activity": "6a208e55de083b8c104bf2e2",
+              "provider": "6a207db38fb238b3281abe89",
+              "image": "/rixos_seagate_pool_night.png",
+              "price": 0
+            }
+          ]
+        }
+      ],
+      "addons": [],
+      "createdAt": "2026-06-03T20:28:05.585Z",
+      "updatedAt": "2026-06-03T20:28:05.596Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e6c7bfacec7132eb0f2",
+      "name": "Sokhna Luxury Mountain & Sea Escape",
+      "type": "Trip",
+      "description": "A 3-day luxury retreat at the breathtaking Il Monte Galala Resort, perched on the cliffs of Galala Mountain overlooking the Red Sea. Arrive in a private limousine and dine cliff-side at sunset. Wake to a crystal mountain lagoon and ride Egypt's iconic Galala Cable Car to panoramic heights. End your final morning with sunrise beach yoga before a grand farewell seafood feast on the water's edge.",
+      "duration_days": 3,
+      "price": 13200,
+      "isFeatured": false,
+      "destination": "6a207db38fb238b3281abe86",
+      "capacity": 12,
+      "availableDates": [
+        {
+          "date": "2026-06-26T00:00:00.000Z",
+          "availableSeats": 12,
+          "_id": "6a208e6c7bfacec7132eb0f3"
+        },
+        {
+          "date": "2026-07-10T00:00:00.000Z",
+          "availableSeats": 12,
+          "_id": "6a208e6c7bfacec7132eb0f4"
+        },
+        {
+          "date": "2026-07-24T00:00:00.000Z",
+          "availableSeats": 12,
+          "_id": "6a208e6c7bfacec7132eb0f5"
+        },
+        {
+          "date": "2026-08-07T00:00:00.000Z",
+          "availableSeats": 12,
+          "_id": "6a208e6c7bfacec7132eb0f6"
+        }
+      ],
+      "image": "/ilmonte_galala_pool_mountain.jpeg",
+      "images": [
+        "/ilmonte_galala_pool_mountain.jpeg",
+        "/ilmonte_galala_beach.jpeg",
+        "/sokhna_resort_pool.jpeg",
+        "/galala_beach_restaurant.jpeg",
+        "/galala_cable_car.jpeg",
+        "/sokhna_sunrise_yoga.jpeg"
+      ],
+      "included": [
+        "2 nights accommodation at Il Monte Galala Resort (Deluxe Sea & Mountain View room)",
+        "Private luxury SUV limousine transfer Cairo ↔ El Sokhna",
+        "Welcome fruit basket and fresh juices on arrival",
+        "Crystal lagoon private cabana access & kayaking (Day 2 morning)",
+        "Galala Teleferik Cable Car round-trip ticket & guided mountain plateau walk",
+        "Guided sunrise beach yoga & meditation session",
+        "Cliff-side sunset dinner at Galala Heights Ristorante (Day 1)",
+        "Grand farewell Red Sea seafood feast on the beach (Day 3)",
+        "All resort taxes and service charges"
+      ],
+      "excluded": [
+        "Personal purchases & souvenirs",
+        "Extra beverages and room service beyond package allowance",
+        "Spa treatments (available at extra cost)",
+        "Water sports beyond the included kayaking (jet ski, parasailing, etc.)",
+        "Tipping for resort staff and transfer drivers"
+      ],
+      "priceBreakdown": [
+        {
+          "label": "Il Monte Galala Resort – 2 Nights (Deluxe Sea & Mountain View)",
+          "amount": 4500,
+          "_id": "6a208e6c7bfacec7132eb0f7"
+        },
+        {
+          "label": "Cliff-Side Sunset Dinner at Galala Heights Ristorante",
+          "amount": 3400,
+          "_id": "6a208e6c7bfacec7132eb0f8"
+        },
+        {
+          "label": "Galala Teleferik Cable Car Ride & Mountain Plateau Walk",
+          "amount": 2200,
+          "_id": "6a208e6c7bfacec7132eb0f9"
+        },
+        {
+          "label": "Red Sea Farewell Seafood Feast on the Beach",
+          "amount": 3100,
+          "_id": "6a208e6c7bfacec7132eb0fa"
+        }
+      ],
+      "airportPickup": false,
+      "packingGuide": "6a208e6c7bfacec7132eb0fc",
+      "itinerary": [
+        {
+          "day_number": 1,
+          "title": "Mountain Luxury Arrival & Cliff-Side Sunset Dinner",
+          "image": "/ilmonte_galala_pool_mountain.jpeg",
+          "description": "Depart Cairo at 1:00 PM in your private luxury SUV. Arrive at Il Monte Galala by 3:00 PM for VIP check-in to your Deluxe Sea & Mountain View room. Freshen up and settle in before the evening's highlight: a multi-course cliff-top dinner at Galala Heights Ristorante as the sun melts into the Red Sea.",
+          "culturalGuide": "",
+          "activities": [
+            {
+              "activity": "6a208e6b7bfacec7132eb0d7",
+              "provider": "6a207db38fb238b3281abe89",
+              "image": "/sokhna_resort_pool.jpeg",
+              "price": 0
+            },
+            {
+              "activity": "6a208e6b7bfacec7132eb0db",
+              "provider": "6a207db38fb238b3281abe8c",
+              "image": "/ilmonte_galala_pool_mountain.jpeg",
+              "price": 0
+            },
+            {
+              "activity": "6a208e6b7bfacec7132eb0df",
+              "provider": "6a207db38fb238b3281abe8f",
+              "image": "/galala_beach_restaurant.jpeg",
+              "price": 3400
+            }
+          ]
+        },
+        {
+          "day_number": 2,
+          "title": "Crystal Lagoon & Galala Cable Car Adventure",
+          "image": "/galala_cable_car.jpeg",
+          "description": "A morning of total relaxation at the resort's crystal saltwater lagoon — swim, kayak, and unwind in your private cabana. In the afternoon, ride the Galala Teleferik Cable Car up to 1,000 metres for a guided mountain plateau walk with sweeping 360° views of the Red Sea and Sinai.",
+          "culturalGuide": "",
+          "activities": [
+            {
+              "activity": "6a208e6b7bfacec7132eb0e3",
+              "provider": "6a207db38fb238b3281abe92",
+              "image": "/ilmonte_galala_beach.jpeg",
+              "price": 0
+            },
+            {
+              "activity": "6a208e6b7bfacec7132eb0e7",
+              "provider": "6a207db38fb238b3281abe95",
+              "image": "/galala_cable_car.jpeg",
+              "price": 2200
+            }
+          ]
+        },
+        {
+          "day_number": 3,
+          "title": "Sunrise Yoga & Farewell Red Sea Seafood Feast",
+          "image": "/sokhna_sunrise_yoga.jpeg",
+          "description": "Rise at 7:00 AM for a guided sunrise yoga and meditation session on the private beach as the Red Sea glows with morning light. After a leisure morning, the trip closes with a grand farewell seafood banquet on the sand — a fitting farewell to Galala.",
+          "culturalGuide": "",
+          "activities": [
+            {
+              "activity": "6a208e6b7bfacec7132eb0eb",
+              "provider": "6a207db38fb238b3281abe98",
+              "image": "/sokhna_sunrise_yoga.jpeg",
+              "price": 0
+            },
+            {
+              "activity": "6a208e6b7bfacec7132eb0ef",
+              "provider": "6a207db38fb238b3281abe9b",
+              "image": "/galala_beach_restaurant.jpeg",
+              "price": 3100
+            }
+          ]
+        }
+      ],
+      "addons": [],
+      "createdAt": "2026-06-03T20:28:28.012Z",
+      "updatedAt": "2026-06-03T20:28:28.023Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e73337972073708a0c7",
+      "name": "Sokhna Marina Premium Yachting & Leisure",
+      "type": "Trip",
+      "description": "A 4-day premium coastal escape at the Mövenpick Resort El Sokhna. Arrive and explore the resort's golf course by private cart. Spend Day 2 at a secluded private beach cove by speedboat, then stroll the vibrant Porto Marina at dusk. Day 3 brings an adrenaline-fuelled intro scuba dive on Sokhna's coral walls, followed by a luxurious full spa afternoon. Check out after the most indulgent breakfast of the trip — served floating in your private pool.",
+      "duration_days": 4,
+      "price": 14200,
+      "isFeatured": false,
+      "destination": "6a207db38fb238b3281abe86",
+      "capacity": 10,
+      "availableDates": [
+        {
+          "date": "2026-06-27T00:00:00.000Z",
+          "availableSeats": 10,
+          "_id": "6a208e73337972073708a0c8"
+        },
+        {
+          "date": "2026-07-11T00:00:00.000Z",
+          "availableSeats": 10,
+          "_id": "6a208e73337972073708a0c9"
+        },
+        {
+          "date": "2026-07-25T00:00:00.000Z",
+          "availableSeats": 10,
+          "_id": "6a208e73337972073708a0ca"
+        },
+        {
+          "date": "2026-08-08T00:00:00.000Z",
+          "availableSeats": 10,
+          "_id": "6a208e73337972073708a0cb"
+        }
+      ],
+      "image": "/porto_sokhna_marina.jpeg",
+      "images": [
+        "/porto_sokhna_marina.jpeg",
+        "/porto_sokhna_beach.jpeg",
+        "/movenpick_sea_view_room.jpeg",
+        "/sokhna_golf_carts.jpeg",
+        "/sokhna_red_sea_diving.jpeg",
+        "/sokhna_sunset_terrace.jpeg"
+      ],
+      "included": [
+        "3 nights accommodation at Mövenpick Resort El Sokhna (Private Beachfront Chalet)",
+        "Luxury group transfer Cairo ↔ Porto Sokhna (premium Mercedes Coaster)",
+        "Private speedboat excursion to secluded beach cove (Day 2)",
+        "Porto Sokhna Marina Boardwalk & yacht harbour café crawl with dessert",
+        "Sunset golf course tour via private golf carts + premium international dinner",
+        "Introductory Red Sea Scuba Diving with PADI instructor (full equipment included)",
+        "Full-body massage + sauna, steam room & jacuzzi at The Spa at Mövenpick",
+        "Floating breakfast in private villa pool (Day 4)",
+        "All resort taxes and service charges"
+      ],
+      "excluded": [
+        "Personal beach purchases & water sport upgrades",
+        "Extra beverages beyond the package allowance",
+        "Advanced scuba certification course (available on request)",
+        "Golf playing fees (tour only is included)",
+        "Tipping for resort staff, instructors, and drivers"
+      ],
+      "priceBreakdown": [
+        {
+          "label": "Mövenpick Resort El Sokhna – 3 Nights (Beachfront Chalet)",
+          "amount": 5400,
+          "_id": "6a208e73337972073708a0cc"
+        },
+        {
+          "label": "Sunset Golf Course Tour & Premium International Dinner",
+          "amount": 2800,
+          "_id": "6a208e73337972073708a0cd"
+        },
+        {
+          "label": "Porto Sokhna Marina Boardwalk & Café Crawl (Day 2)",
+          "amount": 1500,
+          "_id": "6a208e73337972073708a0ce"
+        },
+        {
+          "label": "Introductory Red Sea Scuba Diving – PADI (incl. equipment)",
+          "amount": 4500,
+          "_id": "6a208e73337972073708a0cf"
+        }
+      ],
+      "airportPickup": false,
+      "packingGuide": "6a208e73337972073708a0d1",
+      "itinerary": [
+        {
+          "day_number": 1,
+          "title": "The Coastal Welcome & Golf Cart Sunset Tour",
+          "image": "/sokhna_golf_carts.jpeg",
+          "description": "Depart Cairo at 11:00 AM in the luxury Mercedes Coaster, arriving at the Mövenpick by 1:00 PM for beachfront chalet check-in and a mint tea welcome. As evening approaches, board private golf carts to tour the manicured resort golf course, ending with a premium international dinner.",
+          "culturalGuide": "",
+          "activities": [
+            {
+              "activity": "6a208e73337972073708a0a8",
+              "provider": "6a207540f8301b365291b7f1",
+              "image": "/porto_sokhna_beach.jpeg",
+              "price": 0
+            },
+            {
+              "activity": "6a208e73337972073708a0ac",
+              "provider": "6a207db34452aca5592c3f1e",
+              "image": "/movenpick_sea_view_room.jpeg",
+              "price": 0
+            },
+            {
+              "activity": "6a208e73337972073708a0b0",
+              "provider": "6a207db34452aca5592c3f21",
+              "image": "/sokhna_golf_carts.jpeg",
+              "price": 2800
+            }
+          ]
+        },
+        {
+          "day_number": 2,
+          "title": "Private Speedboat Cove & Porto Marina Evening",
+          "image": "/porto_sokhna_marina.jpeg",
+          "description": "The morning belongs to the sea — a private speedboat whisks you to a secluded Red Sea cove for swimming and snorkeling away from the crowds. Return to the resort by 2:00 PM. At 4:30 PM, begin an evening guided stroll through the buzzing Porto Sokhna Marina for dessert and coffee by the yachts.",
+          "culturalGuide": "",
+          "activities": [
+            {
+              "activity": "6a208e73337972073708a0b4",
+              "provider": "6a207db34452aca5592c3f24",
+              "image": "/porto_sokhna_beach.jpeg",
+              "price": 0
+            },
+            {
+              "activity": "6a208e73337972073708a0b8",
+              "provider": "6a207db34452aca5592c3f27",
+              "image": "/porto_sokhna_marina.jpeg",
+              "price": 1500
+            }
+          ]
+        },
+        {
+          "day_number": 3,
+          "title": "Deep Red Sea Diving & Luxury Spa Afternoon",
+          "image": "/sokhna_red_sea_diving.jpeg",
+          "description": "The most action-packed day: a morning intro scuba dive under PADI supervision on Sokhna's dramatic underwater coral walls. Return for a buffet lunch, then spend the afternoon in total relaxation at The Spa at Mövenpick — full body massage followed by sauna and jacuzzi.",
+          "culturalGuide": "",
+          "activities": [
+            {
+              "activity": "6a208e73337972073708a0bc",
+              "provider": "6a207db34452aca5592c3f2a",
+              "image": "/sokhna_red_sea_diving.jpeg",
+              "price": 4500
+            },
+            {
+              "activity": "6a208e73337972073708a0c0",
+              "provider": "6a207db34452aca5592c3f2d",
+              "image": "/sokhna_sunset_terrace.jpeg",
+              "price": 0
+            }
+          ]
+        },
+        {
+          "day_number": 4,
+          "title": "Floating Breakfast & Farewell Departure",
+          "image": "/movenpick_sea_view_room.jpeg",
+          "description": "Wake up slowly — a gourmet floating breakfast is served directly in your private villa pool at 9:00 AM. Savour the final Red Sea views before checking out and boarding the return transfer to Cairo.",
+          "culturalGuide": "",
+          "activities": [
+            {
+              "activity": "6a208e73337972073708a0c4",
+              "provider": "6a207db34452aca5592c3f1e",
+              "image": "/movenpick_sea_view_room.jpeg",
+              "price": 0
+            }
+          ]
+        }
+      ],
+      "addons": [],
+      "createdAt": "2026-06-03T20:28:35.900Z",
+      "updatedAt": "2026-06-03T20:28:35.910Z",
+      "__v": 0
+    }
+  ],
+  "activities": [
+    {
+      "_id": "6a201cb8cd943c3dd319a4c9",
+      "name": "Private Giza Pyramids Tour",
+      "type": "tour",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a201c5eca08a4fc0836aa07",
+      "price": 1450,
+      "isAvailable": true,
+      "createdAt": "2026-06-03T12:23:20.670Z",
+      "updatedAt": "2026-06-03T17:56:38.589Z",
+      "__v": 0,
+      "description": "Giza Pyramids plateau private tour.",
+      "image": "https://upload.wikimedia.org/wikipedia/commons/e/e3/Kheops-Pyramid.jpg"
+    },
+    {
+      "_id": "6a201cb8cd943c3dd319a4cc",
+      "name": "Grand Egyptian Museum Visit",
+      "type": "tour",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a201c5eca08a4fc0836aa0a",
+      "price": 2900,
+      "isAvailable": true,
+      "createdAt": "2026-06-03T12:23:20.678Z",
+      "updatedAt": "2026-06-03T17:56:38.597Z",
+      "__v": 0,
+      "description": "Grand Egyptian museum main visit.",
+      "image": "/gem_galleries.png"
+    },
+    {
+      "_id": "6a201cb8cd943c3dd319a4cf",
+      "name": "Khan El Khalili Walking Tour",
+      "type": "tour",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a201c5eca08a4fc0836aa07",
+      "price": 900,
+      "isAvailable": true,
+      "createdAt": "2026-06-03T12:23:20.683Z",
+      "updatedAt": "2026-06-03T17:56:38.595Z",
+      "__v": 0,
+      "description": "Historic bazaar walking tour.",
+      "image": "/khan_khalili_shop.png"
+    },
+    {
+      "_id": "6a202ef0a00ff4c9cf02c146",
+      "name": "Jet Skiing & Banana Boat Ride",
+      "type": "entertainment",
+      "destination": "6a1d88f9ed7278b571da467d",
+      "provider": "6a201d2083e5ac43e3a593c7",
+      "price": 300,
+      "image": "https://images.unsplash.com/photo-1569263979104-865ab7cd8d13?auto=format&fit=crop&w=800&q=80",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T13:41:04.296Z",
+      "updatedAt": "2026-06-03T13:41:04.296Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a202ef0a00ff4c9cf02c14a",
+      "name": "Mount Galala Quad Biking Safari",
+      "type": "entertainment",
+      "destination": "6a1d88f9ed7278b571da467d",
+      "provider": "6a201d2083e5ac43e3a593c7",
+      "price": 400,
+      "image": "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=800&q=80",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T13:41:04.304Z",
+      "updatedAt": "2026-06-03T13:41:04.304Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a202ef0a00ff4c9cf02c14e",
+      "name": "Seafood Fine Dining & Boardwalk",
+      "type": "entertainment",
+      "destination": "6a1d88f9ed7278b571da467d",
+      "provider": "6a201d2083e5ac43e3a593c7",
+      "price": 450,
+      "image": "https://images.unsplash.com/photo-1534080564583-6be75777b70a?auto=format&fit=crop&w=800&q=80",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T13:41:04.308Z",
+      "updatedAt": "2026-06-03T13:41:04.308Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a202ef0a00ff4c9cf02c152",
+      "name": "Coral Reef Snorkeling & Paddleboarding",
+      "type": "entertainment",
+      "destination": "6a1d88f9ed7278b571da467d",
+      "provider": "6a201d2083e5ac43e3a593c7",
+      "price": 200,
+      "image": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T13:41:04.312Z",
+      "updatedAt": "2026-06-03T13:41:04.312Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a202ef0a00ff4c9cf02c156",
+      "name": "Minaret Climbing & Storytelling",
+      "type": "tour",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a201d2083e5ac43e3a593c9",
+      "price": 150,
+      "image": "/al_muizz_walk.jpg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T13:41:04.315Z",
+      "updatedAt": "2026-06-03T17:56:38.600Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a202ef0a00ff4c9cf02c15a",
+      "name": "Pyramids Guided Tour",
+      "type": "tour",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a201d2083e5ac43e3a593cb",
+      "price": 300,
+      "image": "https://upload.wikimedia.org/wikipedia/commons/e/e3/Kheops-Pyramid.jpg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T13:41:04.318Z",
+      "updatedAt": "2026-06-03T17:56:38.598Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a202ef0a00ff4c9cf02c15e",
+      "name": "National Museum of Egyptian Civilization",
+      "type": "tour",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a201d2083e5ac43e3a593c9",
+      "price": 250,
+      "image": "/nmec_museum.jpg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T13:41:04.322Z",
+      "updatedAt": "2026-06-03T13:41:04.322Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a202ef0a00ff4c9cf02c162",
+      "name": "Nile Kayaking Experience",
+      "type": "entertainment",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a201d2083e5ac43e3a593cb",
+      "price": 200,
+      "image": "/nile_kayaking.jpg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T13:41:04.325Z",
+      "updatedAt": "2026-06-03T13:41:04.325Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a202ef0a00ff4c9cf02c166",
+      "name": "Qaitbay Citadel Guided Tour",
+      "type": "tour",
+      "destination": "6a1f1f33e72d296302f4d85c",
+      "provider": "6a201d2083e5ac43e3a593c2",
+      "price": 150,
+      "image": "https://upload.wikimedia.org/wikipedia/commons/d/de/Qaitbay_Citadel_by_Wael_El_Sisi.jpg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T13:41:04.328Z",
+      "updatedAt": "2026-06-03T13:41:04.328Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a202ef0a00ff4c9cf02c16a",
+      "name": "Roman Amphitheatre & Catacombs Tour",
+      "type": "tour",
+      "destination": "6a1f1f33e72d296302f4d85c",
+      "provider": "6a201d2083e5ac43e3a593c2",
+      "price": 200,
+      "image": "https://upload.wikimedia.org/wikipedia/commons/4/4b/Catacombs_of_Kom_El_Shoqafa_1.jpg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T13:41:04.332Z",
+      "updatedAt": "2026-06-03T13:41:04.332Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a202ef0a00ff4c9cf02c16e",
+      "name": "Mediterranean Sailing & Sunset Cruise",
+      "type": "tour",
+      "destination": "6a1f1f33e72d296302f4d85c",
+      "provider": "6a201d2083e5ac43e3a593c2",
+      "price": 400,
+      "image": "https://images.unsplash.com/photo-1500916434205-0c77489c6cf7?auto=format&fit=crop&w=800&q=80",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T13:41:04.335Z",
+      "updatedAt": "2026-06-03T13:41:04.335Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a202ef0a00ff4c9cf02c172",
+      "name": "Seaside Kayaking & Paddleboarding",
+      "type": "entertainment",
+      "destination": "6a1f1f33e72d296302f4d85c",
+      "provider": "6a201d2083e5ac43e3a593c2",
+      "price": 200,
+      "image": "https://images.unsplash.com/photo-1543966888-7c1dc482a810?auto=format&fit=crop&w=800&q=80",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T13:41:04.337Z",
+      "updatedAt": "2026-06-03T13:41:04.337Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a2043194c379d5051520ea5",
+      "name": "Steigenberger El Tahrir Fuel Up Breakfast",
+      "type": "food",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a2042dcdf7998978d5d59c0",
+      "price": 0,
+      "description": "Grab a hearty buffet breakfast at the hotel to prepare for a long day of outdoor walking through historic Islamic Cairo.",
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Cairo_from_the_Nile.jpg/1280px-Cairo_from_the_Nile.jpg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T15:07:05.955Z",
+      "updatedAt": "2026-06-03T15:07:05.955Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a206aa368ba31db4623bee8",
+      "name": "Gomhouria Theatre Arrival & Guest Reception",
+      "type": "entertainment",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a2053dd127c722edbb57527",
+      "price": 0,
+      "description": "Arrive at the historic Gomhouria Theatre in Downtown Cairo. Complete your check-in, receive your event programme booklet, and settle into your classic theatre seats while enjoying pre-show warm-ups.",
+      "image": "/gomhouria_theatre_interior.png",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T17:55:47.398Z",
+      "updatedAt": "2026-06-03T17:55:47.398Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a206aa368ba31db4623beec",
+      "name": "Mohamed Mounir Live on Stage - Gomhouria Theatre",
+      "type": "entertainment",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a204e4612a3e371fc4703d2",
+      "price": 1800,
+      "description": "Witness a soulful Nubian night with 'The King' Mohamed Mounir. Enjoy an exceptional 3-hour live performance blending jazz, folk, and traditional Arabic melodies, featuring legendary hits from 'Bnetweled' to 'Shababeek'.",
+      "image": "/mounir_performing.png",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T17:55:47.414Z",
+      "updatedAt": "2026-06-03T17:55:47.414Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a206aa368ba31db4623bf00",
+      "name": "Al-Hussein Mosque & Square Visit",
+      "type": "tour",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a201c5eca08a4fc0836aa07",
+      "price": 0,
+      "description": "Arrive at the beating heart of Islamic Cairo. Explore the revered Al-Hussein Mosque and its vibrant surrounding square, soaking in the deeply historic and spiritual atmosphere of the area.",
+      "image": "/al_hussein_mosque_interior.png",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T17:55:47.458Z",
+      "updatedAt": "2026-06-03T17:55:47.458Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a206aa368ba31db4623bf04",
+      "name": "Al-Muizz Street Open-Air Museum Walk",
+      "type": "tour",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a201c5eca08a4fc0836aa07",
+      "price": 850,
+      "description": "Guided walk through Al-Muizz li-Din Allah Street — the world's largest open-air museum of Islamic architecture. Discover 1,000 years of history through ornate gates, majestic palaces, and medieval sultans' monuments from Bab El Futuh to Bab Zuweila.",
+      "image": "/al_muizz_minarets_night.png",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T17:55:47.463Z",
+      "updatedAt": "2026-06-03T17:55:47.463Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a206aa368ba31db4623bf08",
+      "name": "Khan El Khalili Bazaar & Traditional Coffee House",
+      "type": "food",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a2053dd127c722edbb5752b",
+      "price": 0,
+      "description": "Dive into the winding, crowded alleyways of Cairo's most famous historic market. Enjoy free time for souvenir shopping followed by a relaxing stop for traditional refreshments at the legendary El Fishawy Cafe.",
+      "image": "/khan_khalili_bazaar.png",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T17:55:47.467Z",
+      "updatedAt": "2026-06-03T17:55:47.467Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a206acfdfbb73b7818bc455",
+      "name": "Steigenberger El Tahrir Hotel Breakfast Buffet",
+      "type": "food",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a2042dcdf7998978d5d59c0",
+      "price": 0,
+      "description": "Start your day with a fresh buffet breakfast at the Steigenberger restaurant to fuel up before exploring Cairo.",
+      "image": "/menahouse_breakfast.png",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T17:56:31.835Z",
+      "updatedAt": "2026-06-03T17:56:31.835Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a206acfdfbb73b7818bc459",
+      "name": "Hanging Obelisk & Grand Hall Exploration",
+      "type": "tour",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a201c5eca08a4fc0836aa0a",
+      "price": 0,
+      "description": "Witness the world's first Hanging Obelisk and walk through the Grand Hall past the colossal statue of King Ramses II.",
+      "image": "/gem_ramses.png",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T17:56:31.843Z",
+      "updatedAt": "2026-06-03T17:56:31.843Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a206acfdfbb73b7818bc45d",
+      "name": "Grand Egyptian Museum Main Galleries Tour",
+      "type": "tour",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a201c5eca08a4fc0836aa0a",
+      "price": 2900,
+      "description": "Comprehensive guided tour through the world's largest archaeological museum complex alongside expert Egyptologists.",
+      "image": "/gem_galleries.png",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T17:56:31.849Z",
+      "updatedAt": "2026-06-03T17:56:31.849Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a206acfdfbb73b7818bc461",
+      "name": "GEM Promenade Free Walk & Café Stop",
+      "type": "tour",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a201c5eca08a4fc0836aa0a",
+      "price": 0,
+      "description": "Free time strolling the modern museum promenade, visiting souvenir shops, or grabbing refreshments at the design cafes.",
+      "image": "/nmec_museum.jpg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T17:56:31.853Z",
+      "updatedAt": "2026-06-03T17:56:31.853Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a206acfdfbb73b7818bc465",
+      "name": "Historic Gates & Ornate Stonework Walk",
+      "type": "tour",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a2042dcdf7998978d5d59c4",
+      "price": 0,
+      "description": "Inspect the ancient grand stone gates and fortifications of the Fatimid medieval city of Islamic Cairo.",
+      "image": "/al_muizz_architecture.jpg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T17:56:31.858Z",
+      "updatedAt": "2026-06-03T17:56:31.858Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a206acfdfbb73b7818bc469",
+      "name": "Islamic Cairo Heritage Walk & Minaret Exploration",
+      "type": "tour",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a2042dcdf7998978d5d59c4",
+      "price": 1100,
+      "description": "Walk 4–6 km on cobblestones and uneven historic streets to visit majestic medieval mosques and historic Islamic monuments along Al-Muizz Street.",
+      "image": "/al_muizz_walk.jpg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T17:56:31.862Z",
+      "updatedAt": "2026-06-03T17:56:31.862Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a206ad60aa6a4b3a7e0f300",
+      "name": "Royal Pyramids-View Breakfast Buffet",
+      "type": "food",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a2024d20601decfa74db1ff",
+      "price": 0,
+      "description": "Start your luxury getaway with a premium open-buffet breakfast featuring a rich selection of international and local delicacies, served in a historic garden setting directly overlooking the majestic Giza Pyramids.",
+      "image": "/menahouse_breakfast.png",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T17:56:38.547Z",
+      "updatedAt": "2026-06-03T17:56:38.547Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a206ad60aa6a4b3a7e0f304",
+      "name": "Great Pyramid of Giza Tour",
+      "type": "tour",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a201c5eca08a4fc0836aa07",
+      "price": 500,
+      "description": "Embark on a private guided tour around the Great Pyramid of Khufu, the sole surviving wonder of the ancient world. Walk the historic desert trails with a licensed guide, uncover architectural mysteries, and capture incredible close-up photos alongside the massive stone blocks.",
+      "image": "https://upload.wikimedia.org/wikipedia/commons/e/e3/Kheops-Pyramid.jpg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T17:56:38.556Z",
+      "updatedAt": "2026-06-03T17:56:38.556Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a206ad60aa6a4b3a7e0f308",
+      "name": "Pyramids Panorama View & Photo Session",
+      "type": "tour",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a201c5eca08a4fc0836aa07",
+      "price": 450,
+      "description": "Drive comfortably to the highest plateau viewpoint to capture the ultimate panoramic landscape of all three Giza pyramids lined up together. Enjoy a dedicated professional photo session with the iconic ancient complex serving as your sweeping backdrop.",
+      "image": "https://upload.wikimedia.org/wikipedia/commons/a/af/All_Gizah_Pyramids.jpg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T17:56:38.562Z",
+      "updatedAt": "2026-06-03T17:56:38.562Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a206ad60aa6a4b3a7e0f30c",
+      "name": "Optional Giza Pyramids Camel Ride",
+      "type": "tour",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a201c5eca08a4fc0836aa07",
+      "price": 0,
+      "description": "Experience an authentic desert adventure with a scenic camel ride across the rolling sands behind the pyramids. This optional activity offers a classic, adventurous way to explore the open landscape and capture timeless postcard-perfect memories.",
+      "image": "/pyramids_camel.png",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T17:56:38.566Z",
+      "updatedAt": "2026-06-03T17:56:38.566Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a206ad60aa6a4b3a7e0f310",
+      "name": "Great Sphinx & Valley Temple Tour",
+      "type": "tour",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a201c5eca08a4fc0836aa07",
+      "price": 500,
+      "description": "Step inside the ancient Valley Temple of King Khafre to walk through its monumental granite corridors used for mummification rituals. Exit directly into the Sphinx enclosure to stand face-to-face with the legendary colossal guardian and discover its thousands of years of royal history.",
+      "image": "https://upload.wikimedia.org/wikipedia/commons/f/f6/Great_Sphinx_of_Giza_-_20080716a.jpg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T17:56:38.571Z",
+      "updatedAt": "2026-06-03T17:56:38.571Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a206ad60aa6a4b3a7e0f314",
+      "name": "GEM Exhibition Galleries Tour",
+      "type": "tour",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a201c5eca08a4fc0836aa0a",
+      "price": 1600,
+      "description": "Take a comprehensive guided tour through the world's largest archaeological museum complex. Walk alongside expert Egyptologists to discover thousands of years of royal history, marvel at masterfully curated pharaonic collections, and explore the sprawling main exhibit halls.",
+      "image": "/gem_galleries.png",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T17:56:38.575Z",
+      "updatedAt": "2026-06-03T17:56:38.575Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a206ad60aa6a4b3a7e0f318",
+      "name": "Hanging Obelisk & Grand Hall Tour",
+      "type": "tour",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a201c5eca08a4fc0836aa0a",
+      "price": 1300,
+      "description": "Witness the architectural marvel of the world's very first Hanging Obelisk positioned right at the museum's entrance. Continue your journey into the magnificent Grand Hall to stand beneath the colossal, 3,200-year-old statue of King Ramses II and appreciate the breathtaking structural scale of this modern monument.",
+      "image": "/gem_ramses.png",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T17:56:38.578Z",
+      "updatedAt": "2026-06-03T17:56:38.578Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a206ad60aa6a4b3a7e0f31c",
+      "name": "Al-Muizz Street Guided Historic Walk",
+      "type": "tour",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a201c5eca08a4fc0836aa07",
+      "price": 500,
+      "description": "Take an immersive guided walking tour through Al-Muizz Street, one of the world's oldest open-air museums of Islamic heritage. Explore medieval architecture, grand historical mosque structures, ornate gates, and century-old monuments alongside a professional supervisor who will share stories of Cairo's rich royal history.",
+      "image": "/al_muizz_walk.jpg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T17:56:38.582Z",
+      "updatedAt": "2026-06-03T17:56:38.582Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a206ad60aa6a4b3a7e0f320",
+      "name": "Khan El Khalili Bazaar Shopping & Treasures",
+      "type": "tour",
+      "destination": "6a1c33181557e8d5209290a8",
+      "provider": "6a201c5eca08a4fc0836aa07",
+      "price": 400,
+      "description": "Dive into the vibrant, crowded lanes of Cairo's most famous historic marketplace. Enjoy a unique shopping experience as you browse traditional silver crafts, handmade perfumes, colorful textiles, and authentic souvenirs, with an optional relaxing stop at a classic local coffeehouse to soak in the atmosphere.",
+      "image": "/khan_khalili_shop.png",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T17:56:38.586Z",
+      "updatedAt": "2026-06-03T17:56:38.586Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e2c213451db70925250",
+      "name": "Montazah Royal Gardens Walk & Morning Coffee",
+      "type": "tour",
+      "destination": "6a1f1f33e72d296302f4d85c",
+      "provider": "6a206f3d008f727c041a2a94",
+      "price": 0,
+      "description": "Arrive at the historic Montazah Royal Gardens. Enjoy a guided walking tour through the lush green canopy, pine trees, and historic bridges, followed by a premium morning coffee setup overlooking the tea palace.",
+      "image": "/montazah_palace_garden.jpg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:27:24.700Z",
+      "updatedAt": "2026-06-03T20:27:24.700Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e2c213451db70925254",
+      "name": "Helnan Palestine Private Beach & Cabana Day Use",
+      "type": "tour",
+      "destination": "6a1f1f33e72d296302f4d85c",
+      "provider": "6a206f3d008f727c041a2a91",
+      "price": 3500,
+      "description": "Check into your premium day-use beach cabana at Helnan Palestine. Enjoy swimming in the Mediterranean, sunbathing on the private sandy beach, and luxury beach stewardship service.",
+      "image": "/helnan_private_beach.jpg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:27:24.708Z",
+      "updatedAt": "2026-06-03T20:27:24.708Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e2c213451db70925258",
+      "name": "Sunset Seafood Dining & Yacht Marina Promenade",
+      "type": "food",
+      "destination": "6a1f1f33e72d296302f4d85c",
+      "provider": "6a206f3d008f727c041a2a91",
+      "price": 0,
+      "description": "A lavish 3-course seafood dinner served at the hotel's terrace directly on the water during sunset, followed by a free stroll around the private yacht marina.",
+      "image": "/helnan_sunset_dining.jpg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:27:24.713Z",
+      "updatedAt": "2026-06-03T20:27:24.713Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e355b6fd2695b743258",
+      "name": "Citadel of Qaitbay Panoramic Walk & Yacht Boarding",
+      "type": "tour",
+      "destination": "6a1f1f33e72d296302f4d85c",
+      "provider": "6a207540f8301b365291b7f1",
+      "price": 0,
+      "description": "Gather at the iconic gates of the Citadel of Qaitbay overlooking the Mediterranean for panoramic photos, followed by VIP boarding onto a chartered luxury multi-deck yacht at the historic Eastern Harbour.",
+      "image": "/qaitbay_citadel.png",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:27:33.576Z",
+      "updatedAt": "2026-06-03T20:27:33.576Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e355b6fd2695b74325c",
+      "name": "Snorkeling Over Cleopatra's Sunken Palace & Pharos Ruins",
+      "type": "tour",
+      "destination": "6a1f1f33e72d296302f4d85c",
+      "provider": "6a207540f8301b365291b7f4",
+      "price": 4200,
+      "description": "The yacht anchors directly over the ancient underwater archaeological site off the Eastern Harbour. Accompanied by expert divers, snorkel through the submerged remains of the ancient Pharos lighthouse and Cleopatra's sunken palace — a living museum beneath the sea. Includes all snorkeling gear, wetsuit, and dedicated safety boat.",
+      "image": "/sunken_ruins_underwater.png",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:27:33.584Z",
+      "updatedAt": "2026-06-03T20:27:33.584Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e355b6fd2695b743260",
+      "name": "Fresh Catch Seafood Lunch At Sea & Mediterranean Sunset Cruise",
+      "type": "food",
+      "destination": "6a1f1f33e72d296302f4d85c",
+      "provider": "6a207540f8301b365291b7f7",
+      "price": 0,
+      "description": "Savour a freshly grilled seafood lunch prepared live by the onboard chef — think whole sea bream, grilled prawns, and Mediterranean mezze — while the yacht cruises further into the open sea. The day ends with a breathtaking panoramic sunset over Alexandria's legendary skyline.",
+      "image": "/yacht_seafood_lunch.png",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:27:33.588Z",
+      "updatedAt": "2026-06-03T20:27:33.588Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e41497026472325e72d",
+      "name": "Wadi El Dom Marina Meetup & Luxury Yacht Boarding",
+      "type": "transport",
+      "destination": "6a207db38fb238b3281abe86",
+      "provider": "6a207540f8301b365291b7f1",
+      "price": 0,
+      "description": "Gather at the gates of Wadi El Dom Marina in Porto Sokhna for a safety briefing and welcome photos, followed by VIP boarding onto a chartered luxury multi-deck yacht for your full-day Red Sea adventure.",
+      "image": "/galala_marina_pier.jpeg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:27:45.658Z",
+      "updatedAt": "2026-06-03T20:27:45.658Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e41497026472325e731",
+      "name": "Snorkeling Over Sokhna Red Sea Coral Reefs",
+      "type": "tour",
+      "destination": "6a207db38fb238b3281abe86",
+      "provider": "6a208236297511ea2af0e769",
+      "price": 4200,
+      "description": "The yacht anchors directly over a vibrant underwater coral reef site in the Red Sea. Guests snorkel with expert instructors to explore colourful fish, coral gardens, and rich marine life. Includes full snorkeling gear, wetsuit, and dedicated safety boat.",
+      "image": "/sokhna_coral_reef_snorkeling.jpeg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:27:45.667Z",
+      "updatedAt": "2026-06-03T20:27:45.667Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e41497026472325e735",
+      "name": "Fresh Seafood Lunch At Sea & Galala Mountain Sunset Cruise",
+      "type": "food",
+      "destination": "6a207db38fb238b3281abe86",
+      "provider": "6a208236297511ea2af0e76c",
+      "price": 0,
+      "description": "Enjoy a freshly grilled seafood lunch prepared by the onboard chef while cruising along the dramatic Galala mountain coastline. The day closes with a golden sunset over the Red Sea as the yacht returns to Porto Sokhna marina.",
+      "image": "/sokhna_yacht_sunset_dinner.jpeg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:27:45.672Z",
+      "updatedAt": "2026-06-03T20:27:45.672Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e498f6c78e2e0a49143",
+      "name": "Rixos Premium Seagate Breakfast Buffet (Red Sea View)",
+      "type": "food",
+      "destination": "6a20782cac82b92dcf9206a1",
+      "provider": "6a20782cac82b92dcf9206a4",
+      "price": 0,
+      "description": "Start your first day with a full international breakfast buffet at the Rixos restaurant overlooking the Red Sea and the resort's lush gardens.",
+      "image": "/rixos_breakfast_buffet.jpeg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:27:53.291Z",
+      "updatedAt": "2026-06-03T20:27:53.291Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e498f6c78e2e0a49147",
+      "name": "Hotel Transfer to Marina & Scuba Dive Equipment Briefing",
+      "type": "transport",
+      "destination": "6a20782cac82b92dcf9206a1",
+      "provider": "6a20782cac82b92dcf9206a7",
+      "price": 0,
+      "description": "Air-conditioned hotel pickup from Rixos to Sharm El Sheikh Marina. Receive full dive equipment, wetsuit fitting, and a comprehensive safety briefing from PADI-certified instructors at Camel Dive Club before heading out to Ras Mohammed.",
+      "image": "/ras_mohammed_split.jpeg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:27:53.298Z",
+      "updatedAt": "2026-06-03T20:27:53.298Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e498f6c78e2e0a4914b",
+      "name": "Ras Mohammed National Park – Guided Scuba Diving (2 Dives)",
+      "type": "tour",
+      "destination": "6a20782cac82b92dcf9206a1",
+      "provider": "6a20782cac82b92dcf9206a7",
+      "price": 3000,
+      "description": "Two guided scuba dives inside Egypt's first national marine park — Shark Reef and Yolanda Reef. Dive alongside sea turtles, reef sharks, barracudas, and Napoleon wrasse in the crystal-clear Gulf of Aqaba. Includes all equipment, dive boat, and certified guide. (Total Day 1 charge)",
+      "image": "/ras_mohammed_dive_boat.jpeg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:27:53.303Z",
+      "updatedAt": "2026-06-03T20:27:53.303Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e498f6c78e2e0a4914f",
+      "name": "Rixos Premium Seagate Fuel-Up Breakfast Buffet",
+      "type": "food",
+      "destination": "6a20782cac82b92dcf9206a1",
+      "provider": "6a20782cac82b92dcf9206a4",
+      "price": 0,
+      "description": "A hearty full international breakfast buffet at Rixos to fuel up for a full day of snorkeling at sea followed by an evening desert safari.",
+      "image": "/rixos_breakfast_buffet.jpeg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:27:53.307Z",
+      "updatedAt": "2026-06-03T20:27:53.307Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e498f6c78e2e0a49153",
+      "name": "Tiran Island Full-Day Snorkeling Boat Trip – 4 World-Famous Reefs",
+      "type": "tour",
+      "destination": "6a20782cac82b92dcf9206a1",
+      "provider": "6a20782cac82b92dcf9206a4",
+      "price": 1750,
+      "description": "Full-day boat excursion from Sharm Marina to Tiran Island, stopping at four legendary coral reefs in the Strait of Tiran: Jackson Reef, Thomas Reef, Woodhouse Reef, and Gordon Reef. Vibrant tropical fish, giant corals, and stunning visibility in the Red Sea's clearest waters. Includes snorkeling gear and buffet lunch onboard.",
+      "image": "/tiran_reef_snorkeling.jpeg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:27:53.310Z",
+      "updatedAt": "2026-06-03T20:27:53.310Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e498f6c78e2e0a49157",
+      "name": "Sinai Desert Safari – Quad Bike, Camel Ride & Bedouin Camp Dinner",
+      "type": "hiking",
+      "destination": "6a20782cac82b92dcf9206a1",
+      "provider": "6a20782cac82b92dcf9206a4",
+      "price": 950,
+      "description": "An unforgettable afternoon and evening in the Sinai desert: ride quad bikes through the dramatic Echo Mountain passes (45–60 min), swap to camels for a sunset ride as the desert turns gold, then settle into an authentic Bedouin camp for mint tea, shisha, henna painting, a traditional grilled dinner, and open-sky stargazing.",
+      "image": "/sinai_quad_camel_safari.jpeg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:27:53.314Z",
+      "updatedAt": "2026-06-03T20:27:53.314Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e498f6c78e2e0a4915b",
+      "name": "Rixos Premium Seagate Farewell Breakfast & Resort Leisure",
+      "type": "food",
+      "destination": "6a20782cac82b92dcf9206a1",
+      "provider": "6a20782cac82b92dcf9206a4",
+      "price": 0,
+      "description": "Enjoy a leisurely final breakfast at the Rixos restaurant. Spend the morning at leisure — swim in one of 8 resort pools, relax on the private Red Sea beach, or visit the Anjana Spa before hotel checkout.",
+      "image": "/rixos_seagate_restaurant.jpeg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:27:53.317Z",
+      "updatedAt": "2026-06-03T20:27:53.317Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e55de083b8c104bf2c2",
+      "name": "Sharm El Sheikh Airport VIP Arrival Transfer",
+      "type": "airport_pickup",
+      "destination": "6a20782cac82b92dcf9206a1",
+      "provider": "6a207db38fb238b3281abe89",
+      "price": 0,
+      "description": "Direct pick-up from Sharm El-Sheikh International Airport via a private chauffeured luxury SUV, transferring you smoothly to Rixos Premium Seagate on Nabq Bay.",
+      "image": "/rixos_seagate_pool_night.png",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:28:05.540Z",
+      "updatedAt": "2026-06-03T20:28:05.540Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e55de083b8c104bf2c6",
+      "name": "Private Yacht Charter & Ras Mohamed National Park Snorkeling",
+      "type": "tour",
+      "destination": "6a20782cac82b92dcf9206a1",
+      "provider": "6a2082791dd461b7ffb83b71",
+      "price": 5500,
+      "description": "Board a private multi-deck yacht from the resort's marine jetty heading to Ras Mohamed National Park â€” one of the world's top snorkeling and diving destinations. Guided open-water snorkeling over vibrant coral reefs teeming with tropical fish, followed by a gourmet seafood buffet lunch cooked live on board by a private chef.",
+      "image": "/sharm_ras_mohamed_yacht.png",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:28:05.548Z",
+      "updatedAt": "2026-06-03T20:28:05.548Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e55de083b8c104bf2ca",
+      "name": "VIP Check-In & Rixos Nabq Bay Infinity Pool",
+      "type": "hotel",
+      "destination": "6a20782cac82b92dcf9206a1",
+      "provider": "6a20782cac82b92dcf9206a4",
+      "price": 0,
+      "description": "VIP express check-in to your Premium Sea-View Room at Rixos Premium Seagate. Spend the late afternoon unwinding at the resort's private beach-side infinity pool overlooking the crystal waters of Nabq Bay.",
+      "image": "/rixos_seagate_pool_night.png",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:28:05.552Z",
+      "updatedAt": "2026-06-03T20:28:05.552Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e55de083b8c104bf2ce",
+      "name": "Fine Dining at L'Olivo Italian Restaurant & Soho Square Stroll",
+      "type": "food",
+      "destination": "6a20782cac82b92dcf9206a1",
+      "provider": "6a2082791dd461b7ffb83b74",
+      "price": 2200,
+      "description": "A premium 4-course Italian dinner reservation at the celebrated L'Olivo restaurant inside Rixos Premium Seagate, followed by a late-night private shuttle to watch the spectacular dancing fountains at Soho Square.",
+      "image": "/rixos_fine_dining_lounge.png",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:28:05.556Z",
+      "updatedAt": "2026-06-03T20:28:05.556Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e55de083b8c104bf2d2",
+      "name": "Rixos Premium International Breakfast Buffet",
+      "type": "food",
+      "destination": "6a20782cac82b92dcf9206a1",
+      "provider": "6a20782cac82b92dcf9206a4",
+      "price": 0,
+      "description": "Indulge in an expansive open breakfast layout at the Rixos Main Terrace â€” international pastry sections, custom juice bars, and live egg stations with panoramic views directly overlooking Nabq Bay.",
+      "image": "/rixos_fine_dining_lounge.png",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:28:05.559Z",
+      "updatedAt": "2026-06-03T20:28:05.559Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e55de083b8c104bf2d6",
+      "name": "Sinai Desert Quad Biking & Bedouin Eco-Adventure",
+      "type": "hiking",
+      "destination": "6a20782cac82b92dcf9206a1",
+      "provider": "6a2082791dd461b7ffb83b77",
+      "price": 2800,
+      "description": "Race through the grand mountain canyons of the Sinai desert on high-end 400cc quad bikes. Stop inside a traditional Bedouin tent hidden between the mountains for authentic herbal tea and locally baked flatbread under the open Sinai sky.",
+      "image": "/sinai_quad_biking.png",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:28:05.563Z",
+      "updatedAt": "2026-06-03T20:28:05.563Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e55de083b8c104bf2da",
+      "name": "Anjana Luxury Spa, Hammam Bath & Hot Stone Therapy",
+      "type": "entertainment",
+      "destination": "6a20782cac82b92dcf9206a1",
+      "provider": "6a2082791dd461b7ffb83b7a",
+      "price": 3200,
+      "description": "Return to the hotel's premium Anjana Spa for a full 90-minute therapeutic body massage, traditional Turkish Hammam bath ritual, and volcanic hot stone therapy â€” the perfect recovery after the Sinai desert adventure.",
+      "image": "/anjana_hammam_spa.png",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:28:05.567Z",
+      "updatedAt": "2026-06-03T20:28:05.567Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e55de083b8c104bf2de",
+      "name": "Farsha Mountain Lounge Cliffside Sunset Experience",
+      "type": "tour",
+      "destination": "6a20782cac82b92dcf9206a1",
+      "provider": "6a2082791dd461b7ffb83b7d",
+      "price": 0,
+      "description": "Visit the legendary Farsha Mountain Lounge in Hadaba â€” perched on the cliffside with sweeping views over the Gulf. Sit on hand-crafted traditional floor cushions, savour fresh seasonal fruits and herbal tea, and watch the final sunset paint the Red Sea in gold.",
+      "image": "/farsha_lounge_sunset.png",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:28:05.570Z",
+      "updatedAt": "2026-06-03T20:28:05.570Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e55de083b8c104bf2e2",
+      "name": "Sharm El Sheikh Chauffeured Airport Departure Transfer",
+      "type": "transport",
+      "destination": "6a20782cac82b92dcf9206a1",
+      "provider": "6a207db38fb238b3281abe89",
+      "price": 0,
+      "description": "Room check-out and boarding your private chauffeured Mercedes fleet for a smooth transfer back to Sharm El-Sheikh International Airport, concluding your zero hidden fees ClearPath experience.",
+      "image": "/rixos_seagate_pool_night.png",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:28:05.574Z",
+      "updatedAt": "2026-06-03T20:28:05.574Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e6b7bfacec7132eb0d7",
+      "name": "Premium Limousine Transfer Cairo to El Sokhna",
+      "type": "transport",
+      "destination": "6a207db38fb238b3281abe86",
+      "provider": "6a207db38fb238b3281abe89",
+      "price": 0,
+      "description": "Private chauffeured transfer in a luxury high-end SUV from Cairo directly to Il Monte Galala Resort in El Sokhna, with high-speed Wi-Fi, cold towels, and premium refreshments throughout the 90-minute journey.",
+      "image": "/sokhna_resort_pool.jpeg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:28:27.967Z",
+      "updatedAt": "2026-06-03T20:28:27.967Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e6b7bfacec7132eb0db",
+      "name": "Il Monte Galala VIP Check-In & Deluxe Mountain-View Room",
+      "type": "tour",
+      "destination": "6a207db38fb238b3281abe86",
+      "provider": "6a207db38fb238b3281abe8c",
+      "price": 0,
+      "description": "Personalized express check-in to your Deluxe Sea & Mountain View room perched on the Galala cliffs, featuring panoramic Red Sea vistas, a custom welcome fruit basket, and fresh pressed juices served on your private terrace.",
+      "image": "/ilmonte_galala_pool_mountain.jpeg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:28:27.975Z",
+      "updatedAt": "2026-06-03T20:28:27.975Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e6b7bfacec7132eb0df",
+      "name": "Galala Heights Cliff-Side Sunset Dinner",
+      "type": "food",
+      "destination": "6a207db38fb238b3281abe86",
+      "provider": "6a207db38fb238b3281abe8f",
+      "price": 3400,
+      "description": "A fine dining experience at the resort's signature cliff-top Galala Heights Ristorante, perched directly above the Sokhna coastline. A multi-course Italian-inspired menu served as the sun descends into the Red Sea, creating a breathtaking panoramic backdrop. Includes welcome aperitif.",
+      "image": "/galala_beach_restaurant.jpeg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:28:27.980Z",
+      "updatedAt": "2026-06-03T20:28:27.980Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e6b7bfacec7132eb0e3",
+      "name": "Il Monte Galala Private Crystal Lagoon Kayaking & Cabana",
+      "type": "tour",
+      "destination": "6a207db38fb238b3281abe86",
+      "provider": "6a207db38fb238b3281abe92",
+      "price": 0,
+      "description": "Spend the morning at the resort's massive mountain-top saltwater crystal lagoon. Access a private beach cabana, swim in the turquoise salt water, and explore the lagoon by kayak with equipment provided by the Beach Club.",
+      "image": "/ilmonte_galala_beach.jpeg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:28:27.985Z",
+      "updatedAt": "2026-06-03T20:28:27.985Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e6b7bfacec7132eb0e7",
+      "name": "Galala Teleferik Cable Car Ride & Mountain Plateau Walk",
+      "type": "tour",
+      "destination": "6a207db38fb238b3281abe86",
+      "provider": "6a207db38fb238b3281abe95",
+      "price": 2200,
+      "description": "Ride the famous Galala Cable Car (Teleferik) — one of Egypt's most iconic mountain experiences — from the base up to the Galala plateau at 1,000 metres. At the top: panoramic 360° views of the Red Sea, the Suez Canal, and the Sinai Peninsula, a history-of-the-area guided walk, and unlimited photography time.",
+      "image": "/galala_cable_car.jpeg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:28:27.990Z",
+      "updatedAt": "2026-06-03T20:28:27.990Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e6b7bfacec7132eb0eb",
+      "name": "Guided Sunrise Beach Yoga & Meditation Session",
+      "type": "tour",
+      "destination": "6a207db38fb238b3281abe86",
+      "provider": "6a207db38fb238b3281abe98",
+      "price": 0,
+      "description": "A tranquil early morning yoga and guided meditation session on the soft sandy private beach. Led by a certified instructor, the 2-hour session combines breathwork, sun salutations, and mindfulness as the Red Sea sunrise unfolds before you.",
+      "image": "/sokhna_sunrise_yoga.jpeg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:28:27.995Z",
+      "updatedAt": "2026-06-03T20:28:27.995Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e6b7bfacec7132eb0ef",
+      "name": "Red Sea Farewell Seafood Feast on the Beach",
+      "type": "food",
+      "destination": "6a207db38fb238b3281abe86",
+      "provider": "6a207db38fb238b3281abe9b",
+      "price": 3100,
+      "description": "A grand farewell seafood banquet served directly on the private beach at the water's edge. Features a lavish spread of fresh Red Sea catch: grilled whole fish, spiced shrimp, lobster, calamari rings, and traditional mezze, all accompanied by freshly baked bread and beverages.",
+      "image": "/galala_beach_restaurant.jpeg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:28:28.000Z",
+      "updatedAt": "2026-06-03T20:28:28.000Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e73337972073708a0a8",
+      "name": "Luxury Mercedes Coaster Group Transfer Cairo to Porto Sokhna",
+      "type": "transport",
+      "destination": "6a207db38fb238b3281abe86",
+      "provider": "6a207540f8301b365291b7f1",
+      "price": 0,
+      "description": "Comfortable, fully air-conditioned group transfer from Cairo to the Porto Sokhna area in a premium Mercedes Coaster, with complimentary bottled water and Wi-Fi for the 90-minute journey.",
+      "image": "/porto_sokhna_beach.jpeg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:28:35.862Z",
+      "updatedAt": "2026-06-03T20:28:35.862Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e73337972073708a0ac",
+      "name": "Mövenpick Sokhna Sea-Front Chalet Check-In & Welcome",
+      "type": "tour",
+      "destination": "6a207db38fb238b3281abe86",
+      "provider": "6a207db34452aca5592c3f1e",
+      "price": 0,
+      "description": "Seamless express check-in to your private beachfront chalet with direct sea access at the Mövenpick Resort El Sokhna. Greeted with a traditional Egyptian mint tea ceremony on your private terrace overlooking the Red Sea.",
+      "image": "/movenpick_sea_view_room.jpeg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:28:35.870Z",
+      "updatedAt": "2026-06-03T20:28:35.870Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e73337972073708a0b0",
+      "name": "Sunset Golf Course Tour via Private Golf Carts & Premium Dinner",
+      "type": "food",
+      "destination": "6a207db38fb238b3281abe86",
+      "provider": "6a207db34452aca5592c3f21",
+      "price": 2800,
+      "description": "Explore the resort's beautifully manicured 18-hole golf course on private golf carts as the golden sunset illuminates the fairways. The evening ends with a lavish international buffet dinner at the Golf Club Restaurant — seafood, grills, and a full dessert station.",
+      "image": "/sokhna_golf_carts.jpeg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:28:35.873Z",
+      "updatedAt": "2026-06-03T20:28:35.873Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e73337972073708a0b4",
+      "name": "Private Speedboat Hidden Beach Cove Excursion",
+      "type": "tour",
+      "destination": "6a207db38fb238b3281abe86",
+      "provider": "6a207db34452aca5592c3f24",
+      "price": 0,
+      "description": "Skip the crowded hotel beaches and board a private high-speed boat from the resort's marina to a secluded natural sandy cove accessible only by sea. Enjoy 3–4 hours of private swimming, snorkeling, and sunbathing in pristine crystal-clear Red Sea waters.",
+      "image": "/porto_sokhna_beach.jpeg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:28:35.876Z",
+      "updatedAt": "2026-06-03T20:28:35.876Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e73337972073708a0b8",
+      "name": "Porto Sokhna Marina Boardwalk & Yacht Harbour Café Crawl",
+      "type": "tour",
+      "destination": "6a207db38fb238b3281abe86",
+      "provider": "6a207db34452aca5592c3f27",
+      "price": 1500,
+      "description": "A guided evening stroll through the vibrant Porto Sokhna Marina — Egypt's premier Red Sea marina lined with luxury yachts, waterfront boutiques, and café terraces. Includes premium dessert and specialty coffee stops at the yacht harbour's finest cafés.",
+      "image": "/porto_sokhna_marina.jpeg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:28:35.879Z",
+      "updatedAt": "2026-06-03T20:28:35.879Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e73337972073708a0bc",
+      "name": "Introductory Red Sea Scuba Diving – PADI Supervised Coral Walls",
+      "type": "tour",
+      "destination": "6a207db38fb238b3281abe86",
+      "provider": "6a207db34452aca5592c3f2a",
+      "price": 4500,
+      "description": "Experience the magic of the Red Sea's underwater world with a full introductory scuba diving session under the direct supervision of PADI-certified instructors. Explore the dramatic vertical coral walls off the Sokhna coast — alive with vibrant reef fish, sea fans, and moray eels. No prior experience needed. Includes full equipment, buoyancy jacket, wetsuit, and underwater photography.",
+      "image": "/sokhna_red_sea_diving.jpeg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:28:35.883Z",
+      "updatedAt": "2026-06-03T20:28:35.883Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e73337972073708a0c0",
+      "name": "Premium Spa Package – Full Body Massage, Sauna & Jacuzzi",
+      "type": "tour",
+      "destination": "6a207db38fb238b3281abe86",
+      "provider": "6a207db34452aca5592c3f2d",
+      "price": 0,
+      "description": "Unwind in total luxury at The Spa at Mövenpick. The afternoon package includes a 60-minute full body Swedish or deep-tissue massage, followed by unlimited access to the sauna, steam room, and outdoor jacuzzi overlooking the Red Sea.",
+      "image": "/sokhna_sunset_terrace.jpeg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:28:35.885Z",
+      "updatedAt": "2026-06-03T20:28:35.885Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a208e73337972073708a0c4",
+      "name": "Mövenpick Beachfront Floating Breakfast in Private Villa Pool",
+      "type": "food",
+      "destination": "6a207db38fb238b3281abe86",
+      "provider": "6a207db34452aca5592c3f1e",
+      "price": 0,
+      "description": "The ultimate luxury send-off: a gourmet breakfast served on a floating tray directly inside your private villa's pool, featuring fresh pastries, tropical fruits, smoked salmon, eggs Benedict, and freshly squeezed juices — all while soaking in the morning Red Sea view.",
+      "image": "/movenpick_sea_view_room.jpeg",
+      "isAvailable": true,
+      "createdAt": "2026-06-03T20:28:35.888Z",
+      "updatedAt": "2026-06-03T20:28:35.888Z",
+      "__v": 0
+    }
+  ],
+  "users": [
+    {
+      "_id": "6a15bc34c6d0f5e3b6518b2f",
+      "firstName": "Mavy",
+      "lastName": "Aiman",
+      "email": "mavyaiman2@gmail.com",
+      "password": "$2b$10$dZzuhgt7miFKo4n1YqOt2OBjSjA94/V.c/th2vYO3f3KpaYMbd7tK",
+      "phoneNumber": "01206435636",
+      "nationality": "Egyptian",
+      "ageDate": "2024-03-26T00:00:00.000Z",
+      "role": "admin",
+      "userAgent": 0,
+      "isVerified": true,
+      "createdAt": "2026-05-26T15:28:52.190Z",
+      "updatedAt": "2026-05-29T11:06:11.674Z",
+      "credentialUpdateAt": "2026-05-26T15:28:52.413Z",
+      "__v": 0,
+      "otp": "675403",
+      "otpExpiry": "2026-05-29T16:06:11.672Z"
+    }
+  ]
+}
