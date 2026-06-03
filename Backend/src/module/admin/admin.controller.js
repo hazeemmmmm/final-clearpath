@@ -287,7 +287,7 @@ export const unflagUser = async (req, res, next) => {
 // GET /admin/analytics/preferences
 export const getUserPreferenceAnalytics = async (req, res, next) => {
   try {
-    const isDemoMode = req.query.demo === "true" || true;
+    const isDemoMode = req.query.demo === "true";
 
     // 1. Total engagement count
     const totalEngagementCount = await UserActivity.countDocuments();
@@ -315,10 +315,10 @@ export const getUserPreferenceAnalytics = async (req, res, next) => {
       }
     ]);
 
-    // 3. Most booked packages
-    const mostBookedPackages = await UserActivity.aggregate([
-      { $match: { action: "book_trip", packageId: { $ne: null } } },
-      { $group: { _id: "$packageId", count: { $sum: 1 } } },
+    // 3. Most booked packages (from Bookings first)
+    const mostBookedPackages = await Booking.aggregate([
+      { $match: { experience: { $ne: null } } },
+      { $group: { _id: "$experience", count: { $sum: 1 } } },
       { $sort: { count: -1 } },
       { $limit: 5 },
       {
@@ -346,17 +346,34 @@ export const getUserPreferenceAnalytics = async (req, res, next) => {
       { $limit: 5 }
     ]);
 
-    // 5. Top travel categories
-    const topTravelCategories = await UserActivity.aggregate([
-      { $match: { category: { $ne: null } } },
-      { $group: { _id: "$category", count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
-      { $limit: 5 }
-    ]);
+    // 5. Top travel categories (from Bookings)
+    const bookingsForCategories = await Booking.find({}).select("booking_type customTrip").lean();
+    let packageCount = 0;
+    let tripCount = 0;
+    let customCount = 0;
+    let generalCount = 0;
+
+    bookingsForCategories.forEach(b => {
+      if (b.customTrip) {
+        customCount++;
+      } else if (b.booking_type === "Package") {
+        packageCount++;
+      } else if (b.booking_type === "Trip") {
+        tripCount++;
+      } else {
+        generalCount++;
+      }
+    });
+
+    const topTravelCategories = [
+      { _id: "Package", count: packageCount },
+      { _id: "Trip", count: tripCount },
+      { _id: "custom_itinerary", count: customCount },
+      { _id: "general", count: generalCount }
+    ].sort((a, b) => b.count - a.count);
 
     // 6. Peak booking hours
-    const peakBookingHours = await UserActivity.aggregate([
-      { $match: { action: "book_trip" } },
+    const peakBookingHours = await Booking.aggregate([
       {
         $project: {
           hour: { $hour: "$createdAt" }
@@ -366,21 +383,26 @@ export const getUserPreferenceAnalytics = async (req, res, next) => {
       { $sort: { count: -1 } }
     ]);
 
-    // 7. Repeat customers
-    const repeatCustomersAggregation = await UserActivity.aggregate([
-      { $match: { action: "book_trip", userId: { $ne: null } } },
-      { $group: { _id: "$userId", bookingCount: { $sum: 1 } } },
+    // 7. Repeat customers (from Bookings)
+    const repeatCustomersAggregation = await Booking.aggregate([
+      { $match: { user: { $ne: null } } },
+      { $group: { _id: "$user", bookingCount: { $sum: 1 } } },
       { $match: { bookingCount: { $gt: 1 } } },
       { $count: "repeatCount" }
     ]);
     const repeatCustomerCount = repeatCustomersAggregation[0]?.repeatCount || 0;
 
-    // 8. Average user spending (Confirmed bookings)
-    const bookingsForSpending = await Booking.find({ status: "Confirmed" }).select("total_amount").lean();
+    // 8. Average user spending (Confirmed/completed bookings)
+    const bookingsForSpending = await Booking.find({
+      $or: [
+        { status: "Confirmed" },
+        { payment_status: "completed" }
+      ]
+    }).select("total_amount").lean();
     const totalSpending = bookingsForSpending.reduce((sum, b) => sum + (b.total_amount || 0), 0);
-    const avgUserSpending = bookingsForSpending.length > 0 ? Math.round(totalSpending / bookingsForSpending.length) : 2450;
+    const avgUserSpending = bookingsForSpending.length > 0 ? Math.round(totalSpending / bookingsForSpending.length) : 0;
 
-    // 🎓 Presentation Fallbacks (If DB has new/sparse data)
+    // 🎓 Presentation Fallbacks (If DB has new/sparse data, use fallback)
     const demoData = {
       mostViewedDestinations: mostViewedDestinations.length > 0 ? mostViewedDestinations : [
         { destinationName: "Hurghada / الغردقة", count: 248 },
@@ -400,10 +422,11 @@ export const getUserPreferenceAnalytics = async (req, res, next) => {
         { _id: "hiking / تسلق جبال", count: 48 },
         { _id: "yacht rental / تأجير يخوت", count: 35 }
       ],
-      topTravelCategories: topTravelCategories.length > 0 ? topTravelCategories : [
-        { _id: "beach / شواطئ البحر الأحمر", count: 195 },
-        { _id: "culture / السياحة الأثرية", count: 120 },
-        { _id: "adventure / سياحة المغامرة", count: 85 }
+      topTravelCategories: bookingsForCategories.length > 0 ? topTravelCategories : [
+        { _id: "Package", count: 216 },
+        { _id: "Trip", count: 132 },
+        { _id: "custom_itinerary", count: 54 },
+        { _id: "general", count: 9 }
       ],
       peakBookingHours: peakBookingHours.length > 0 ? peakBookingHours : [
         { _id: 20, count: 45 },
@@ -411,14 +434,48 @@ export const getUserPreferenceAnalytics = async (req, res, next) => {
         { _id: 19, count: 30 },
         { _id: 15, count: 22 }
       ],
-      repeatCustomerCount: repeatCustomerCount || 14,
-      avgUserSpending: avgUserSpending || 3850,
-      totalEngagementCount: totalEngagementCount || 1285
+      repeatCustomerCount: repeatCustomerCount || 0,
+      avgUserSpending: avgUserSpending || 0,
+      totalEngagementCount: totalEngagementCount || 0
     };
 
     return res.status(200).json({
       success: true,
-      data: demoData
+      data: isDemoMode ? {
+        mostViewedDestinations: [
+          { destinationName: "Hurghada / الغردقة", count: 248 },
+          { destinationName: "Luxor / الأقصر", count: 185 },
+          { destinationName: "Dahab / دهب", count: 142 },
+          { destinationName: "Siwa / سيوة", count: 96 }
+        ],
+        mostBookedPackages: [
+          { packageName: "Hurghada Yacht Red Sea Cruise", count: 52 },
+          { packageName: "Luxor Ancient Pharaoh Dynasty Tour", count: 38 },
+          { packageName: "Wadi Degla Cave Hiking Adventure", count: 29 },
+          { packageName: "Dahab Blue Hole Deep Dive", count: 18 }
+        ],
+        mostSearchedActivities: [
+          { _id: "diving / الغوص", count: 86 },
+          { _id: "safari / سفاري صحراوي", count: 64 },
+          { _id: "hiking / تسلق جبال", count: 48 },
+          { _id: "yacht rental / تأجير يخوت", count: 35 }
+        ],
+        topTravelCategories: [
+          { _id: "Package", count: 216 },
+          { _id: "Trip", count: 132 },
+          { _id: "custom_itinerary", count: 54 },
+          { _id: "general", count: 9 }
+        ],
+        peakBookingHours: [
+          { _id: 20, count: 45 },
+          { _id: 21, count: 38 },
+          { _id: 19, count: 30 },
+          { _id: 15, count: 22 }
+        ],
+        repeatCustomerCount: 14,
+        avgUserSpending: 3850,
+        totalEngagementCount: 1285
+      } : demoData
     });
   } catch (error) {
     console.error("Analytics Dashboard Error:", error);

@@ -41,7 +41,7 @@ const AdminAnalytics = () => {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
   const [lang, setLang] = useState('en'); // 'en' or 'ar'
-  const [demoMode, setDemoMode] = useState(true);
+  const [demoMode, setDemoMode] = useState(false);
   const [campaignDeployed, setCampaignDeployed] = useState(false);
 
   const fetchAnalyticsData = async () => {
@@ -209,18 +209,6 @@ const AdminAnalytics = () => {
           
           <button className="btn-secondary" onClick={fetchAnalyticsData}>
             <i className="fa-solid fa-rotate"></i> {lang === 'en' ? 'Refresh' : 'تحديث'}
-          </button>
-          
-          <button 
-            className={`btn-secondary-xs ${demoMode ? 'active' : ''}`} 
-            onClick={() => setDemoMode(!demoMode)}
-            style={{ 
-              backgroundColor: demoMode ? 'rgba(229,193,88,0.1)' : 'transparent',
-              borderColor: demoMode ? '#e5c158' : 'var(--border-light)',
-              color: demoMode ? '#e5c158' : 'var(--text-muted)'
-            }}
-          >
-            {lang === 'en' ? 'Demo Mode' : 'وضع العرض'} ({demoMode ? (lang==='en'?'ON':'مفعّل') : (lang==='en'?'OFF':'معطّل')})
           </button>
         </div>
       </div>
