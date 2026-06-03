@@ -36,11 +36,22 @@
 
 .package-details-page {
   font-family: var(--font-family);
-  background-color: var(--bg-main);
-  color: var(--text-dark);
+  background-color: #f8fafc !important; /* Default Light Mode background */
+  color: #0f172a !important; /* Default Light Mode text */
   min-height: 100vh;
   padding-top: 80px; /* offset for fixed header */
   line-height: 1.6;
+}
+
+/* Dark Mode Overrides for page container */
+.dark .package-details-page,
+.tw-dark .package-details-page,
+:root.dark .package-details-page,
+:root.tw-dark .package-details-page,
+body.dark .package-details-page,
+body.tw-dark .package-details-page {
+  background-color: #0a0b0d !important;
+  color: #ffffff !important;
 }
 
 .details-container {
