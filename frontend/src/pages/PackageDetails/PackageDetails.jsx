@@ -92,10 +92,8 @@ const PackageDetails = () => {
   const { lang, setLang } = useContext(LanguageContext);
   const { currency, toggleCurrency, formatPrice } = useContext(CurrencyContext);
 
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
-
   useEffect(() => {
-    if (theme === 'dark') {
+    if (isDarkMode) {
       document.documentElement.classList.add('dark');
       document.documentElement.classList.add('tw-dark');
       document.body.classList.add('tw-bg-[#0a0b0d]', 'tw-text-white');
@@ -106,8 +104,7 @@ const PackageDetails = () => {
       document.body.classList.add('tw-bg-slate-50', 'tw-text-slate-900');
       document.body.classList.remove('tw-bg-[#0a0b0d]', 'tw-text-white');
     }
-    localStorage.setItem('theme', theme);
-  }, [theme]);
+  }, [isDarkMode]);
 
   const [guestCount, setGuestCount] = useState(1);
   const [showBreakdown, setShowBreakdown] = useState(false);
