@@ -55,6 +55,24 @@ class ExperienceController {
     }
   };
 
+  // 📍 GPS Nearby Discovery
+  getNearby = async (req, res, next) => {
+    try {
+      const { lat, lng, radiusKm = 50 } = req.query;
+      if (!lat || !lng) {
+        return res.status(400).json({ success: false, message: 'lat and lng query params are required' });
+      }
+      const result = await ExperienceService.getNearby({
+        lat: Number(lat),
+        lng: Number(lng),
+        radiusKm: Number(radiusKm),
+      });
+      res.status(200).json({ success: true, ...result });
+    } catch (err) {
+      next(err);
+    }
+  };
+
   //  Get Extensions starting the next day for trip chaining
   getExtensions = async (req, res, next) => {
     try {

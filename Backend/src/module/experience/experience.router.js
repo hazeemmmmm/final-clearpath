@@ -18,6 +18,9 @@ router.get("/filter-options", experienceController.getFilterOptions);
 //  Get Extensions starting the next day for trip chaining
 router.get("/extensions", experienceController.getExtensions);
 
+// 📍 GPS-based nearby experience discovery
+router.get("/nearby", experienceController.getNearby);
+
 //  Get one experience
 router.get("/:id", experienceController.getOne);
 

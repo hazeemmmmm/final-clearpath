@@ -11,10 +11,12 @@ const activitySchema = new mongoose.Schema({
   provider: { type: mongoose.Schema.Types.ObjectId, ref: "Provider", required: true },
   price: { type: Number, required: true },
   duration: Number,
-   isAvailable: {
-      type: Boolean,
-      default: true,
-    },
+  description: String,
+  image: String,
+  isAvailable: {
+    type: Boolean,
+    default: true,
+  },
 
 }, { timestamps: true });
 

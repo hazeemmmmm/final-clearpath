@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import { addToWishlist, getTrips, getDestinations, trackInteraction } from '../../utils/api';
 import { LanguageContext } from '../../context/LanguageContext';
+import { CurrencyContext } from '../../context/CurrencyContext';
 
 const ExperienceCard = ({ exp, destinations, wishlistIds, handleCardClick, handleWishlistToggle, lang }) => {
+  const { formatPrice } = useContext(CurrencyContext);
   const images = Array.isArray(exp.images) && exp.images.length > 0 ? exp.images : [exp.image || "https://images.unsplash.com/photo-1572252009286-268acec5ca0a?q=80&w=800"];
   const destName = exp.destination?.name || destinations.find(d => d._id === (exp.destination?._id || exp.destination))?.name || (lang === 'AR' ? 'مصر' : 'Egypt');
   const price = exp.calculatedPrice || exp.base_price || 0;
@@ -49,7 +51,7 @@ const ExperienceCard = ({ exp, destinations, wishlistIds, handleCardClick, handl
         <div className="tw-mt-auto tw-flex tw-justify-between tw-items-center tw-pt-4 tw-border-t tw-border-slate-100 dark:tw-border-white/5">
           <div className="tw-flex tw-flex-col">
             <span className="tw-text-amber-600 dark:tw-text-[#ffd700] tw-font-serif tw-font-bold tw-text-lg">
-              From ${price.toLocaleString()}
+              From {formatPrice(price)}
             </span>
           </div>
           <div className="tw-flex tw-items-center tw-gap-2 tw-text-amber-600 dark:tw-text-[#ffd700] tw-text-[10px] tw-font-bold tw-tracking-widest tw-uppercase">
@@ -68,6 +70,23 @@ const Experiences = () => {
   const [loading, setLoading] = useState(true);
   const [wishlistIds, setWishlistIds] = useState(new Set());
   const [isScrolled, setIsScrolled] = useState(false);
+
+  const dahabRef = useRef(null);
+  const cairoRef = useRef(null);
+  const otherRef = useRef(null);
+
+  const scrollCarousel = (ref, direction) => {
+    if (ref.current) {
+      const isRtl = lang === 'AR';
+      let scrollAmount = 364; // card width (340px) + gap (24px)
+      if (direction === 'left') {
+        scrollAmount = isRtl ? scrollAmount : -scrollAmount;
+      } else {
+        scrollAmount = isRtl ? -scrollAmount : scrollAmount;
+      }
+      ref.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
   
   // Search States
   const [destinations, setDestinations] = useState([]);
@@ -125,7 +144,7 @@ const Experiences = () => {
   const fetchExperiences = async () => {
     setLoading(true);
     try {
-      const data = await getTrips({});
+      const data = await getTrips({ limit: 100 });
       if (data && data.data) {
         setExperiences(data.data);
       } else {
@@ -448,8 +467,28 @@ const Experiences = () => {
                         <i className="fa-solid fa-wand-magic-sparkles tw-text-amber-500 dark:tw-text-[#ffd700]"></i>
                         {lang === 'AR' ? 'اذهب إلى دهب' : 'GO TO DAHAB'}
                       </h2>
+                      {dahabExps.length > 0 && (
+                        <div className="tw-flex tw-gap-2">
+                          <button 
+                            onClick={() => scrollCarousel(dahabRef, 'left')}
+                            className="tw-w-10 tw-h-10 tw-rounded-full tw-bg-white dark:tw-bg-slate-900 tw-border tw-border-slate-200 dark:tw-border-slate-800 tw-flex tw-items-center tw-justify-center tw-text-slate-600 dark:tw-text-slate-300 hover:tw-bg-amber-500 dark:hover:tw-bg-amber-500 hover:tw-text-white dark:hover:tw-text-white hover:tw-border-amber-500 dark:hover:tw-border-amber-500 tw-transition-all tw-cursor-pointer tw-shadow-sm"
+                          >
+                            <i className={`fa-solid ${lang === 'AR' ? 'fa-arrow-right' : 'fa-arrow-left'}`}></i>
+                          </button>
+                          <button 
+                            onClick={() => scrollCarousel(dahabRef, 'right')}
+                            className="tw-w-10 tw-h-10 tw-rounded-full tw-bg-white dark:tw-bg-slate-900 tw-border tw-border-slate-200 dark:tw-border-slate-800 tw-flex tw-items-center tw-justify-center tw-text-slate-600 dark:tw-text-slate-300 hover:tw-bg-amber-500 dark:hover:tw-bg-amber-500 hover:tw-text-white dark:hover:tw-text-white hover:tw-border-amber-500 dark:hover:tw-border-amber-500 tw-transition-all tw-cursor-pointer tw-shadow-sm"
+                          >
+                            <i className={`fa-solid ${lang === 'AR' ? 'fa-arrow-left' : 'fa-arrow-right'}`}></i>
+                          </button>
+                        </div>
+                      )}
                     </div>
-                    <div className="tw-flex tw-overflow-x-auto tw-snap-x tw-snap-mandatory tw-gap-6 tw-pb-8 tw-scrollbar-thin tw-scrollbar-thumb-slate-300 dark:tw-scrollbar-thumb-[#ffd700]/30 tw-scrollbar-track-transparent">
+                    <div 
+                      ref={dahabRef}
+                      className="tw-flex tw-overflow-x-auto tw-snap-x tw-snap-mandatory tw-gap-6 tw-pb-8 tw-hide-scrollbar"
+                      style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                    >
                       {dahabExps.map(exp => <ExperienceCard key={exp._id} exp={exp} destinations={destinations} wishlistIds={wishlistIds} handleCardClick={handleCardClick} handleWishlistToggle={handleWishlistToggle} lang={lang} />)}
                     </div>
                   </div>
@@ -472,8 +511,28 @@ const Experiences = () => {
                         <i className="fa-solid fa-wand-magic-sparkles tw-text-amber-500 dark:tw-text-[#ffd700]"></i>
                         {lang === 'AR' ? 'استكشف القاهرة' : 'EXPLORE CAIRO'}
                       </h2>
+                      {cairoExps.length > 0 && (
+                        <div className="tw-flex tw-gap-2">
+                          <button 
+                            onClick={() => scrollCarousel(cairoRef, 'left')}
+                            className="tw-w-10 tw-h-10 tw-rounded-full tw-bg-white dark:tw-bg-slate-900 tw-border tw-border-slate-200 dark:tw-border-slate-800 tw-flex tw-items-center tw-justify-center tw-text-slate-600 dark:tw-text-slate-300 hover:tw-bg-amber-500 dark:hover:tw-bg-amber-500 hover:tw-text-white dark:hover:tw-text-white hover:tw-border-amber-500 dark:hover:tw-border-amber-500 tw-transition-all tw-cursor-pointer tw-shadow-sm"
+                          >
+                            <i className={`fa-solid ${lang === 'AR' ? 'fa-arrow-right' : 'fa-arrow-left'}`}></i>
+                          </button>
+                          <button 
+                            onClick={() => scrollCarousel(cairoRef, 'right')}
+                            className="tw-w-10 tw-h-10 tw-rounded-full tw-bg-white dark:tw-bg-slate-900 tw-border tw-border-slate-200 dark:tw-border-slate-800 tw-flex tw-items-center tw-justify-center tw-text-slate-600 dark:tw-text-slate-300 hover:tw-bg-amber-500 dark:hover:tw-bg-amber-500 hover:tw-text-white dark:hover:tw-text-white hover:tw-border-amber-500 dark:hover:tw-border-amber-500 tw-transition-all tw-cursor-pointer tw-shadow-sm"
+                          >
+                            <i className={`fa-solid ${lang === 'AR' ? 'fa-arrow-left' : 'fa-arrow-right'}`}></i>
+                          </button>
+                        </div>
+                      )}
                     </div>
-                    <div className="tw-flex tw-overflow-x-auto tw-snap-x tw-snap-mandatory tw-gap-6 tw-pb-8 tw-scrollbar-thin tw-scrollbar-thumb-slate-300 dark:tw-scrollbar-thumb-[#ffd700]/30 tw-scrollbar-track-transparent">
+                    <div 
+                      ref={cairoRef}
+                      className="tw-flex tw-overflow-x-auto tw-snap-x tw-snap-mandatory tw-gap-6 tw-pb-8 tw-hide-scrollbar"
+                      style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                    >
                       {cairoExps.map(exp => <ExperienceCard key={exp._id} exp={exp} destinations={destinations} wishlistIds={wishlistIds} handleCardClick={handleCardClick} handleWishlistToggle={handleWishlistToggle} lang={lang} />)}
                     </div>
                   </div>
@@ -496,8 +555,28 @@ const Experiences = () => {
                         <i className="fa-solid fa-wand-magic-sparkles tw-text-amber-500 dark:tw-text-[#ffd700]"></i>
                         {lang === 'AR' ? 'اكتشف المزيد' : 'DISCOVER MORE'}
                       </h2>
+                      {otherExps.length > 0 && (
+                        <div className="tw-flex tw-gap-2">
+                          <button 
+                            onClick={() => scrollCarousel(otherRef, 'left')}
+                            className="tw-w-10 tw-h-10 tw-rounded-full tw-bg-white dark:tw-bg-slate-900 tw-border tw-border-slate-200 dark:tw-border-slate-800 tw-flex tw-items-center tw-justify-center tw-text-slate-600 dark:tw-text-slate-300 hover:tw-bg-amber-500 dark:hover:tw-bg-amber-500 hover:tw-text-white dark:hover:tw-text-white hover:tw-border-amber-500 dark:hover:tw-border-amber-500 tw-transition-all tw-cursor-pointer tw-shadow-sm"
+                          >
+                            <i className={`fa-solid ${lang === 'AR' ? 'fa-arrow-right' : 'fa-arrow-left'}`}></i>
+                          </button>
+                          <button 
+                            onClick={() => scrollCarousel(otherRef, 'right')}
+                            className="tw-w-10 tw-h-10 tw-rounded-full tw-bg-white dark:tw-bg-slate-900 tw-border tw-border-slate-200 dark:tw-border-slate-800 tw-flex tw-items-center tw-justify-center tw-text-slate-600 dark:tw-text-slate-300 hover:tw-bg-amber-500 dark:hover:tw-bg-amber-500 hover:tw-text-white dark:hover:tw-text-white hover:tw-border-amber-500 dark:hover:tw-border-amber-500 tw-transition-all tw-cursor-pointer tw-shadow-sm"
+                          >
+                            <i className={`fa-solid ${lang === 'AR' ? 'fa-arrow-left' : 'fa-arrow-right'}`}></i>
+                          </button>
+                        </div>
+                      )}
                     </div>
-                    <div className="tw-flex tw-overflow-x-auto tw-snap-x tw-snap-mandatory tw-gap-6 tw-pb-8 tw-scrollbar-thin tw-scrollbar-thumb-slate-300 dark:tw-scrollbar-thumb-[#ffd700]/30 tw-scrollbar-track-transparent">
+                    <div 
+                      ref={otherRef}
+                      className="tw-flex tw-overflow-x-auto tw-snap-x tw-snap-mandatory tw-gap-6 tw-pb-8 tw-hide-scrollbar"
+                      style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                    >
                       {otherExps.map(exp => <ExperienceCard key={exp._id} exp={exp} destinations={destinations} wishlistIds={wishlistIds} handleCardClick={handleCardClick} handleWishlistToggle={handleWishlistToggle} lang={lang} />)}
                     </div>
                   </div>

@@ -247,14 +247,33 @@ const Navbar = ({ isScrolled, dashboardMode }) => {
               <i className={`fa-solid ${isDarkMode ? 'fa-sun' : 'fa-moon'}`}></i>
             </button>
 
-            <button 
-              onClick={() => toggleCurrency(currency === 'EGP' ? 'USD' : 'EGP')}
-              className="tw-flex tw-items-center tw-justify-center tw-gap-1.5 tw-px-3 tw-h-9 tw-rounded-full tw-border tw-border-slate-300 dark:tw-border-slate-700 tw-bg-white/50 dark:tw-bg-transparent tw-text-slate-600 dark:tw-text-slate-300 hover:tw-text-amber-500 dark:hover:tw-text-amber-500 hover:tw-border-amber-500 dark:hover:tw-border-amber-500 tw-transition-colors tw-text-xs tw-font-bold"
-              title="Toggle Currency"
-            >
-              <i className="fa-solid fa-coins"></i>
-              <span>{currency}</span>
-            </button>
+            <div className="tw-flex tw-items-center tw-rounded-full tw-border tw-border-slate-300 dark:tw-border-slate-700 tw-overflow-hidden tw-h-9 tw-text-xs tw-font-bold">
+              <button
+                onClick={() => toggleCurrency('USD')}
+                className={`tw-px-3 tw-h-full tw-transition-colors tw-flex tw-items-center tw-gap-1 ${
+                  currency === 'USD'
+                    ? 'tw-bg-amber-500 tw-text-slate-900'
+                    : 'tw-bg-white/50 dark:tw-bg-transparent tw-text-slate-500 dark:tw-text-slate-400 hover:tw-text-amber-500'
+                }`}
+                title="Switch to USD"
+              >
+                <i className="fa-solid fa-dollar-sign"></i>
+                <span>USD</span>
+              </button>
+              <div className="tw-w-px tw-h-5 tw-bg-slate-300 dark:tw-bg-slate-700"></div>
+              <button
+                onClick={() => toggleCurrency('EGP')}
+                className={`tw-px-3 tw-h-full tw-transition-colors tw-flex tw-items-center tw-gap-1 ${
+                  currency === 'EGP'
+                    ? 'tw-bg-amber-500 tw-text-slate-900'
+                    : 'tw-bg-white/50 dark:tw-bg-transparent tw-text-slate-500 dark:tw-text-slate-400 hover:tw-text-amber-500'
+                }`}
+                title="Switch to EGP"
+              >
+                <i className="fa-solid fa-e"></i>
+                <span>EGP</span>
+              </button>
+            </div>
             {/* Glowing Trip Chain Link Icon */}
             <div className="tw-relative tw-mr-1">
               <button 

@@ -511,6 +511,113 @@ class ExperienceService {
     if (!experience) throw new Error("Experience not found");
     return experience;
   }
+
+  // ──────────────────────────────────────────────────────────────
+  // GPS Location-Based Discovery  +  Rule-Based Pricing Engine
+  // ──────────────────────────────────────────────────────────────
+  async getNearby({ lat, lng, radiusKm = 50, _expanded = false }) {
+    const radius    = _expanded ? Number(radiusKm) * 3 : Number(radiusKm);
+    const maxMeters = radius * 1000;
+
+    // 1. Geospatial query — destinations within radius
+    const nearbyDests = await Destination.find({
+      coordinates: {
+        $near: {
+          $geometry: { type: 'Point', coordinates: [Number(lng), Number(lat)] },
+          $maxDistance: maxMeters,
+        },
+      },
+    }).lean();
+
+    // Auto-expand once if no destinations found
+    if (nearbyDests.length === 0) {
+      if (!_expanded) return this.getNearby({ lat, lng, radiusKm, _expanded: true });
+      return { experiences: [], expanded: true, radiusKm: radius, destinationsFound: [] };
+    }
+
+    const destIds = nearbyDests.map(d => d._id);
+
+    // 2. Fetch experiences for those destinations
+    const experiences = await Experience.find({ destination: { $in: destIds } })
+      .populate('destination', 'name city coordinates')
+      .lean();
+
+    // 3. Rule-based AI Pricing Optimization
+    const now        = new Date();
+    const hour       = now.getHours();          // 0-23
+    const month      = now.getMonth() + 1;      // 1-12
+    const dayOfWeek  = now.getDay();            // 0=Sun … 6=Sat
+
+    const enriched = experiences.map(exp => {
+      // Locate destination doc (for distance calc)
+      const destDoc = nearbyDests.find(
+        d => d._id.toString() === exp.destination._id.toString()
+      );
+
+      // Haversine distance in km
+      let distanceKm = null;
+      if (destDoc?.coordinates?.coordinates?.length === 2) {
+        const [dLng, dLat] = destDoc.coordinates.coordinates;
+        const R    = 6371;
+        const dLt  = (dLat - lat) * Math.PI / 180;
+        const dLn  = (dLng - lng) * Math.PI / 180;
+        const a    = Math.sin(dLt / 2) ** 2
+                   + Math.cos(lat * Math.PI / 180) * Math.cos(dLat * Math.PI / 180)
+                   * Math.sin(dLn / 2) ** 2;
+        distanceKm = Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) * 10) / 10;
+      }
+
+      // Proximity label
+      let proximityLabel;
+      if      (distanceKm === null)  proximityLabel = 'Nearby';
+      else if (distanceKm < 2)       proximityLabel = 'Instant Access';
+      else if (distanceKm < 8)       proximityLabel = 'Near You';
+      else if (distanceKm < 25)      proximityLabel = 'Quick Reach';
+      else                           proximityLabel = `${distanceKm} km away`;
+
+      // Pricing rules (applied independently, stacked)
+      let discountPct = 0;
+      let pricingTag  = null;
+
+      // Rule 1 — Weekday deal (Mon–Thu, not peak summer)
+      if (dayOfWeek >= 1 && dayOfWeek <= 4 && !(month >= 6 && month <= 8)) {
+        discountPct += 8;
+        pricingTag   = 'Weekday Deal';
+      }
+      // Rule 2 — Same-day afternoon urgency for Packages (dayuse)
+      if (exp.type === 'Package' && hour >= 14 && hour < 18) {
+        discountPct += 5;
+        pricingTag   = pricingTag ? `${pricingTag} + Same-Day` : 'Same-Day Rate';
+      }
+      // Rule 3 — Peak summer: no discount, show badge
+      if (month >= 6 && month <= 8 && discountPct === 0) {
+        pricingTag = 'Peak Season';
+      }
+
+      const optimizedPrice = discountPct > 0
+        ? Math.round(exp.price * (1 - discountPct / 100))
+        : null;
+
+      return {
+        ...exp,
+        distanceKm,
+        proximityLabel,
+        optimizedPrice,
+        discountPct: discountPct || null,
+        pricingTag,
+      };
+    });
+
+    // Sort nearest first
+    enriched.sort((a, b) => (a.distanceKm ?? 9999) - (b.distanceKm ?? 9999));
+
+    return {
+      experiences: enriched,
+      expanded:    _expanded,
+      radiusKm:    radius,
+      destinationsFound: nearbyDests.map(d => d.name),
+    };
+  }
 }
 
 export default new ExperienceService();

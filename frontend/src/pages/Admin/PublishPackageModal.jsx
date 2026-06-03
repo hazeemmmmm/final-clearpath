@@ -3,6 +3,30 @@ import { getAllPackingGuides } from '../../utils/api';
 import './PublishPackageModal.css';
 const getActivityImage = (actName = '') => {
   const name = actName.toLowerCase();
+  
+  // Giza Pyramids & Sphinx Explorer Activities
+  if (name.includes('great pyramid of giza')) {
+    return 'https://upload.wikimedia.org/wikipedia/commons/e/e3/Kheops-Pyramid.jpg';
+  }
+  if (name.includes('panorama view')) {
+    return 'https://upload.wikimedia.org/wikipedia/commons/a/af/All_Gizah_Pyramids.jpg';
+  }
+  if (name.includes('sphinx') || name.includes('sphinx & valley')) {
+    return 'https://upload.wikimedia.org/wikipedia/commons/f/f6/Great_Sphinx_of_Giza_-_20080716a.jpg';
+  }
+  if (name.includes('gem exhibition') || name.includes('exhibition galleries') || name.includes('grand egyptian museum')) {
+    return 'https://upload.wikimedia.org/wikipedia/commons/4/43/Grand_Egyptian_Museum_2023.jpg';
+  }
+  if (name.includes('hanging obelisk') || name.includes('grand hall')) {
+    return 'https://upload.wikimedia.org/wikipedia/commons/4/43/Grand_Egyptian_Museum_2023.jpg';
+  }
+  if (name.includes('al-muizz') || name.includes('muizz')) {
+    return 'https://upload.wikimedia.org/wikipedia/commons/8/8e/Al-Muizz_Street_Cairo.jpg';
+  }
+  if (name.includes('khan el khalili') || name.includes('bazaar')) {
+    return 'https://upload.wikimedia.org/wikipedia/commons/a/ae/Cairo_Khan_el-Khalili_market.jpg';
+  }
+
   if (name.includes('snorkel') || name.includes('beach') || name.includes('sea') || name.includes('boat') || name.includes('water') || name.includes('island')) {
     return 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=300&q=80';
   }

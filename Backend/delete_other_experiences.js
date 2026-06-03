@@ -9,9 +9,9 @@ async function run() {
   await mongoose.connect(DB_URL);
   console.log('✅ Connected!');
 
-  console.log('🧹 Deleting all experiences except the Ain Sokhna one...');
+  console.log('🧹 Deleting all experiences except Giza Pyramids & Sphinx Explorer...');
   const result = await Experience.deleteMany({
-    _id: { $ne: new mongoose.Types.ObjectId("6a1d88f9ed7278b571da469e") }
+    name: { $ne: "Giza Pyramids & Sphinx Explorer" }
   });
   console.log(`✅ Deleted ${result.deletedCount} experiences!`);
 

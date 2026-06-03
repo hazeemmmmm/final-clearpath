@@ -227,7 +227,7 @@ const Home = () => {
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                   >
-                    <option value="" className="dark:tw-bg-slate-900">{lang === 'AR' ? 'اختر الوجهة' : 'Luxor, Egypt'}</option>
+                    <option value="" className="dark:tw-bg-slate-900">{lang === 'AR' ? 'اختر الوجهة' : 'Select Destination'}</option>
                     {options.destinations.map(dest => (
                       <option key={dest._id} value={dest._id} className="dark:tw-bg-slate-900">{dest.name}</option>
                     ))}

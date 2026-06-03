@@ -19,7 +19,7 @@ async function run() {
       city: 'Alexandria',
       country: 'Egypt',
       description: 'Egypt\'s Mediterranean jewel – ancient catacombs, historic citadels, and beautiful seaside walkways.',
-      image: 'https://images.unsplash.com/photo-1572252009286-268acec5ca0a?auto=format&fit=crop&w=800&q=80'
+      image: '/alexandria.png'
     });
     console.log(`📍 Created destination: Alexandria (${alexDest._id})`);
   } else {
@@ -61,32 +61,33 @@ async function run() {
   }
 
   // 4. Find or create Activities
-  const makeActivity = async (name, type, destinationId, price, providerId) => {
+  const makeActivity = async (name, type, destinationId, price, providerId, image = '') => {
     let act = await Activity.findOne({ name, destination: destinationId });
-    if (!act) {
-      act = await Activity.create({ name, type, destination: destinationId, price, provider: providerId });
-      console.log(`🏃 Created Activity: ${name}`);
+    if (act) {
+      await Activity.deleteOne({ _id: act._id });
     }
+    act = await Activity.create({ name, type, destination: destinationId, price, provider: providerId, image });
+    console.log(`🏃 Created/Updated Activity: ${name}`);
     return act;
   };
 
   // Sokhna Activities
-  const jetSkiAct = await makeActivity('Jet Skiing & Banana Boat Ride', 'entertainment', sokhnaDest._id, 300, sokhnaProvider._id);
-  const quadAct = await makeActivity('Mount Galala Quad Biking Safari', 'entertainment', sokhnaDest._id, 400, sokhnaProvider._id);
-  const dinnerAct = await makeActivity('Seafood Fine Dining & Boardwalk', 'entertainment', sokhnaDest._id, 450, sokhnaProvider._id);
-  const snorkelAct = await makeActivity('Coral Reef Snorkeling & Paddleboarding', 'entertainment', sokhnaDest._id, 200, sokhnaProvider._id);
+  const jetSkiAct = await makeActivity('Jet Skiing & Banana Boat Ride', 'entertainment', sokhnaDest._id, 300, sokhnaProvider._id, 'https://images.unsplash.com/photo-1569263979104-865ab7cd8d13?auto=format&fit=crop&w=800&q=80');
+  const quadAct = await makeActivity('Mount Galala Quad Biking Safari', 'entertainment', sokhnaDest._id, 400, sokhnaProvider._id, 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=800&q=80');
+  const dinnerAct = await makeActivity('Seafood Fine Dining & Boardwalk', 'entertainment', sokhnaDest._id, 450, sokhnaProvider._id, 'https://images.unsplash.com/photo-1534080564583-6be75777b70a?auto=format&fit=crop&w=800&q=80');
+  const snorkelAct = await makeActivity('Coral Reef Snorkeling & Paddleboarding', 'entertainment', sokhnaDest._id, 200, sokhnaProvider._id, 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80');
 
   // Cairo Activities
-  const minaretAct = await makeActivity('Minaret Climbing & Storytelling', 'tour', cairoDest._id, 150, cairoProvider._id);
-  const pyramidsAct = await makeActivity('Pyramids Guided Tour', 'tour', cairoDest._id, 300, ecoProvider._id);
-  const nmecAct = await makeActivity('National Museum of Egyptian Civilization', 'tour', cairoDest._id, 250, cairoProvider._id);
-  const kayakAct = await makeActivity('Nile Kayaking Experience', 'entertainment', cairoDest._id, 200, ecoProvider._id);
+  const minaretAct = await makeActivity('Minaret Climbing & Storytelling', 'tour', cairoDest._id, 150, cairoProvider._id, 'https://images.unsplash.com/photo-1553913861-c0fddf2619ee?auto=format&fit=crop&w=800&q=80');
+  const pyramidsAct = await makeActivity('Pyramids Guided Tour', 'tour', cairoDest._id, 300, ecoProvider._id, 'https://upload.wikimedia.org/wikipedia/commons/e/e3/Kheops-Pyramid.jpg');
+  const nmecAct = await makeActivity('National Museum of Egyptian Civilization', 'tour', cairoDest._id, 250, cairoProvider._id, '/nmec_museum.jpg');
+  const kayakAct = await makeActivity('Nile Kayaking Experience', 'entertainment', cairoDest._id, 200, ecoProvider._id, '/nile_kayaking.jpg');
 
   // Alex Activities
-  const citadelAct = await makeActivity('Qaitbay Citadel Guided Tour', 'tour', alexDest._id, 150, alexProvider._id);
-  const RomanAct = await makeActivity('Roman Amphitheatre & Catacombs Tour', 'tour', alexDest._id, 200, alexProvider._id);
-  const sailingAct = await makeActivity('Mediterranean Sailing & Sunset Cruise', 'tour', alexDest._id, 400, alexProvider._id);
-  const alexKayakAct = await makeActivity('Seaside Kayaking & Paddleboarding', 'entertainment', alexDest._id, 200, alexProvider._id);
+  const citadelAct = await makeActivity('Qaitbay Citadel Guided Tour', 'tour', alexDest._id, 150, alexProvider._id, 'https://upload.wikimedia.org/wikipedia/commons/d/de/Qaitbay_Citadel_by_Wael_El_Sisi.jpg');
+  const RomanAct = await makeActivity('Roman Amphitheatre & Catacombs Tour', 'tour', alexDest._id, 200, alexProvider._id, 'https://upload.wikimedia.org/wikipedia/commons/4/4b/Catacombs_of_Kom_El_Shoqafa_1.jpg');
+  const sailingAct = await makeActivity('Mediterranean Sailing & Sunset Cruise', 'tour', alexDest._id, 400, alexProvider._id, 'https://images.unsplash.com/photo-1500916434205-0c77489c6cf7?auto=format&fit=crop&w=800&q=80');
+  const alexKayakAct = await makeActivity('Seaside Kayaking & Paddleboarding', 'entertainment', alexDest._id, 200, alexProvider._id, 'https://images.unsplash.com/photo-1543966888-7c1dc482a810?auto=format&fit=crop&w=800&q=80');
 
   // 5. Get a Supervisor User to link
   const supervisor = await User.findOne({ role: 'supervisor' });

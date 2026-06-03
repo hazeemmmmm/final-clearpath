@@ -5,6 +5,7 @@ import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import { getWishlist, removeFromWishlist } from '../../utils/api';
 import { LanguageContext } from '../../context/LanguageContext';
+import { CurrencyContext } from '../../context/CurrencyContext';
 
 const Wishlist = () => {
   const [wishlistItems, setWishlistItems] = useState([]);
@@ -14,6 +15,7 @@ const Wishlist = () => {
   const navigate = useNavigate();
   const token = useSelector((state) => state.auth?.token) || localStorage.getItem('clearpath_access_token');
   const { lang, setLang } = useContext(LanguageContext);
+  const { formatPrice } = useContext(CurrencyContext);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -174,7 +176,7 @@ const Wishlist = () => {
                           {lang === 'AR' ? 'السعر من' : 'FROM'}
                         </span>
                         <span className="tw-text-amber-600 dark:tw-text-[#ffd700] tw-font-bold tw-text-xl">
-                          ${price.toLocaleString()}
+                          {formatPrice(price)}
                         </span>
                       </div>
                       <button 

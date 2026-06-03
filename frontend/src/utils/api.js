@@ -313,3 +313,9 @@ export const getUserPreferenceAnalytics = async (demo = false) =>
     method: 'GET',
     headers: getHeaders(true)
   });
+
+export const getNearbyExperiences = async ({ lat, lng, radiusKm = 50 }) =>
+  apiCall(`${BASE_URL}/experience/nearby?lat=${lat}&lng=${lng}&radiusKm=${radiusKm}`, {
+    method: 'GET',
+    headers: getHeaders(),
+  });

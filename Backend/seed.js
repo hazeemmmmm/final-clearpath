@@ -6,11 +6,11 @@ import { devConfig } from './src/config/env/dev.config.js';
 const DB_URL = devConfig.DB_URL;
 
 const destinations = [
-  { name: 'Cairo',     location: 'Cairo, Egypt',      description: 'The heart of Egypt – ancient wonders, bustling bazaars, and iconic pyramids.' },
-  { name: 'Hurghada',  location: 'Hurghada, Egypt',   description: 'Egypt\'s premier Red Sea resort city – crystal waters, vibrant coral reefs, and luxury resorts.' },
-  { name: 'Luxor',     location: 'Luxor, Upper Egypt', description: 'The world\'s greatest open-air museum – Valley of the Kings, Karnak Temple, and more.' },
-  { name: 'Dahab',     location: 'Dahab, Sinai',       description: 'Bohemian Red Sea gem – Blue Hole diving, Bedouin culture, and desert adventures.' },
-  { name: 'Alexandria',location: 'Alexandria, Egypt',  description: 'Egypt\'s Mediterranean jewel – ancient catacombs, seafood, and Greco-Roman heritage.' },
+  { name: 'Cairo',     location: 'Cairo, Egypt',      description: 'The heart of Egypt – ancient wonders, bustling bazaars, and iconic pyramids.', city: 'Cairo' },
+  { name: 'Hurghada',  location: 'Hurghada, Egypt',   description: 'Egypt\'s premier Red Sea resort city – crystal waters, vibrant coral reefs, and luxury resorts.', city: 'Hurghada' },
+  { name: 'Luxor',     location: 'Luxor, Upper Egypt', description: 'The world\'s greatest open-air museum – Valley of the Kings, Karnak Temple, and more.', city: 'Luxor' },
+  { name: 'Dahab',     location: 'Dahab, Sinai',       description: 'Bohemian Red Sea gem – Blue Hole diving, Bedouin culture, and desert adventures.', city: 'Dahab' },
+  { name: 'Alexandria',location: 'Alexandria, Egypt',  description: 'Egypt\'s Mediterranean jewel – ancient catacombs, seafood, and Greco-Roman heritage.', city: 'Alexandria' },
 ];
 
 const tripsData = [
@@ -381,7 +381,7 @@ async function seed() {
     const existing = await Experience.findOne({ name: t.name });
     if (existing) { console.log(`   ⏭️  Exists: ${t.name}`); continue; }
     const { destName, ...rest } = t;
-    await Experience.create({ ...rest, destination: destId });
+    await Experience.create({ ...rest, destination: destId, price: t.base_price });
     console.log(`   ✅ Created trip: ${t.name}`);
   }
 
@@ -392,7 +392,7 @@ async function seed() {
     const existing = await Experience.findOne({ name: d.name });
     if (existing) { console.log(`   ⏭️  Exists: ${d.name}`); continue; }
     const { destName, ...rest } = d;
-    await Experience.create({ ...rest, destination: destId });
+    await Experience.create({ ...rest, destination: destId, price: d.base_price });
     console.log(`   ✅ Created dayuse: ${d.name}`);
   }
 
