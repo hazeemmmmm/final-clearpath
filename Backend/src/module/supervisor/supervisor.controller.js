@@ -38,26 +38,6 @@ export const recommendSupervisors = async (req, res, next) => {
       return !hasOverlap;
     });
 
-    // Fallback: If no supervisor matches the filters, create/suggest a mock one for seamless testing/DSS presentation
-    if (recommended.length === 0) {
-      // Check if we already have any supervisor in database
-      const anySupervisor = await Supervisor.findOne({
-        specialization: { $regex: new RegExp(`^${category}$`, "i") }
-      });
-      
-      if (!anySupervisor) {
-        // Create a default supervisor for the demo category so the matching logic always presents a gorgeous DSS response
-        const defaultSup = await Supervisor.create({
-          name: `AI Match: Capt. Yasmine (${category} Specialist)`,
-          specialization: category,
-          unavailableDates: [new Date(Date.now() + 10 * 24 * 60 * 60 * 1000)] // Unavailable in 10 days
-        });
-        recommended.push(defaultSup);
-      } else {
-        recommended.push(anySupervisor);
-      }
-    }
-
     return res.status(200).json({
       success: true,
       message: "AI Recommended supervisors loaded successfully",

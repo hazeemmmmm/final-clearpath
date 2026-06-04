@@ -1933,9 +1933,11 @@ const PackageDetails = () => {
                           const pkgDestId = packageData?.destination?._id || packageData?.destination;
                           const optionalActs = activitiesList.filter(act => {
                             const actDestId = act.destination?._id || act.destination;
-                            return actDestId && pkgDestId && actDestId.toString() === pkgDestId.toString();
+                            return actDestId && pkgDestId && actDestId.toString() === pkgDestId.toString() && (act.price || 0) > 0;
                           }) || [];
-                          const finalAddActivityOptions = optionalActs.length > 0 ? optionalActs : activitiesList;
+                          const finalAddActivityOptions = optionalActs.length > 0
+                            ? optionalActs
+                            : activitiesList.filter(act => (act.price || 0) > 0);
 
                           return (
                             <div key={day.day_number} className="tw-bg-white dark:tw-bg-[#15171a] tw-border tw-border-slate-200 dark:tw-border-slate-800 tw-rounded-2xl tw-shadow-sm trip-accordion" style={{ 
@@ -2283,7 +2285,7 @@ const PackageDetails = () => {
                                               const pkgDestId = packageData?.destination?._id || packageData?.destination;
                                               const regionalActs = activitiesList.filter(act => {
                                                 const actDestId = act.destination?._id || act.destination;
-                                                return actDestId && pkgDestId && actDestId.toString() === pkgDestId.toString();
+                                                return actDestId && pkgDestId && actDestId.toString() === pkgDestId.toString() && (act.price || 0) > 0;
                                               });
 
                                               const currentDayActIds = day.activities.map(a => (a.activity?._id || a.activity)?.toString());

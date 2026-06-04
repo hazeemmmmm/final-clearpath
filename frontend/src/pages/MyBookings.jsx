@@ -100,13 +100,7 @@ const buildFlattenedPaidCards = (paidBookings, allBookings = []) => {
       0
     );
 
-    const parentFromParts = booking.customTrip
-      ? (Number(expObj?.price) || 0) + (Number(booking.customTrip.total_price) || 0)
-      : null;
-    const parentDisplayPrice =
-      chainItems.length > 0
-        ? parentFromParts ?? Math.max((Number(booking.total_amount) || 0) - chainSum, 0)
-        : Number(booking.total_amount) || Number(expObj?.price) || 0;
+    const parentDisplayPrice = Number(booking.total_amount) || Number(expObj?.price) || 0;
 
     allPaidCards.push({
       ...booking,

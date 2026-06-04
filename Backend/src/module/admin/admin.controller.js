@@ -10,8 +10,6 @@ import { UserActivity } from '../../db/models/userActivity.model.js';
 // Get Intelligence Flags
 export const getIntelligenceDashboard = async (req, res, next) => {
   try {
-    const isDemoMode = req.query.demo === "true";
-
     const flags = {
       demandAlerts: [],
       fraudAlerts: [],
@@ -55,26 +53,6 @@ export const getIntelligenceDashboard = async (req, res, next) => {
       }
     }
 
-    // 🎓 Academic Presentation Demo Injection for Demand
-    if (isDemoMode) {
-      if (flags.demandAlerts.length === 0) {
-        flags.demandAlerts.push({
-           type: "High Demand",
-           experienceId: "demo-mohra",
-           experienceName: "Mohra Hiking Package (Simulated)",
-           message: `Projected 95% capacity by mid-July. Current guide ratio is extremely low.`,
-           actionRecommended: `Auto-Assign Guide Yasmine`
-        });
-        flags.demandAlerts.push({
-           type: "Conversion Drop",
-           experienceId: "demo-siwa",
-           experienceName: "Siwa Oasis Retreat (Simulated)",
-           message: `High views & wishlists but low bookings. Price sensitivity detected for August.`,
-           actionRecommended: `Deploy Smart 15% Discount`
-        });
-      }
-    }
-
     // 2. Fraud & Scam Risk Detection (Rule-Based from DB)
     const users = await User.find({ role: "user" }).lean();
     
@@ -114,18 +92,6 @@ export const getIntelligenceDashboard = async (req, res, next) => {
           actionRecommended: "Flag Account"
         });
       }
-    }
-
-    // 🎓 Academic Presentation Demo Injection for Fraud
-    if (isDemoMode) {
-      flags.fraudAlerts.push({
-        userId: "demo-user-123",
-        userName: "John Doe (Simulated Alert)",
-        severity: "High",
-        isFlagged: false,
-        message: "User has cancelled 4 bookings within 24 hours. High risk of spam or competitor probing.",
-        actionRecommended: "Flag Account"
-      });
     }
 
     // 3. Trust Scoring (Real Rating calculation + live database variations)
@@ -192,15 +158,6 @@ export const getIntelligenceDashboard = async (req, res, next) => {
         trustScore: finalScore,
         tier: finalScore >= 88 ? "Premium Trusted" : (finalScore >= 75 ? "Verified" : "Under Review")
       });
-    }
-
-    // 🎓 Academic Presentation Demo Injection (Fallback if DB sparse)
-    if (isDemoMode && flags.trustScores.length === 0) {
-      flags.trustScores.push(
-        { providerId: "demo-p1", providerName: "Desert Nomads Team (Simulated)", trustScore: 94, tier: "Premium Trusted" },
-        { providerId: "demo-p2", providerName: "Siwa Eco-Tours (Simulated)", trustScore: 87, tier: "Premium Trusted" },
-        { providerId: "demo-p3", providerName: "Nile Cruise Co. (Simulated)", trustScore: 61, tier: "Under Review" }
-      );
     }
 
     // 4. Calculate dynamic booking trends (actual + projected)
@@ -294,8 +251,6 @@ export const unflagUser = async (req, res, next) => {
 // GET /admin/analytics/preferences
 export const getUserPreferenceAnalytics = async (req, res, next) => {
   try {
-    const isDemoMode = req.query.demo === "true";
-
     // 1. Total engagement count
     const totalEngagementCount = await UserActivity.countDocuments();
 
@@ -432,80 +387,9 @@ export const getUserPreferenceAnalytics = async (req, res, next) => {
     const totalSpending = bookingsForSpending.reduce((sum, b) => sum + (b.total_amount || 0), 0);
     const avgUserSpending = bookingsForSpending.length > 0 ? Math.round(totalSpending / bookingsForSpending.length) : 0;
 
-    // 🎓 Presentation Fallbacks (If DB has new/sparse data, use fallback)
-    const demoData = {
-      mostViewedDestinations: mostViewedDestinations.length > 0 ? mostViewedDestinations : [
-        { destinationName: "Hurghada / الغردقة", count: 248 },
-        { destinationName: "Luxor / الأقصر", count: 185 },
-        { destinationName: "Dahab / دهب", count: 142 },
-        { destinationName: "Siwa / سيوة", count: 96 }
-      ],
-      mostBookedPackages: mostBookedPackages.length > 0 ? mostBookedPackages : [
-        { packageName: "Hurghada Yacht Red Sea Cruise", count: 52 },
-        { packageName: "Luxor Ancient Pharaoh Dynasty Tour", count: 38 },
-        { packageName: "Wadi Degla Cave Hiking Adventure", count: 29 },
-        { packageName: "Dahab Blue Hole Deep Dive", count: 18 }
-      ],
-      mostSearchedActivities: mostSearchedActivities.length > 0 ? mostSearchedActivities : [
-        { _id: "diving / الغوص", count: 86 },
-        { _id: "safari / سفاري صحراوي", count: 64 },
-        { _id: "hiking / تسلق جبال", count: 48 },
-        { _id: "yacht rental / تأجير يخوت", count: 35 }
-      ],
-      topTravelCategories: bookingsForCategories.length > 0 ? topTravelCategories : [
-        { _id: "Package", count: 216 },
-        { _id: "Trip", count: 132 },
-        { _id: "custom_itinerary", count: 54 },
-        { _id: "general", count: 9 }
-      ],
-      peakBookingHours: peakBookingHours.length > 0 ? peakBookingHours : [
-        { _id: 20, count: 45 },
-        { _id: 21, count: 38 },
-        { _id: 19, count: 30 },
-        { _id: 15, count: 22 }
-      ],
-      repeatCustomerCount: repeatCustomerCount || 0,
-      avgUserSpending: avgUserSpending || 0,
-      totalEngagementCount: totalEngagementCount || 0
-    };
-
     return res.status(200).json({
       success: true,
-      data: isDemoMode ? {
-        mostViewedDestinations: [
-          { destinationName: "Hurghada / الغردقة", count: 248 },
-          { destinationName: "Luxor / الأقصر", count: 185 },
-          { destinationName: "Dahab / دهب", count: 142 },
-          { destinationName: "Siwa / سيوة", count: 96 }
-        ],
-        mostBookedPackages: [
-          { packageName: "Hurghada Yacht Red Sea Cruise", count: 52 },
-          { packageName: "Luxor Ancient Pharaoh Dynasty Tour", count: 38 },
-          { packageName: "Wadi Degla Cave Hiking Adventure", count: 29 },
-          { packageName: "Dahab Blue Hole Deep Dive", count: 18 }
-        ],
-        mostSearchedActivities: [
-          { _id: "diving / الغوص", count: 86 },
-          { _id: "safari / سفاري صحراوي", count: 64 },
-          { _id: "hiking / تسلق جبال", count: 48 },
-          { _id: "yacht rental / تأجير يخوت", count: 35 }
-        ],
-        topTravelCategories: [
-          { _id: "Package", count: 216 },
-          { _id: "Trip", count: 132 },
-          { _id: "custom_itinerary", count: 54 },
-          { _id: "general", count: 9 }
-        ],
-        peakBookingHours: [
-          { _id: 20, count: 45 },
-          { _id: 21, count: 38 },
-          { _id: 19, count: 30 },
-          { _id: 15, count: 22 }
-        ],
-        repeatCustomerCount: 14,
-        avgUserSpending: 3850,
-        totalEngagementCount: 1285
-      } : {
+      data: {
         mostViewedDestinations,
         mostBookedPackages,
         mostSearchedActivities,

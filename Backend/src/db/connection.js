@@ -24,6 +24,7 @@ const __dirname = path.dirname(__filename);
 
 export const connectDB = async () => {
   try {
+    console.log("Connecting to DB URL:", devConfig.DB_URL);
     await mongoose.connect(devConfig.DB_URL); 
     console.log("Database connected successfully");
 

@@ -241,22 +241,11 @@ export const createNewBooking = async (userId, data) => {
     bookingData.snapshot.fees = pricing.serviceFees;
     bookingData.snapshot.extraActivitiesCost = pricing.extraActivitiesCost || 0;
 
-    // AI Fraud & Risk Detection Heuristic
+    // Fraud & Risk Detection
     let riskScore = 0;
-    let fraudAlert = false;
-    
-    if (bookingData.numberOfGuests > 8) riskScore += 35; // Unusually large group
-    
-    // Simulate AI behavior pattern analysis
-    const aiConfidencePenalty = Math.floor(Math.random() * 40); // 0-40 random risk from AI signals
-    riskScore += aiConfidencePenalty;
-    
-    if (riskScore > 60) {
-        fraudAlert = true;
-    }
-    
-    bookingData.riskScore = Math.min(riskScore, 100);
-    bookingData.fraudAlert = fraudAlert;
+    if (bookingData.numberOfGuests > 8) riskScore += 35;
+    bookingData.riskScore = riskScore;
+    bookingData.fraudAlert = riskScore > 60;
 
     if (data.parentBookingId) {
         bookingData.parentBooking = data.parentBookingId;

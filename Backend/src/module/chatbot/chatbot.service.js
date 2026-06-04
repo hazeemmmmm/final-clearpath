@@ -204,38 +204,8 @@ User message: "${userMessage}"
 
     let aiReply = "";
 
-    // MOCK SIMULATION FOR NEGOTIATION (Graduation Project Demo)
-    const negotiationRegex = /(discount|expensive|offer|coupon|too high|cheaper|خصم|غالي|كوبون)/gi;
-    
-    // Count how many times the user mentioned negotiation words in the entire session
-    let negotiationCount = 0;
-    chatSession.messages.forEach(msg => {
-      if (msg.role === 'user') {
-        const matches = msg.content.match(negotiationRegex);
-        if (matches) negotiationCount += matches.length;
-      }
-    });
-    
-    if (negotiationCount >= 3) {
-      // User has negotiated hard enough! Generate a coupon (Max 15%)
-      const Coupon = (await import("../../db/models/coupon.model.js")).Coupon;
-      const discountPercent = Math.floor(Math.random() * 6) + 10; // 10% to 15%
-      const code = "LUXURY" + discountPercent + "X" + Math.floor(100 + Math.random() * 900);
-      
-      const newCoupon = await Coupon.create({
-        code: code,
-        discount_percentage: discountPercent,
-        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
-        is_active: true
-      });
-
-      aiReply = `I understand that pricing is very important to you. Because you are planning your premium trip with ClearPath AI, I've managed to negotiate a special ${discountPercent}% discount just for you. 🎉\n\nPlease use the promo code **${code}** at checkout. It is valid for the next 24 hours. Let me know if you need help planning your itinerary!`;
-    } else if (userMessage.toLowerCase().match(negotiationRegex)) {
-      // Mentioned but not enough times yet
-      aiReply = "I understand you're looking for the best value! Our packages are priced to ensure premium quality and dedicated service. However, if you have a specific budget in mind, I can help you find the best options.";
-    } else {
-      // 6. Generate reply with Gemini or Mock fallback
-      if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY" || apiKey.trim() === "") {
+    // 6. Generate reply with Gemini or fallback
+    if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY" || apiKey.trim() === "") {
         // MOCK MODE with database package integration!
         const isArabic = userMessage.match(/[\u0600-\u06FF]/);
         
@@ -369,7 +339,6 @@ INSTRUCTIONS FOR THE BOT:
           }
         }
       }
-    }
 
     // 7. Add AI's reply to database history
     chatSession.messages.push({

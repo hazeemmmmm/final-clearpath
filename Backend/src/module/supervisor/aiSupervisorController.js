@@ -17,38 +17,8 @@ export const matchSupervisorByBio = async (req, res) => {
     // 1. Fetch all supervisors from DB
     let supervisors = await Supervisor.find({});
 
-    // 2. If no supervisors exist, seed mock ones with detailed bios for the demo presentation
     if (supervisors.length === 0) {
-      supervisors = await Supervisor.create([
-        {
-          name: "Captain Mark Adel",
-          avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80",
-          bio: "Hi! I am Mark, an elite certified diving master and underwater explorer. I have spent over 10 years conducting reef tours and deep cave diving excursions. I reside and operate full-time in Hurghada and supervise all marine activities there.",
-          trustScore: 98,
-          specialization: "Diving"
-        },
-        {
-          name: "Dr. Youssef Hegazi",
-          avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=300&q=80",
-          bio: "Peace be upon you! I am Youssef, a geologist and desert explorer. My passion is desert eco-systems, rock climbing, and Bedouin camping. I manage all safari and hiking packages in Wadi Degla, Cairo and nearby protective areas.",
-          trustScore: 96,
-          specialization: "Safari & Hiking"
-        },
-        {
-          name: "Captain Yasmine Nour",
-          avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80",
-          bio: "Hello, I am Yasmine! I specialize in luxury yacht chartering, jet ski operations, and private beach retreats. My primary hub is Ain Sokhna where I coordinate premium coastal escapes.",
-          trustScore: 97,
-          specialization: "Yachting & Coastal"
-        },
-        {
-          name: "Ziad El-Shamy",
-          avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80",
-          bio: "Hey explorer! I'm Ziad, an extreme sports supervisor. From windsurfing to blue-hole deep diving, I handle all high-adrenaline itineraries. I live in Dahab and manage our Sinai peninsula operations.",
-          trustScore: 99,
-          specialization: "Extreme Sports"
-        }
-      ]);
+      return res.status(200).json({ success: true, matchedSupervisor: null, reason: "No supervisors available." });
     }
 
     const apiKey = devConfig.GEMINI_API_KEY;
