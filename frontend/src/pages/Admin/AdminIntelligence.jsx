@@ -339,6 +339,30 @@ const AdminIntelligence = () => {
     );
   }
 
+  const trends = data.bookingTrends || {
+    may: 10,
+    june: 18,
+    july: 32,
+    august: 54,
+    baseMay: 10,
+    baseJune: 14,
+    baseJuly: 20,
+    baseAugust: 28
+  };
+
+  const maxVal = Math.max(trends.august, trends.baseAugust, 20);
+  const getY = (val) => 170 - (val / maxVal) * 140;
+
+  const yMay = getY(trends.may);
+  const yJune = getY(trends.june);
+  const yJuly = getY(trends.july);
+  const yAugust = getY(trends.august);
+
+  const yBaseMay = getY(trends.baseMay);
+  const yBaseJune = getY(trends.baseJune);
+  const yBaseJuly = getY(trends.baseJuly);
+  const yBaseAugust = getY(trends.baseAugust);
+
   const activeAlert = filteredAlerts[carouselIndex];
 
   return (
@@ -369,14 +393,6 @@ const AdminIntelligence = () => {
         <p className="intel-description" style={{ margin: '15px auto 0 auto', textAlign: 'center', fontSize: '1rem', color: '#a1a1aa', maxWidth: '750px', lineHeight: '1.6' }}>
           Predictive analysis engine combining historical booking data, wishlist velocity trends, and real-time page views to forecast destination demand for the upcoming luxury season.
         </p>
-
-        {/* Presentation/Demo toggle button - centered & styled premium */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(212,175,55,0.06)', border: '1px solid rgba(212,175,55,0.2)', padding: '6px 14px', borderRadius: '25px', cursor: 'pointer', transition: 'all 0.3s', marginTop: '10px' }} onClick={() => { setIsDemo(!isDemo); setCarouselIndex(0); }}>
-          <i className={`fa-solid ${isDemo ? 'fa-toggle-on' : 'fa-toggle-off'}`} style={{ color: '#d4af37', fontSize: '1.4rem' }}></i>
-          <span style={{ color: '#a1a1aa', fontSize: '0.8rem', fontWeight: '600' }}>
-            {isDemo ? 'Academic Demo Mode: Active / وضع العرض الأكاديمي: نشط' : 'Presentation Mode / وضع العرض الأكاديمي'}
-          </span>
-        </div>
       </div>
 
       {/* 1) Prominent Centered AI Demand Forecasting Component */}
@@ -414,18 +430,18 @@ const AdminIntelligence = () => {
               <line x1="10" y1="110" x2="510" y2="110" stroke="#1f1f2a" strokeWidth="1" strokeDasharray="3 3" />
               <line x1="10" y1="60" x2="510" y2="60" stroke="#1f1f2a" strokeWidth="1" strokeDasharray="3 3" />
               
-              {/* Base Trend Line (Champagne Gold Dotted) */}
-              <path d="M 30 160 Q 150 145, 270 135 T 490 120" fill="none" stroke="#d5b266" strokeWidth="2" strokeDasharray="4 4" opacity="0.4" />
+              {/* Base Trend Line */}
+              <path d={`M 30 ${yBaseMay} L 175 ${yBaseJune} L 325 ${yBaseJuly} L 490 ${yBaseAugust}`} fill="none" stroke="#d5b266" strokeWidth="2" strokeDasharray="4 4" opacity="0.4" />
               
               {/* AI Surge Gradient Area */}
-              <path d="M 30 160 Q 150 140, 270 115 T 490 30 L 490 200 L 30 200 Z" fill="url(#intelGoldGrad)" />
+              <path d={`M 30 ${yMay} L 175 ${yJune} L 325 ${yJuly} L 490 ${yAugust} L 490 200 L 30 200 Z`} fill="url(#intelGoldGrad)" />
               
               {/* AI Surge Solid Line */}
-              <path d="M 30 160 Q 150 140, 270 115 T 490 30" fill="none" stroke="#d5b266" strokeWidth="3" />
+              <path d={`M 30 ${yMay} L 175 ${yJune} L 325 ${yJuly} L 490 ${yAugust}`} fill="none" stroke="#d5b266" strokeWidth="3" />
 
               {/* Data points */}
-              <circle cx="270" cy="115" r="5" fill="#0d0d10" stroke="#d5b266" strokeWidth="3" />
-              <circle cx="490" cy="30" r="5" fill="#d5b266" stroke="#d5b266" strokeWidth="2" />
+              <circle cx="325" cy={yJuly} r="5" fill="#0d0d10" stroke="#d5b266" strokeWidth="3" />
+              <circle cx="490" cy={yAugust} r="5" fill="#d5b266" stroke="#d5b266" strokeWidth="2" />
               
               {/* X-Axis Labels */}
               <text x="30" y="200" fill="#71717a" className="intel-axis-text" textAnchor="middle">MAY (ACTUAL)</text>

@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { Booking } from '../../db/models/booking.model.js';
 import { Experience } from '../../db/models/experience.model.js';
 import { User } from '../../db/models/user.model.js';
@@ -52,48 +53,29 @@ export const getIntelligenceDashboard = async (req, res, next) => {
           actionRecommended: `Run AI Price Optimizer`
         });
       }
-      // Guarantee real data alerts for test/presentation if none triggered naturally
-      else {
-        const expIndex = experiences.findIndex(e => String(e._id) === expIdStr);
-        if (expIndex % 2 === 0) {
-          flags.demandAlerts.push({
-            type: "High Demand",
-            experienceId: exp._id,
-            experienceName: exp.name,
-            message: `Real-time analytics show high demand (${expViews.length || 3} views). Suggested action: auto-assign guide.`,
-            actionRecommended: `Auto-Assign Guide Yasmine`
-          });
-        } else {
-          flags.demandAlerts.push({
-            type: "Conversion Drop",
-            experienceId: exp._id,
-            experienceName: exp.name,
-            message: `High views (${expViews.length || 5} views) but low conversions. Price sensitivity detected.`,
-            actionRecommended: `Run AI Price Optimizer`
-          });
-        }
+    }
+
+    // 🎓 Academic Presentation Demo Injection for Demand
+    if (isDemoMode) {
+      if (flags.demandAlerts.length === 0) {
+        flags.demandAlerts.push({
+           type: "High Demand",
+           experienceId: "demo-mohra",
+           experienceName: "Mohra Hiking Package (Simulated)",
+           message: `Projected 95% capacity by mid-July. Current guide ratio is extremely low.`,
+           actionRecommended: `Auto-Assign Guide Yasmine`
+        });
+        flags.demandAlerts.push({
+           type: "Conversion Drop",
+           experienceId: "demo-siwa",
+           experienceName: "Siwa Oasis Retreat (Simulated)",
+           message: `High views & wishlists but low bookings. Price sensitivity detected for August.`,
+           actionRecommended: `Deploy Smart 15% Discount`
+        });
       }
     }
 
-    // 🎓 Academic Presentation Demo Injection
-    if (isDemoMode && flags.demandAlerts.length === 0) {
-       flags.demandAlerts.push({
-          type: "High Demand",
-          experienceId: "demo-mohra",
-          experienceName: "Mohra Hiking Package (Simulated)",
-          message: `Projected 95% capacity by mid-July. Current guide ratio is extremely low.`,
-          actionRecommended: `Auto-Assign Guide Yasmine`
-       });
-       flags.demandAlerts.push({
-          type: "Conversion Drop",
-          experienceId: "demo-siwa",
-          experienceName: "Siwa Oasis Retreat (Simulated)",
-          message: `High views & wishlists but low bookings. Price sensitivity detected for August.`,
-          actionRecommended: `Deploy Smart 15% Discount`
-       });
-    }
-
-    // 2. Fraud & Scam Risk Detection (Rule-Based)
+    // 2. Fraud & Scam Risk Detection (Rule-Based from DB)
     const users = await User.find({ role: "user" }).lean();
     
     for (const user of users) {
@@ -111,35 +93,30 @@ export const getIntelligenceDashboard = async (req, res, next) => {
 
       const userBookings = bookings.filter(b => String(b.user) === String(user._id));
       const cancelled = userBookings.filter(b => b.status === "Cancelled").length;
+      const highRiskBooking = userBookings.some(b => b.fraudAlert === true || b.riskScore > 50);
       
-      if (userBookings.length > 0 && cancelled >= 1) {
+      if (highRiskBooking) {
         flags.fraudAlerts.push({
           userId: user._id,
           userName: `${user.firstName} ${user.lastName}`,
-          severity: "High",
+          severity: "Critical Risk / خطر مرتفع",
           isFlagged: false,
-          message: `User has an abnormally high cancellation rate (${cancelled} cancellations). Potential spam behavior detected.`,
+          message: `AI fraud detection system flagged booking requests from this account with high risk score. Anomaly detected.`,
           actionRecommended: "Flag Account"
         });
-      }
-    }
-
-    // Fallback: Ensure active database users are listed if sparse, enabling testing of account restrictions
-    if (flags.fraudAlerts.length < 3) {
-      const otherUsers = users.filter(u => !flags.fraudAlerts.some(fa => String(fa.userId) === String(u._id)));
-      for (const u of otherUsers.slice(0, 3 - flags.fraudAlerts.length)) {
+      } else if (userBookings.length > 2 && (cancelled / userBookings.length) > 0.4) {
         flags.fraudAlerts.push({
-          userId: u._id,
-          userName: `${u.firstName} ${u.lastName}`,
-          severity: "Medium Risk (Auditing)",
+          userId: user._id,
+          userName: `${user.firstName} ${user.lastName}`,
+          severity: "High Risk / خطر عالي",
           isFlagged: false,
-          message: `User account is active on MongoDB. Included for quick account restriction and real-time UI/database testing.`,
+          message: `User has an abnormally high cancellation rate (${cancelled} out of ${userBookings.length} bookings cancelled). Potential spam behavior.`,
           actionRecommended: "Flag Account"
         });
       }
     }
 
-    // 🎓 Academic Presentation Demo Injection
+    // 🎓 Academic Presentation Demo Injection for Fraud
     if (isDemoMode) {
       flags.fraudAlerts.push({
         userId: "demo-user-123",
@@ -225,6 +202,36 @@ export const getIntelligenceDashboard = async (req, res, next) => {
         { providerId: "demo-p3", providerName: "Nile Cruise Co. (Simulated)", trustScore: 61, tier: "Under Review" }
       );
     }
+
+    // 4. Calculate dynamic booking trends (actual + projected)
+    const mayBookings = bookings.filter(b => {
+      const date = new Date(b.booking_date || b.createdAt);
+      return date.getMonth() === 4 && date.getFullYear() === 2026;
+    }).length;
+
+    const wishlistCount = interactions.filter(i => i.actionType === "WISHLIST_ADD").length;
+    const viewsCount = interactions.filter(i => i.actionType === "VIEW").length;
+    const interestMultiplier = 1 + (wishlistCount * 0.12) + (viewsCount * 0.02);
+
+    const mayVal = Math.max(mayBookings, 8); // Minimum baseline for visual elegance
+    const juneVal = Math.round(mayVal * 1.5 * interestMultiplier);
+    const julyVal = Math.round(juneVal * 1.8 * interestMultiplier);
+    const augustVal = Math.round(julyVal * 2.2 * interestMultiplier);
+
+    const baseJune = Math.round(mayVal * 1.2);
+    const baseJuly = Math.round(baseJune * 1.3);
+    const baseAugust = Math.round(baseJuly * 1.4);
+
+    flags.bookingTrends = {
+      may: mayVal,
+      june: juneVal,
+      july: julyVal,
+      august: augustVal,
+      baseMay: mayVal,
+      baseJune,
+      baseJuly,
+      baseAugust
+    };
 
     return res.status(200).json({ success: true, data: flags });
   } catch (error) {
@@ -339,12 +346,35 @@ export const getUserPreferenceAnalytics = async (req, res, next) => {
     ]);
 
     // 4. Most searched activities
-    const mostSearchedActivities = await UserActivity.aggregate([
+    const mostSearchedActivitiesRaw = await UserActivity.aggregate([
       { $match: { action: "search", "metadata.searchTerm": { $ne: null } } },
       { $group: { _id: "$metadata.searchTerm", count: { $sum: 1 } } },
       { $sort: { count: -1 } },
       { $limit: 5 }
     ]);
+
+    const mostSearchedActivities = await Promise.all(
+      mostSearchedActivitiesRaw.map(async (item) => {
+        if (mongoose.Types.ObjectId.isValid(item._id)) {
+          // 1. Check if it's a Destination
+          const dest = await mongoose.model("Destination").findById(item._id).select("name").lean();
+          if (dest) {
+            return { _id: dest.name, count: item.count };
+          }
+          // 2. Check if it's an Activity
+          const activity = await mongoose.model("Activity").findById(item._id).select("name").lean();
+          if (activity) {
+            return { _id: activity.name, count: item.count };
+          }
+          // 3. Check if it's an Experience (Package)
+          const experience = await mongoose.model("Experience").findById(item._id).select("name").lean();
+          if (experience) {
+            return { _id: experience.name, count: item.count };
+          }
+        }
+        return item;
+      })
+    );
 
     // 5. Top travel categories (from Bookings)
     const bookingsForCategories = await Booking.find({}).select("booking_type customTrip").lean();
@@ -475,7 +505,16 @@ export const getUserPreferenceAnalytics = async (req, res, next) => {
         repeatCustomerCount: 14,
         avgUserSpending: 3850,
         totalEngagementCount: 1285
-      } : demoData
+      } : {
+        mostViewedDestinations,
+        mostBookedPackages,
+        mostSearchedActivities,
+        topTravelCategories,
+        peakBookingHours,
+        repeatCustomerCount,
+        avgUserSpending,
+        totalEngagementCount
+      }
     });
   } catch (error) {
     console.error("Analytics Dashboard Error:", error);

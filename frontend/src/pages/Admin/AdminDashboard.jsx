@@ -590,8 +590,8 @@ const AdminDashboard = () => {
         },
         {
           _id: 'demo-2',
-          firstName: 'ÙƒØ±ÙŠÙ…',
-          lastName: 'Ø³Ù„ÙŠÙ…',
+          firstName: 'كريم',
+          lastName: 'سليم',
           email: 'kareem.s@clearpath.com',
           phoneNumber: '+201023456789',
           role: 'supervisor',
@@ -600,8 +600,8 @@ const AdminDashboard = () => {
         },
         {
           _id: 'demo-3',
-          firstName: 'Ù†ÙˆØ±',
-          lastName: 'Ø§Ù„Ø¯ÙŠÙ†',
+          firstName: 'نور',
+          lastName: 'الدين',
           email: 'nour.e@clearpath.com',
           phoneNumber: '+201234567890',
           role: 'supervisor',
@@ -610,8 +610,8 @@ const AdminDashboard = () => {
         },
         {
           _id: 'demo-4',
-          firstName: 'ÙŠØ§Ø³Ù…ÙŠÙ†',
-          lastName: 'Ø­Ù…Ø¯ÙŠ',
+          firstName: 'ياسمين',
+          lastName: 'حمدي',
           email: 'yasmine.h@clearpath.com',
           phoneNumber: '+2015555678912',
           role: 'supervisor',
@@ -620,7 +620,29 @@ const AdminDashboard = () => {
         }
       ];
     }
-    return supervisors;
+    
+    return supervisors.map(s => {
+      // Find experiences assigned to this supervisor
+      const assignedExps = packages.filter(p => {
+        const pSupId = p.supervisor?._id || p.supervisor;
+        return pSupId && pSupId.toString() === s._id.toString();
+      });
+
+      if (assignedExps.length > 0) {
+        const primaryExp = assignedExps[0];
+        return {
+          ...s,
+          status: primaryExp.type === 'Package' ? 'dayuse' : 'trip',
+          currentAssigned: primaryExp.name + (assignedExps.length > 1 ? ` (+${assignedExps.length - 1} more)` : '')
+        };
+      }
+
+      return {
+        ...s,
+        status: 'available',
+        currentAssigned: null
+      };
+    });
   };
 
   // Combine real and mock bookings to show a beautiful list if DB is sparse
@@ -1918,7 +1940,7 @@ const AdminDashboard = () => {
                       isStatic: false
                     }));
 
-                    const combinedReviews = [...staticMockReviews, ...dbReviewsMapped];
+                    const combinedReviews = dbReviewsMapped;
 
                     return (
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '28px', marginTop: '12px' }}>
