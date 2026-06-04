@@ -4,15 +4,20 @@ import Joi from "joi";
    REGISTER SCHEMA
 ========================= */
 export const registerSchema = Joi.object({
-  fullName: Joi.string()
-    .min(3)
-    .max(50)
-    .required()
-    .messages({
-      "string.min": "Full name must be at least 3 characters",
-      "string.max": "Full name must be at most 50 characters",
-      "any.required": "Full name is required",
-    }),
+  firstName: Joi.string().min(3).max(20).required().messages({
+    "string.min": "First name must be at least 3 characters",
+    "string.max": "First name must be at most 20 characters",
+    "any.required": "First name is required",
+  }),
+
+  lastName: Joi.string().min(3).max(20).required().messages({
+    "string.min": "Last name must be at least 3 characters",
+    "string.max": "Last name must be at most 20 characters",
+    "any.required": "Last name is required",
+  }),
+
+  // kept for backward compatibility (optional)
+  fullName: Joi.string().min(3).max(60).optional(),
 
   email: Joi.string()
     .email()

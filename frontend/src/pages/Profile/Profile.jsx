@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { toast } from '../../utils/toast';
 import { useSelector } from 'react-redux';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
@@ -108,7 +109,7 @@ const Profile = () => {
     try {
       await deleteReview(reviewId);
       setMyReviews(prev => prev.filter(r => r._id !== reviewId));
-    } catch (err) { alert(err.message || 'Failed to delete review'); }
+    } catch (err) { toast(err.message || 'Failed to delete review'); }
   };
 
   const handleEditReview = async () => {
@@ -117,7 +118,7 @@ const Profile = () => {
       await updateReview(editingReview.id, { rating: editingReview.rating, comment: editingReview.comment });
       setMyReviews(prev => prev.map(r => r._id === editingReview.id ? { ...r, rating: editingReview.rating, comment: editingReview.comment } : r));
       setEditingReview(null);
-    } catch (err) { alert(err.message || 'Failed to update review'); }
+    } catch (err) { toast(err.message || 'Failed to update review'); }
   };
 
   const handleUpdateProfile = async (e) => {
@@ -154,7 +155,7 @@ const Profile = () => {
       await deleteAccount();
       localStorage.clear();
       navigate('/');
-    } catch (err) { alert(err.message || 'Failed to delete account. Please try again.'); }
+    } catch (err) { toast(err.message || 'Failed to delete account. Please try again.'); }
     finally { setDeleteLoading(false); setShowDeleteConfirm(false); }
   };
 
@@ -338,8 +339,8 @@ const Profile = () => {
                     </form>
                   </div>
 
-                  {/* Danger Zone - Delete Account */}
-                  <div className="tw-bg-rose-50 dark:tw-bg-rose-950/20 tw-rounded-3xl tw-p-8 tw-border tw-border-rose-200 dark:tw-border-rose-900/50">
+                  {/* Danger Zone - Admin only */}
+                  {profile?.role === 'admin' && <div className="tw-bg-rose-50 dark:tw-bg-rose-950/20 tw-rounded-3xl tw-p-8 tw-border tw-border-rose-200 dark:tw-border-rose-900/50">
                     <h2 className="tw-text-xl tw-font-bold tw-text-rose-600 dark:tw-text-rose-400 tw-mb-2 tw-flex tw-items-center tw-gap-2">
                       <i className="fa-solid fa-triangle-exclamation"></i> {lang === 'AR' ? 'منطقة الخطر' : 'Danger Zone'}
                     </h2>
@@ -361,7 +362,7 @@ const Profile = () => {
                         </div>
                       </div>
                     )}
-                  </div>
+                  </div>}
                 </>
               )}
 

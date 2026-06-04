@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { toast } from '../../utils/toast';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
@@ -125,15 +126,15 @@ const Payment = () => {
       if (res?.discount || res?.discountPercent || res?.data?.discountPercent) {
         const pct = res.discountPercent || res.data?.discountPercent || res.discount || 0;
         setDiscountPercent(pct);
-        alert(`✅ Promo code applied! ${pct}% discount.`);
+        toast(`✅ Promo code applied! ${pct}% discount.`);
       } else {
-        alert('✅ Coupon applied! Refreshing booking...');
+        toast('✅ Coupon applied! Refreshing booking...');
         if (isChainPayment) fetchAllChainBookings(chainBookingIds);
         else fetchBookingInfo();
       }
     } catch (err) {
       console.error(err);
-      alert(lang === 'AR' ? 'كود الخصم غير صحيح أو منتهي الصلاحية.' : 'Invalid or expired promo code.');
+      toast(lang === 'AR' ? 'كود الخصم غير صحيح أو منتهي الصلاحية.' : 'Invalid or expired promo code.');
     }
   };
 
@@ -150,7 +151,7 @@ const Payment = () => {
     }
 
     if (paymentMethod === 'bank') {
-      alert(lang === 'AR' ? 'تم اختيار التحويل البنكي! سيتم التواصل معك عبر البريد الإلكتروني بتفاصيل الحساب.' : 'Bank Transfer selected! We will email you the account details.');
+      toast(lang === 'AR' ? 'تم اختيار التحويل البنكي! سيتم التواصل معك عبر البريد الإلكتروني بتفاصيل الحساب.' : 'Bank Transfer selected! We will email you the account details.');
       setTimeout(() => navigate('/profile?tab=bookings'), 2000);
       return;
     }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from '../../utils/toast';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import {
@@ -413,7 +414,7 @@ const AdminDashboard = () => {
         setSuccessMsg(`Successfully deleted experience "${name}"`);
         setTimeout(() => setSuccessMsg(''), 4000);
       } catch (err) {
-        alert(err.message || 'Failed to delete package');
+        toast(err.message || 'Failed to delete package');
       }
     }
   };
@@ -434,7 +435,7 @@ const AdminDashboard = () => {
       setSuccessMsg(`Experience ${!currentStatus ? 'featured' : 'unfeatured'} successfully!`);
       setTimeout(() => setSuccessMsg(''), 4000);
     } catch (err) {
-      alert(err.message || 'Failed to update featured status');
+      toast(err.message || 'Failed to update featured status');
     }
   };
 
@@ -450,7 +451,7 @@ const AdminDashboard = () => {
         setUsers(prev => prev.filter(u => u._id !== id));
         setSuccessMsg(`Deleted user "${name}" successfully.`);
       } catch (err) {
-        alert(err.message || 'Failed to delete user');
+        toast(err.message || 'Failed to delete user');
       }
     }
   };
@@ -461,7 +462,7 @@ const AdminDashboard = () => {
         await deleteReview(id);
         setReviews(prev => prev.filter(r => r._id !== id));
       } catch (err) {
-        alert(err.message || 'Failed to delete review');
+        toast(err.message || 'Failed to delete review');
       }
     }
   };
@@ -482,7 +483,7 @@ const AdminDashboard = () => {
       setIsActivityModalOpen(false);
       setSelectedActivity(null);
     } catch (err) {
-      alert(err.message || 'Failed to save activity');
+      toast(err.message || 'Failed to save activity');
     }
   };
 
@@ -493,7 +494,7 @@ const AdminDashboard = () => {
         setActivitiesList(prev => prev.filter(a => a._id !== id));
         setSuccessMsg(`Deleted activity "${name}" successfully.`);
       } catch (err) {
-        alert(err.message || 'Failed to delete activity');
+        toast(err.message || 'Failed to delete activity');
       }
     }
   };
@@ -519,7 +520,7 @@ const AdminDashboard = () => {
       setBookings(prev => prev.map(b => b._id === bookingId ? { ...b, status } : b));
       setSuccessMsg(`Booking status updated to ${status}`);
     } catch (err) {
-      alert(err.message || 'Failed to update booking status');
+      toast(err.message || 'Failed to update booking status');
     }
   };
 
@@ -1065,7 +1066,7 @@ const AdminDashboard = () => {
                           <span>Register User</span>
                         </div>
 
-                        <div className="action-btn-widget" onClick={() => alert('Feature incoming: Admin Activity Log report is compiled ready for secure delivery.')}>
+                        <div className="action-btn-widget" onClick={() => toast('Feature incoming: Admin Activity Log report is compiled ready for secure delivery.')}>
                           <div className="action-icon mauve-glow"><i className="fa-solid fa-print"></i></div>
                           <span>Download Report</span>
                         </div>

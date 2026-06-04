@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { toast } from '../utils/toast';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout, setChatOpen } from '../store/authSlice';
@@ -101,7 +102,7 @@ const Navbar = ({ isScrolled, dashboardMode }) => {
 
   const handleChainCheckout = async () => {
     if (!isAuthenticated) {
-      alert(lang === 'AR' ? 'يرجى تسجيل الدخول أولاً لإتمام الحجز.' : 'Please log in first to complete booking.');
+      toast(lang === 'AR' ? 'يرجى تسجيل الدخول أولاً لإتمام الحجز.' : 'Please log in first to complete booking.');
       navigate('/login');
       setIsChainOpen(false);
       return;
@@ -144,7 +145,7 @@ const Navbar = ({ isScrolled, dashboardMode }) => {
         window.dispatchEvent(new Event('cartUpdate'));
         setIsChainOpen(false);
 
-        alert(lang === 'AR' 
+        toast(lang === 'AR' 
           ? 'تم إنشاء حجوزات السلسلة بنجاح! سيتم توجيهك الآن لإتمام الدفع.' 
           : 'Trip Chain bookings created successfully! Redirecting you to complete payment.');
         
@@ -155,7 +156,7 @@ const Navbar = ({ isScrolled, dashboardMode }) => {
       }
     } catch (err) {
       console.error('Checkout failed', err);
-      alert(lang === 'AR' 
+      toast(lang === 'AR' 
         ? 'حدث خطأ أثناء حجز السلسلة. يرجى المحاولة لاحقاً.' 
         : 'Error creating chain bookings. Please try again later.');
     } finally {

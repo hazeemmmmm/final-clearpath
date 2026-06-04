@@ -8,17 +8,18 @@ const chatRepo = new ChatbotRepository();
 // System prompt defining ClearPath AI persona
 const SYSTEM_INSTRUCTION = `
 You are the ClearPath AI Travel Assistant. ClearPath is a premium travel planning and tourism platform that offers:
-1. Destination discovery (cities, description, maps).
-2. Custom Trip planning (users can customize and create their own custom trips).
+1. Destination discovery (cities, descriptions, maps).
+2. Custom Trip planning (users can customize and create their own trips).
 3. Activities (tours, entertainment, hiking, hotels, food).
 4. Bookings and payment options.
 
 Your job is to:
-- Be a polite, friendly, and extremely helpful travel companion.
-- Guide users on how to plan their trips, recommend nice cities or activities, and explain how to use the ClearPath platform features.
-- If a user asks for trip suggestions, encourage them to customize a trip or check out available destinations on the platform.
-- Respond concisely, professionally, and in a travel-loving, cheerful tone.
-- You can speak both Arabic and English perfectly, matching the user's preferred language.
+- Be polite, friendly, and extremely helpful.
+- Guide users on planning trips, recommend cities/activities, and explain ClearPath platform features.
+- When a user asks for trips on a specific date or in a specific month, look at the "Available Dates" listed for each package in the context and suggest only packages that have available seats on or near that date.
+- When recommending packages, always mention the available dates and remaining seats so the user knows when they can book.
+- If no packages are available for the requested date, suggest the closest available dates.
+- Respond concisely and professionally in the user's language (Arabic or English).
 `;
 
 export class ChatbotService {
@@ -73,11 +74,15 @@ export class ChatbotService {
       populate: { path: "supervisor" }
     });
 
-    // Prepare experiences context
+    // Prepare experiences context (includes available dates)
     const experiencesContext = allExperiences.map(e => {
       const supervisorName = e.supervisor ? `${e.supervisor.firstName} ${e.supervisor.lastName}` : "None";
       const supervisorEmail = e.supervisor ? e.supervisor.email : "";
-      return `- Package/Experience Name: "${e.name}" (ID: ${e._id})\n  Type: ${e.type}\n  Destination: ${e.destination?.name || "Unknown"}\n  Price: ${e.price || e.base_price || 0} EGP\n  Duration: ${e.duration_days} days\n  Supervisor/Guide: ${supervisorName} (Email: ${supervisorEmail})`;
+      const availableDatesStr = (e.availableDates || [])
+        .filter(d => d.availableSeats > 0 && new Date(d.date) >= new Date())
+        .map(d => new Date(d.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ` (${d.availableSeats} seats)`)
+        .join(', ') || 'No upcoming dates';
+      return `- Package/Experience Name: "${e.name}" (ID: ${e._id})\n  Type: ${e.type}\n  Destination: ${e.destination?.name || "Unknown"}\n  Price: ${e.price || e.base_price || 0} EGP\n  Duration: ${e.duration_days} days\n  Available Dates: ${availableDatesStr}\n  Supervisor/Guide: ${supervisorName} (Email: ${supervisorEmail})`;
     }).join("\n");
 
     // Prepare bookings context
@@ -102,11 +107,12 @@ export class ChatbotService {
         });
 
         const extractionPrompt = `
-Analyze the following travel message from a tourist. Extract:
-1. The destination name in English (e.g. Cairo, Giza, Luxor, Hurghada, Dahab, Alexandria). If mentioned in Arabic (e.g. القاهرة, الغردقة, دهب, الاقصر, الاسكندرية), translate it to the English name. If no destination is mentioned, return null.
-2. The maximum budget as a number (representing EGP). If the budget is mentioned in USD (e.g. $100, 100 USD), convert it to EGP assuming 1 USD = 50 EGP. If no budget is mentioned, return null.
+Analyze the following travel message from a tourist. Today's date is ${today.toISOString().split('T')[0]}. Extract:
+1. "destination": The destination name in English (Cairo, Luxor, Hurghada, Dahab, Alexandria, Sharm El Sheikh, Ain Sokhna). Translate Arabic names. Return null if none.
+2. "budget": Max budget as a number in EGP. Convert USD at 1 USD = 50 EGP. Return null if none.
+3. "date": If the user mentions a specific date, day, or time period (e.g. "today", "tomorrow", "15 June", "في يونيو", "الأسبوع القادم"), return it as an ISO date string (YYYY-MM-DD). Return null if none.
 
-Respond ONLY with a JSON object containing keys "destination" and "budget".
+Respond ONLY with a JSON object with keys "destination", "budget", "date".
 
 User message: "${userMessage}"
 `;
@@ -118,8 +124,45 @@ User message: "${userMessage}"
         const parsed = JSON.parse(responseText);
         extractedDestination = parsed.destination;
         extractedBudget = parsed.budget;
+        if (parsed.date && !extractedDate) {
+          const d = new Date(parsed.date);
+          if (!isNaN(d)) extractedDate = d;
+        }
       } catch (err) {
         console.error("Gemini extraction error or timeout:", err);
+      }
+    }
+
+    // --- Date extraction from user message ---
+    let extractedDate = null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Arabic/English day keywords
+    if (/اليوم|today/i.test(userMessage)) {
+      extractedDate = new Date(today);
+    } else if (/غداً|غدا|بكرا|tomorrow/i.test(userMessage)) {
+      extractedDate = new Date(today);
+      extractedDate.setDate(extractedDate.getDate() + 1);
+    } else {
+      // Try DD/MM, DD-MM, or month names (Arabic + English)
+      const dmMatch = userMessage.match(/(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?/);
+      if (dmMatch) {
+        const d = parseInt(dmMatch[1]), m = parseInt(dmMatch[2]) - 1;
+        const y = dmMatch[3] ? parseInt(dmMatch[3]) : today.getFullYear();
+        extractedDate = new Date(y < 100 ? 2000 + y : y, m, d);
+      } else {
+        const monthMapAR = { 'يناير':0,'فبراير':1,'مارس':2,'ابريل':3,'أبريل':3,'مايو':4,'يونيو':5,'يوليو':6,'أغسطس':7,'اغسطس':7,'سبتمبر':8,'أكتوبر':9,'اكتوبر':9,'نوفمبر':10,'ديسمبر':11 };
+        const monthMapEN = { 'jan':0,'feb':1,'mar':2,'apr':3,'may':4,'jun':5,'jul':6,'aug':7,'sep':8,'oct':9,'nov':10,'dec':11,'january':0,'february':1,'march':2,'april':3,'june':5,'july':6,'august':7,'september':8,'october':9,'november':10,'december':11 };
+        for (const [name, idx] of Object.entries({...monthMapAR,...monthMapEN})) {
+          const re = new RegExp(`(\\d{1,2})\\s*${name}`, 'i');
+          const m2 = userMessage.match(re);
+          if (m2) {
+            extractedDate = new Date(today.getFullYear(), idx, parseInt(m2[1]));
+            if (extractedDate < today) extractedDate.setFullYear(today.getFullYear() + 1);
+            break;
+          }
+        }
       }
     }
 
@@ -177,10 +220,11 @@ User message: "${userMessage}"
       }
     }
 
-    // 5. Query experiences database based on extracted destination/budget
+    // 5. Query experiences based on destination / budget / date
     let recommendedPackages = [];
-    if (extractedDestination || extractedBudget) {
+    if (extractedDestination || extractedBudget || extractedDate) {
       let query = {};
+
       if (extractedDestination) {
         const destDoc = await DestinationModel.findOne({
           name: { $regex: new RegExp(`^${extractedDestination}$`, "i") }
@@ -199,7 +243,30 @@ User message: "${userMessage}"
         query.price = { $lte: Number(extractedBudget) };
       }
 
+      if (extractedDate) {
+        // Match experiences that have an available date within ±3 days of the requested date
+        const from = new Date(extractedDate); from.setDate(from.getDate() - 3);
+        const to   = new Date(extractedDate); to.setDate(to.getDate() + 3);
+        query['availableDates'] = {
+          $elemMatch: {
+            date: { $gte: from, $lte: to },
+            availableSeats: { $gt: 0 }
+          }
+        };
+      }
+
       recommendedPackages = await ExperienceModel.find(query).limit(3);
+
+      // If date filter returned nothing, widen the search to the same month
+      if (extractedDate && recommendedPackages.length === 0) {
+        const monthStart = new Date(extractedDate.getFullYear(), extractedDate.getMonth(), 1);
+        const monthEnd   = new Date(extractedDate.getFullYear(), extractedDate.getMonth() + 1, 0);
+        const relaxedQuery = { ...query };
+        relaxedQuery['availableDates'] = {
+          $elemMatch: { date: { $gte: monthStart, $lte: monthEnd }, availableSeats: { $gt: 0 } }
+        };
+        recommendedPackages = await ExperienceModel.find(relaxedQuery).limit(3);
+      }
     }
 
     let aiReply = "";

@@ -71,24 +71,42 @@ export const getIntelligenceDashboard = async (req, res, next) => {
 
       const userBookings = bookings.filter(b => String(b.user) === String(user._id));
       const cancelled = userBookings.filter(b => b.status === "Cancelled").length;
+      const total = userBookings.length;
+      const cancellationRate = total > 0 ? cancelled / total : 0;
       const highRiskBooking = userBookings.some(b => b.fraudAlert === true || b.riskScore > 50);
-      
+
+      // Resolve display name (fallback to email if name missing)
+      const userName = (user.firstName || user.lastName)
+        ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
+        : (user.email || `User #${String(user._id).slice(-6)}`);
+
       if (highRiskBooking) {
         flags.fraudAlerts.push({
           userId: user._id,
-          userName: `${user.firstName} ${user.lastName}`,
+          userName,
           severity: "Critical Risk / خطر مرتفع",
           isFlagged: false,
           message: `AI fraud detection system flagged booking requests from this account with high risk score. Anomaly detected.`,
           actionRecommended: "Flag Account"
         });
-      } else if (userBookings.length > 2 && (cancelled / userBookings.length) > 0.4) {
+      } else if (cancelled >= 3) {
+        // 3+ cancellations regardless of rate
         flags.fraudAlerts.push({
           userId: user._id,
-          userName: `${user.firstName} ${user.lastName}`,
+          userName,
           severity: "High Risk / خطر عالي",
           isFlagged: false,
-          message: `User has an abnormally high cancellation rate (${cancelled} out of ${userBookings.length} bookings cancelled). Potential spam behavior.`,
+          message: `User has cancelled ${cancelled} out of ${total} booking(s) (${Math.round(cancellationRate * 100)}% cancellation rate). Potential spam behavior.`,
+          actionRecommended: "Flag Account"
+        });
+      } else if (cancelled >= 1 && cancellationRate >= 0.5) {
+        // 1+ cancellations AND 50%+ rate
+        flags.fraudAlerts.push({
+          userId: user._id,
+          userName,
+          severity: cancelled >= 2 ? "High Risk / خطر عالي" : "Medium Risk / خطر متوسط",
+          isFlagged: false,
+          message: `User has cancelled ${cancelled} out of ${total} booking(s) (${Math.round(cancellationRate * 100)}% cancellation rate).`,
           actionRecommended: "Flag Account"
         });
       }

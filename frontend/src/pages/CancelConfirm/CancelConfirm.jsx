@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
+import { toast } from '../../utils/toast';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
@@ -82,7 +83,7 @@ const CancelConfirm = () => {
       }, 1000);
 
     } catch (err) {
-      alert(err.message || (lang === 'AR' ? 'فشل الإلغاء. حاول مرة أخرى.' : 'Cancellation failed. Try again.'));
+      toast(err.message || (lang === 'AR' ? 'فشل الإلغاء. حاول مرة أخرى.' : 'Cancellation failed. Try again.'));
     } finally {
       setProcessing(false);
     }

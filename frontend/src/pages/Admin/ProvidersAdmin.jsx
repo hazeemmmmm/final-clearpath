@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from '../../utils/toast';
 import { useNavigate } from 'react-router-dom';
 import { getProviders, deleteProvider } from '../../utils/api';
 
@@ -29,7 +30,7 @@ const ProvidersAdmin = () => {
       setSuccessMsg('Provider deleted successfully!');
       setTimeout(() => setSuccessMsg(''), 3000);
     } catch (err) {
-      alert(err.message || 'Failed to delete provider.');
+      toast(err.message || 'Failed to delete provider.');
     }
   };
 

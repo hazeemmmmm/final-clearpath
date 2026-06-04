@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from '../../utils/toast';
 import { useNavigate } from 'react-router-dom';
 import {
   getAllPackingGuides,
@@ -33,7 +34,7 @@ const PackingGuidesAdmin = () => {
       await deletePackingGuide(id);
       fetchData();
     } catch (err) {
-      alert('Error deleting guide');
+      toast('Error deleting guide');
     }
   };
 

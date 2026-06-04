@@ -13,21 +13,25 @@ const userRepo = new UserRepository();
 class AuthService {
     async register(req, res, next) {
         try {
-            const { email, password, fullName, phoneNumber, gender, nationality, ageDate } = req.body;
+            const { email, password, firstName, lastName, fullName, phoneNumber, gender, nationality, ageDate } = req.body;
+
+            // Accept either separate firstName/lastName OR legacy fullName
+            const resolvedFirst = firstName?.trim() || fullName?.split(" ")[0] || "";
+            const resolvedLast  = lastName?.trim()  || fullName?.split(" ").slice(1).join(" ") || "";
 
             const userExist = await userRepo.exist({ email });
             if (userExist) throw new AppError.conflictException("User already exists");
 
-            const hashedPassword =await hashPassword(password);
+            // NOTE: Do NOT hash here — the User model pre-save hook handles hashing
             const otp = generateOTP();
             console.log(`\n==============================================\n[DEVELOPMENT] OTP for ${email} is: ${otp}\n==============================================\n`);
             const otpExpiry = generateOTPExpiry(5 * 60 * 60 * 1000);
 
             const newUser = await userRepo.create({
-                firstName: fullName.split(" ")[0] || "",
-                lastName: fullName.split(" ")[1] || "",
+                firstName: resolvedFirst,
+                lastName: resolvedLast,
                 email,
-                password: hashedPassword,
+                password,
                 phoneNumber,
                 gender,
                 nationality,
@@ -72,7 +76,8 @@ class AuthService {
             const user = await userRepo.getOne({ email });
             
 
-            if (!user || !comparePassword(password, user.password)) {
+            const passwordMatch = await comparePassword(password, user.password);
+            if (!user || !passwordMatch) {
                 throw new AppError.forbiddenException("Invalid credentials");
             }
            

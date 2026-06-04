@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
+import { toast } from '../utils/toast';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { setChatOpen } from '../store/authSlice';
@@ -130,7 +131,7 @@ const Chatbot = () => {
         setShowHistory(false);
       }
     } catch (err) {
-      alert(currentT.errorLoad);
+      toast(currentT.errorLoad);
       console.error(err);
     } finally {
       setIsLoading(false);

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { toast } from '../utils/toast';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import Navbar from '../components/Navbar';
@@ -220,13 +221,13 @@ const MyBookings = () => {
         localStorage.setItem('currentBookingId', createdBookingIds[0]);
         window.location.href = '/payment';
       } else {
-        alert(lang === 'AR' ? 'تم إنشاء الحجوزات بنجاح!' : 'Bookings created successfully!');
+        toast(lang === 'AR' ? 'تم إنشاء الحجوزات بنجاح!' : 'Bookings created successfully!');
         fetchBookings();
         setActiveTab('paid');
       }
     } catch (err) {
       console.error('Failed to book chain', err);
-      alert(err.message || 'Failed to book the trip chain.');
+      toast(err.message || 'Failed to book the trip chain.');
     } finally {
       setBookingLoading(false);
     }
@@ -299,12 +300,12 @@ const MyBookings = () => {
       await fetchBookings();
       setShowCancelModal(false);
       setCancelBookingItem(null);
-      alert(lang === 'AR' ? 'تم إلغاء الحجز بنجاح وتحديث القائمة.' : 'Booking cancelled successfully and list updated.');
+      toast(lang === 'AR' ? 'تم إلغاء الحجز بنجاح وتحديث القائمة.' : 'Booking cancelled successfully and list updated.');
     } catch (err) {
       const errorMsg = lang === 'AR'
         ? 'فشل إلغاء الحجز. حاول مرة أخرى أو تواصل مع الدعم.'
         : (err.message || 'Failed to cancel the booking. Try again or contact support.');
-      alert(errorMsg);
+      toast(errorMsg);
     } finally {
       setActionLoadingId(null);
     }

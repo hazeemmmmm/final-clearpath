@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from '../../utils/toast';
 import { useNavigate } from 'react-router-dom';
 import { getActivities, deleteActivity } from '../../utils/api';
 
@@ -34,7 +35,7 @@ const ActivitiesAdmin = () => {
       setSuccessMsg(`Activity "${name}" deleted successfully.`);
       setTimeout(() => setSuccessMsg(''), 4000);
     } catch (err) {
-      alert(err.message || 'Failed to delete activity.');
+      toast(err.message || 'Failed to delete activity.');
     }
   };
 

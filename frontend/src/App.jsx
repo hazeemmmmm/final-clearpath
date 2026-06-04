@@ -26,6 +26,7 @@ import Chatbot from './components/Chatbot'
 import CreateDestination from './pages/Admin/CreateDestination'
 import CreateProvider from './pages/Admin/CreateProvider'
 import CreateActivity from './pages/Admin/CreateActivity'
+import ToastContainer from './components/ToastContainer'
 
 // Protected Route Component
 const ProtectedRoute = ({ children, roles = [] }) => {
@@ -54,6 +55,7 @@ function App() {
 
   return (
     <Router>
+      <ToastContainer />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/trips" element={<Trips />} />

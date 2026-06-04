@@ -22,10 +22,39 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Reconnection handler — retries until the DB is back
+const reconnect = async (attempt = 1) => {
+  const delay = Math.min(5000 * attempt, 30000); // max 30s between retries
+  console.log(`[DB] Reconnecting in ${delay / 1000}s (attempt ${attempt})...`);
+  await new Promise(r => setTimeout(r, delay));
+  try {
+    await mongoose.connect(devConfig.DB_URL, MONGOOSE_OPTS);
+  } catch {
+    reconnect(attempt + 1);
+  }
+};
+
+const MONGOOSE_OPTS = {
+  serverSelectionTimeoutMS: 10000,  // give up selecting a server after 10s
+  heartbeatFrequencyMS: 10000,       // ping server every 10s
+  retryWrites: true,
+  retryReads: true,
+};
+
 export const connectDB = async () => {
+  // ── Connection lifecycle events ──────────────────────────
+  mongoose.connection.on("connected",    () => console.log("[DB] Connected ✓"));
+  mongoose.connection.on("disconnected", () => {
+    console.warn("[DB] Disconnected — attempting reconnect...");
+    reconnect();
+  });
+  mongoose.connection.on("error", (err) => {
+    console.error("[DB] Connection error:", err.message);
+  });
+
   try {
     console.log("Connecting to DB URL:", devConfig.DB_URL);
-    await mongoose.connect(devConfig.DB_URL); 
+    await mongoose.connect(devConfig.DB_URL, MONGOOSE_OPTS);
     console.log("Database connected successfully");
 
     // Auto-seed mechanism
@@ -106,6 +135,7 @@ export const connectDB = async () => {
       }
     }
   } catch (error) {
-    console.log("Database connection error:", error);
+    console.error("[DB] Initial connection failed:", error.message);
+    reconnect();  // keep retrying until it connects
   }
 };

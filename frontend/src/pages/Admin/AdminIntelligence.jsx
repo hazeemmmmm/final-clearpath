@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from '../../utils/toast';
 import { getIntelligenceDashboard, flagUser, unflagUser, getPriceOptimization, applyPriceOptimization, autoAssignGuide } from '../../utils/api'; 
 
 const AdminIntelligence = () => {
@@ -71,12 +72,12 @@ const AdminIntelligence = () => {
         setOptModal(prev => ({ ...prev, loading: false, result: res.data }));
       } else {
         setOptModal(prev => ({ ...prev, loading: false }));
-        alert("Failed to load pricing recommendation.");
+        toast("Failed to load pricing recommendation.");
       }
     } catch (err) {
       console.error(err);
       setOptModal(prev => ({ ...prev, loading: false }));
-      alert(err.message || "Failed to load pricing recommendation.");
+      toast(err.message || "Failed to load pricing recommendation.");
     }
   };
 
@@ -100,7 +101,7 @@ const AdminIntelligence = () => {
       }
     } catch (err) {
       console.error(err);
-      alert(err.message || "Failed to apply pricing.");
+      toast(err.message || "Failed to apply pricing.");
     } finally {
       setTimeout(() => setToast(null), 3000);
     }

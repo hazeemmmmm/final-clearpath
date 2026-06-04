@@ -20,6 +20,16 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     dispatch(clearError());
+
+    if (!email.trim()) {
+      dispatch(loginFailure(lang === 'AR' ? 'يرجى إدخال البريد الإلكتروني.' : 'Please enter your email.'));
+      return;
+    }
+    if (!password) {
+      dispatch(loginFailure(lang === 'AR' ? 'يرجى إدخال كلمة المرور.' : 'Please enter your password.'));
+      return;
+    }
+
     dispatch(loginStart());
 
     try {

@@ -1,4 +1,5 @@
 import React, { useState, useContext } from 'react';
+import { toast } from '../../utils/toast';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { registerFailure, clearError } from '../../store/authSlice';
@@ -21,29 +22,38 @@ const Register = () => {
   const [ageDate, setAgeDate] = useState('');
   const [nationality, setNationality] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
+  const [formError, setFormError] = useState('');
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { error } = useSelector((state) => state.auth);
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    setFormError('');
+
+    if (!firstName.trim() || firstName.trim().length < 3) {
+      setFormError(lang === 'AR' ? 'الاسم الأول يجب أن يكون 3 أحرف على الأقل.' : 'First name must be at least 3 characters.');
+      return;
+    }
+    if (!lastName.trim() || lastName.trim().length < 3) {
+      setFormError(lang === 'AR' ? 'اسم العائلة يجب أن يكون 3 أحرف على الأقل.' : 'Last name must be at least 3 characters.');
+      return;
+    }
     if (password !== confirmPassword) {
-      alert(lang === 'AR' ? 'كلمات المرور غير متطابقة.' : 'Passwords do not match.');
+      setFormError(lang === 'AR' ? 'كلمات المرور غير متطابقة.' : 'Passwords do not match.');
       return;
     }
     if (!nationality) {
-      alert(lang === 'AR' ? 'يرجى إدخال الجنسية الخاصة بك.' : 'Please enter your Nationality.');
+      setFormError(lang === 'AR' ? 'يرجى إدخال الجنسية الخاصة بك.' : 'Please enter your nationality.');
       return;
     }
-    
+
     dispatch(clearError());
     setIsLoading(true);
 
-    const fullName = `${firstName} ${lastName}`.trim();
-
     try {
-      await register({ fullName, email, password, phoneNumber, nationality, ageDate });
+      await register({ firstName: firstName.trim(), lastName: lastName.trim(), email, password, phoneNumber, nationality, ageDate });
       navigate('/verify', { state: { email, message: 'Registration successful! Please check your email for the OTP.' } });
     } catch (err) {
       dispatch(registerFailure(err.message || 'Registration failed. Please try again.'));
@@ -93,7 +103,24 @@ const Register = () => {
             </p>
           </div>
 
-          {error && <div className="tw-bg-rose-500/10 tw-text-rose-400 tw-p-3 tw-rounded-sm tw-text-sm tw-mb-6 tw-border tw-border-rose-500/20 tw-text-center">{lang === 'AR' ? 'فشل إنشاء الحساب. يرجى التأكد من الحقول والمحاولة مجدداً.' : error}</div>}
+          {(formError || error) && (() => {
+            const raw = formError || error || '';
+            let msg = raw;
+            try {
+              const t = raw.trim();
+              if (t.startsWith('[') || t.startsWith('{')) {
+                const p = JSON.parse(t);
+                if (Array.isArray(p)) msg = p.map(e => e.message || e.msg || String(e)).join('. ');
+                else if (p?.message) msg = p.message;
+              }
+            } catch {}
+            return (
+              <div className="tw-bg-rose-500/10 tw-text-rose-400 tw-p-3 tw-rounded-sm tw-text-sm tw-mb-2 tw-border tw-border-rose-500/20 tw-flex tw-items-center tw-gap-2">
+                <i className="fa-solid fa-circle-exclamation tw-flex-shrink-0"></i>
+                <span>{msg}</span>
+              </div>
+            );
+          })()}
           
           <form onSubmit={handleRegister} className="tw-flex tw-flex-col tw-gap-8">
             

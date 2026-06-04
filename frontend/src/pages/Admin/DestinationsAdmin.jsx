@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from '../../utils/toast';
 import { useNavigate } from 'react-router-dom';
 import { getDestinations, deleteDestination } from '../../utils/api';
 
@@ -31,7 +32,7 @@ const DestinationsAdmin = () => {
       await deleteDestination(id);
       setDestinations(prev => prev.filter(d => d._id !== id));
     } catch (err) {
-      alert(err.message || 'Failed to delete destination.');
+      toast(err.message || 'Failed to delete destination.');
     }
   };
 

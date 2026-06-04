@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { toast } from '../../utils/toast';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
@@ -524,7 +525,7 @@ const PackageDetails = () => {
       }
     } catch (err) {
       console.error('Failed to toggle wishlist item', err);
-      alert('Failed to update wishlist. Please try again.');
+      toast('Failed to update wishlist. Please try again.');
     } finally {
       setWishlistLoading(false);
     }
@@ -675,7 +676,7 @@ const PackageDetails = () => {
       setIsCustomizing(true); // mark as customized after any modification
     } catch (err) {
       console.error('Failed to toggle day', err);
-      alert(err.message || 'Failed to update day.');
+      toast(err.message || 'Failed to update day.');
     }
   };
 
@@ -702,7 +703,7 @@ const PackageDetails = () => {
       setIsCustomizing(true); // mark as customized after any modification
     } catch (err) {
       console.error('Failed to toggle activity', err);
-      alert(err.message || 'Failed to update activity.');
+      toast(err.message || 'Failed to update activity.');
     }
   };
 
@@ -744,13 +745,13 @@ const PackageDetails = () => {
       setIsCustomizing(true); // mark as customized after any modification
     } catch (err) {
       console.error('Failed to toggle optional activity', err);
-      alert(err.message || 'Failed to update optional activity.');
+      toast(err.message || 'Failed to update optional activity.');
     }
   };
 
   const handleAddActivitySubmit = async (dayNumber) => {
     if (!newActivitySelection.activityId) {
-      alert('Please select an activity.');
+      toast('Please select an activity.');
       return;
     }
 
@@ -874,7 +875,7 @@ const PackageDetails = () => {
     currentChain.push(chainItem);
     localStorage.setItem('clearpath_trip_chain', JSON.stringify(currentChain));
 
-    alert(lang === 'AR' ? 'تمت إضافة الباقة بنجاح إلى سلسلة الرحلة!' : 'Package successfully added to your Trip Chain!');
+    toast(lang === 'AR' ? 'تمت إضافة الباقة بنجاح إلى سلسلة الرحلة!' : 'Package successfully added to your Trip Chain!');
     window.dispatchEvent(new Event('tripChainUpdated'));
   };
 
@@ -902,7 +903,7 @@ const PackageDetails = () => {
       }
     } catch (err) {
       console.error('Failed to create booking', err);
-      alert(err.message || 'Failed to create booking.');
+      toast(err.message || 'Failed to create booking.');
     } finally {
       setBookingLoading(false);
     }
@@ -916,7 +917,7 @@ const PackageDetails = () => {
     
     const selectedChainExp = chainExperiences.find(exp => exp._id === selectedChainId);
     if (!selectedChainExp) {
-      alert(lang === 'AR' ? 'برجاء اختيار رحلة للتمديد' : 'Please select an experience to chain.');
+      toast(lang === 'AR' ? 'برجاء اختيار رحلة للتمديد' : 'Please select an experience to chain.');
       return;
     }
 
@@ -962,11 +963,11 @@ const PackageDetails = () => {
       localStorage.setItem('clearpath_trip_chain', JSON.stringify([chainItemCurrent, chainItemNext]));
       window.dispatchEvent(new Event('tripChainUpdated'));
       
-      alert(lang === 'AR' ? 'تم قفل سلسلة الرحلات بنجاح! تم حفظ رحلاتك المتسلسلة في حجوزاتك المعلقة.' : 'Trip chain successfully locked! Your chained trips have been saved to your pending bookings.');
+      toast(lang === 'AR' ? 'تم قفل سلسلة الرحلات بنجاح! تم حفظ رحلاتك المتسلسلة في حجوزاتك المعلقة.' : 'Trip chain successfully locked! Your chained trips have been saved to your pending bookings.');
       window.location.href = '/my-bookings?tab=pending';
     } catch (err) {
       console.error('Failed to chain trips:', err);
-      alert(err.message || 'Failed to assemble trip chain.');
+      toast(err.message || 'Failed to assemble trip chain.');
     } finally {
       setBookingLoading(false);
     }
