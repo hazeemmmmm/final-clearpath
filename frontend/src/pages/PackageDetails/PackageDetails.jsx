@@ -2765,15 +2765,59 @@ const PackageDetails = () => {
                     const supervisorObj = usersMap[supervisorId] || packageData?.supervisor;
 
                     if (supervisorObj && supervisorObj.firstName) {
+                      const email = (supervisorObj.email || '').toLowerCase();
+                      const firstName = (supervisorObj.firstName || '').toLowerCase();
+                      const lastName = (supervisorObj.lastName || '').toLowerCase();
+                      const fullName = `${firstName} ${lastName}`;
+
+                      // Default generic male avatar
+                      let supervisorImage = "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200"; 
+                      let supervisorRating = "4.95";
+                      let supervisorReviews = "120";
+                      let matchedReasonEN = `Matched based on your luxury preferences and guide expertise. ${supervisorObj.firstName} has background checks and active government license.`;
+                      let matchedReasonAR = `تمت المطابقة بناءً على تفضيلاتك الفاخرة وخبرة المرشد. ${supervisorObj.firstName} حاصل على رخصة حكومية نشطة ومفحوص بالكامل.`;
+
+                      if (email.includes('mavy') || firstName.includes('mavy') || lastName.includes('aiman')) {
+                        supervisorImage = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=200"; // professional female avatar (Mavy)
+                        supervisorRating = "4.99";
+                        supervisorReviews = "246";
+                        matchedReasonEN = `Matched based on your premium itinerary. Mavy has extensive cultural history expertise in Cairo and Alexandria.`;
+                        matchedReasonAR = `تمت المطابقة بناءً على مسار رحلتك الفاخرة. تمتلك Mavy خبرة واسعة في التاريخ الثقافي بمدينتي القاهرة والإسكندرية.`;
+                      } else if (email.includes('kareem') || firstName.includes('kareem') || lastName.includes('selim')) {
+                        supervisorImage = "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=200"; // Kareem Selim photo
+                        supervisorRating = "4.98";
+                        supervisorReviews = "128";
+                        matchedReasonEN = `Matched based on your luxury preferences. Kareem Selim has extensive guiding background in Giza and Sokhna.`;
+                        matchedReasonAR = `تمت المطابقة بناءً على تفضيلاتك الفاخرة. يمتلك Kareem Selim خبرة إرشادية واسعة في الجيزة والسخنة.`;
+                      } else if (email.includes('ahmed') || firstName.includes('ahmed') || lastName.includes('hassan')) {
+                        supervisorImage = "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200"; // Ahmed Hassan photo
+                        supervisorRating = "4.95";
+                        supervisorReviews = "184";
+                        matchedReasonEN = `Matched based on your beach and coastal package. Ahmed Hassan has deep safety navigation records.`;
+                        matchedReasonAR = `تمت المطابقة بناءً على باقتك الساحلية والشاطئية. يمتلك أحمد حسن سجلات ملاحة وأمان عميقة.`;
+                      } else if (email.includes('mona') || firstName.includes('mona')) {
+                        supervisorImage = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200"; // Mona photo
+                        supervisorRating = "4.97";
+                        supervisorReviews = "92";
+                      } else if (email.includes('tarek') || firstName.includes('tarek')) {
+                        supervisorImage = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200"; // Tarek photo
+                        supervisorRating = "4.91";
+                        supervisorReviews = "74";
+                      } else if (email.includes('karim') || firstName.includes('karim')) {
+                        supervisorImage = "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200";
+                        supervisorRating = "4.89";
+                        supervisorReviews = "65";
+                      }
+
                       return {
                         name: `${supervisorObj.firstName} ${supervisorObj.lastName || ''}`,
                         roleEN: "ClearPath Certified Expert Guide",
                         roleAR: "مرشد خبير معتمد من ClearPath",
-                        rating: "4.98",
-                        reviewsCount: "128",
-                        image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=200",
-                        matchedReasonEN: `Matched based on your luxury preferences and guide expertise. ${supervisorObj.firstName} has background checks and active government license.`,
-                        matchedReasonAR: `تمت المطابقة بناءً على تفضيلاتك الفاخرة وخبرة المرشد. ${supervisorObj.firstName} حاصل على رخصة حكومية نشطة ومفحوص بالكامل.`
+                        rating: supervisorRating,
+                        reviewsCount: supervisorReviews,
+                        image: supervisorImage,
+                        matchedReasonEN,
+                        matchedReasonAR
                       };
                     }
 

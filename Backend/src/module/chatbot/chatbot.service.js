@@ -62,6 +62,31 @@ export class ChatbotService {
       chatSession.title = words.length > 30 ? words.substring(0, 30) + "..." : words;
     }
 
+    // FETCH FRESH DB DATA FOR CONTEXT INJECTION (Booking Assistant, Itinerary Helper, Booking & Supervisor Support)
+    const DestinationModel = (await import("../../db/models/destination.model.js")).Destination;
+    const ExperienceModel = (await import("../../db/models/experience.model.js")).Experience;
+    const BookingModel = (await import("../../db/models/booking.model.js")).Booking;
+
+    const allExperiences = await ExperienceModel.find({}).populate("destination").populate("supervisor");
+    const userBookings = await BookingModel.find({ user: userId }).populate({
+      path: "experience",
+      populate: { path: "supervisor" }
+    });
+
+    // Prepare experiences context
+    const experiencesContext = allExperiences.map(e => {
+      const supervisorName = e.supervisor ? `${e.supervisor.firstName} ${e.supervisor.lastName}` : "None";
+      const supervisorEmail = e.supervisor ? e.supervisor.email : "";
+      return `- Package/Experience Name: "${e.name}" (ID: ${e._id})\n  Type: ${e.type}\n  Destination: ${e.destination?.name || "Unknown"}\n  Price: ${e.price || e.base_price || 0} EGP\n  Duration: ${e.duration_days} days\n  Supervisor/Guide: ${supervisorName} (Email: ${supervisorEmail})`;
+    }).join("\n");
+
+    // Prepare bookings context
+    const bookingsContext = userBookings.map(b => {
+      const expName = b.experience ? b.experience.name : (b.snapshot?.title || "Custom Itinerary");
+      const supervisor = b.experience?.supervisor ? `${b.experience.supervisor.firstName} ${b.experience.supervisor.lastName} (${b.experience.supervisor.email})` : "Not assigned yet";
+      return `- Booking ID: ${b._id}\n  Package: "${expName}"\n  Status: ${b.status}\n  Total Paid/Amount: ${b.total_amount || 0} EGP\n  Date: ${b.createdAt ? new Date(b.createdAt).toLocaleDateString() : "N/A"}\n  Supervisor: ${supervisor}`;
+    }).join("\n") || "No active bookings found for this user.";
+
     // 4. Extract Destination and Budget
     let extractedDestination = null;
     let extractedBudget = null;
@@ -87,7 +112,7 @@ User message: "${userMessage}"
 `;
         const extractionResult = await Promise.race([
           extractionModel.generateContent(extractionPrompt),
-          new Promise((_, reject) => setTimeout(() => reject(new Error("Extraction timed out")), 1500))
+          new Promise((_, reject) => setTimeout(() => reject(new Error("Extraction timed out")), 3000))
         ]);
         const responseText = extractionResult.response.text().trim();
         const parsed = JSON.parse(responseText);
@@ -107,13 +132,21 @@ User message: "${userMessage}"
         hurghada: "Hurghada",
         dahab: "Dahab",
         alexandria: "Alexandria",
+        sokhna: "Sokhna",
+        sharm: "Sharm El Sheikh",
         القاهرة: "Cairo",
         الجيزة: "Cairo",
         الأقصر: "Luxor",
         الغردقة: "Hurghada",
         دهب: "Dahab",
         الإسكندرية: "Alexandria",
-        الاسكندرية: "Alexandria"
+        الاسكندرية: "Alexandria",
+        السخنة: "Sokhna",
+        سخنة: "Sokhna",
+        سخنه: "Sokhna",
+        "العين السخنة": "Sokhna",
+        "شرم الشيخ": "Sharm El Sheikh",
+        شرم: "Sharm El Sheikh"
       };
 
       const lowerMessage = userMessage.toLowerCase();
@@ -149,7 +182,6 @@ User message: "${userMessage}"
     if (extractedDestination || extractedBudget) {
       let query = {};
       if (extractedDestination) {
-        const DestinationModel = (await import("../../db/models/destination.model.js")).Destination;
         const destDoc = await DestinationModel.findOne({
           name: { $regex: new RegExp(`^${extractedDestination}$`, "i") }
         });
@@ -167,7 +199,6 @@ User message: "${userMessage}"
         query.price = { $lte: Number(extractedBudget) };
       }
 
-      const ExperienceModel = (await import("../../db/models/experience.model.js")).Experience;
       recommendedPackages = await ExperienceModel.find(query).limit(3);
     }
 
@@ -206,19 +237,64 @@ User message: "${userMessage}"
       // 6. Generate reply with Gemini or Mock fallback
       if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY" || apiKey.trim() === "") {
         // MOCK MODE with database package integration!
-        if (recommendedPackages.length > 0) {
-          aiReply = `I have successfully queried our database and found ${recommendedPackages.length} luxury experiences matching your request. Take a look at these exclusive choices:`;
+        const isArabic = userMessage.match(/[\u0600-\u06FF]/);
+        
+        // Check if user is asking about booking status or supervisor
+        const askBooking = userMessage.toLowerCase().match(/(booking|hagez|حجز|رحلتي|مشرف|مسؤول|supervisor|guide|مرشد)/gi);
+        if (askBooking) {
+          if (userBookings.length > 0) {
+            if (isArabic) {
+              const bookingListStr = userBookings.map(b => {
+                const expName = b.experience ? b.experience.name : (b.snapshot?.title || "رحلة مخصصة");
+                const supervisor = b.experience?.supervisor ? `${b.experience.supervisor.firstName} ${b.experience.supervisor.lastName}` : "لم يتم التعيين بعد";
+                return `- حجز رقم **${b._id}** لرحلة **${expName}**، الحالة: **${b.status === 'confirmed' ? 'مؤكد ✅' : 'قيد الانتظار ⏳'}**، المشرف المسؤول: **${supervisor}**`;
+              }).join("\n");
+              aiReply = `أهلاً بك! لقد فحصت الحجوزات الخاصة بك في النظام ووجدت الآتي:\n\n${bookingListStr}\n\nهل هناك أي شيء آخر يمكنني مساعدتك به بخصوص رحلتك؟`;
+            } else {
+              const bookingListStr = userBookings.map(b => {
+                const expName = b.experience ? b.experience.name : (b.snapshot?.title || "Custom Itinerary");
+                const supervisor = b.experience?.supervisor ? `${b.experience.supervisor.firstName} ${b.experience.supervisor.lastName}` : "Not assigned yet";
+                return `- Booking ID **${b._id}** for **${expName}**, Status: **${b.status}**, Responsible Guide: **${supervisor}**`;
+              }).join("\n");
+              aiReply = `Hello! I checked your active bookings in our system:\n\n${bookingListStr}\n\nIs there anything else I can help you with?`;
+            }
+          } else {
+            if (isArabic) {
+              aiReply = "لم أعثر على أي حجوزات نشطة مسجلة باسمك حالياً في النظام. يمكنك تصفح باقاتنا وحجز رحلتك الأولى للبدء!";
+            } else {
+              aiReply = "I couldn't find any active bookings registered under your account in our system. Browse our packages to book your first trip!";
+            }
+          }
+        } else if (recommendedPackages.length > 0) {
+          if (isArabic) {
+            aiReply = `لقد بحثت في قاعدة البيانات ووجدت لك ${recommendedPackages.length} من الرحلات الفاخرة المميزة المناسبة لطلبك في ${extractedDestination}. يمكنك استعراض تفاصيلها وحجزها مباشرة عبر البطاقات التفاعلية أدناه:`;
+          } else {
+            aiReply = `I have successfully queried our database and found ${recommendedPackages.length} luxury experiences matching your request for ${extractedDestination}. Take a look at these exclusive choices:`;
+          }
         } else {
-          aiReply = "I am the ClearPath AI assistant! (Mock Mode active). I can help you plan trips, find activities, and recommend packages. Try asking me for 'trips in Hurghada under 3000 EGP'!";
+          if (isArabic) {
+            aiReply = "أنا مساعد ClearPath الذكي. يمكنني مساعدتك في التخطيط للرحلات، ومعرفة تفاصيل حجوزاتك، أو اقتراح وجهات سياحية فاخرة. جرب أن تسألني عن 'رحلات في السخنة' أو 'حالة حجزي'!";
+          } else {
+            aiReply = "I am the ClearPath AI travel assistant! I can help you plan trips, track bookings, and recommend premium packages. Try asking me for 'trips in Sokhna' or 'my booking status'!";
+          }
         }
       } else {
         try {
           // If packages are found, inject them into Gemini system context
           let systemInstructionText = SYSTEM_INSTRUCTION;
-          if (recommendedPackages.length > 0) {
-            const pkgListStr = recommendedPackages.map(p => `"${p.name}" (Price: ${p.price || p.base_price} EGP, Duration: ${p.duration_days} days)`).join(", ");
-            systemInstructionText += `\n\n[DATABASE RECOMMENDATION CONTEXT]: We found these actual trips/packages in our database matching the user's search: ${pkgListStr}. In your response, politely mention that you have found these matching premium packages (which will be displayed as interactive cards below the chat bubble) and briefly describe them to get the user excited to book. Do not invent any other packages. Keep the response friendly and aligned with their preferred language.`;
-          }
+          
+          systemInstructionText += `\n\n[REAL-TIME DATABASE CONTEXT]:
+AVAILABLE TRIP PACKAGES ON CLEARPATH:
+${experiencesContext}
+
+CURRENT USER'S BOOKINGS:
+${bookingsContext}
+
+INSTRUCTIONS FOR THE BOT:
+1. Dynamic Booking Assistant: Recommend packages from the AVAILABLE TRIP PACKAGES list above. If the user asks for a recommendation, ask about their desired city and budget, then search the context list and suggest matching ones.
+2. Custom Itinerary Helper: If a user wants to build a custom trip, guide them on how to click "Start Customization" or "Extend Your Journey" in the UI, and suggest activities/days in destinations like Cairo or Sokhna.
+3. Booking & Supervisor Support: If the user asks "what is my booking status?" or "who is my guide/supervisor?", check the CURRENT USER'S BOOKINGS list above, find their bookings, and tell them the exact status (e.g. pending, confirmed) and name of the supervisor responsible for that booking.
+4. Keep the response in the user's language (Arabic if they speak Arabic, English if English). Avoid generic replies. Reference specific IDs or details from the database context when answering.`;
 
           // Initialize Gemini API Client
           const genAI = new GoogleGenerativeAI(apiKey);
@@ -231,7 +307,7 @@ User message: "${userMessage}"
           const formattedHistory = chatSession.messages
             .slice(0, -1) // Exclude the new user message we just added
             .map((msg) => ({
-              role: msg.role,
+              role: msg.role === 'model' ? 'model' : 'user',
               parts: [{ text: msg.content }],
             }));
 
@@ -240,10 +316,10 @@ User message: "${userMessage}"
             history: formattedHistory,
           });
 
-          // Send the new message with a 2.2 seconds timeout
+          // Send the new message with an increased 8 seconds timeout for better reliability
           const result = await Promise.race([
             chat.sendMessage(userMessage),
-            new Promise((_, reject) => setTimeout(() => reject(new Error("Gemini response timed out")), 2200))
+            new Promise((_, reject) => setTimeout(() => reject(new Error("Gemini response timed out")), 8000))
           ]);
           aiReply = result.response.text();
 
@@ -251,11 +327,40 @@ User message: "${userMessage}"
           console.error("Gemini AI API Error (falling back to local AI rules):", error);
           
           // GRACEFUL FALLBACK: Use smart local rule-based system so the chat NEVER crashes!
-          if (recommendedPackages.length > 0) {
-            aiReply = `I have successfully checked our database and found ${recommendedPackages.length} matching premium travel experiences for you! You can view their details or book them directly using the interactive cards below. Let me know if you would like to adjust your destination or budget!`;
+          const isArabic = userMessage.match(/[\u0600-\u06FF]/);
+          const askBooking = userMessage.toLowerCase().match(/(booking|hagez|حجز|رحلتي|مشرف|مسؤول|supervisor|guide|مرشد)/gi);
+          
+          if (askBooking) {
+            if (userBookings.length > 0) {
+              if (isArabic) {
+                const bookingListStr = userBookings.map(b => {
+                  const expName = b.experience ? b.experience.name : (b.snapshot?.title || "رحلة مخصصة");
+                  const supervisor = b.experience?.supervisor ? `${b.experience.supervisor.firstName} ${b.experience.supervisor.lastName}` : "لم يتم التعيين بعد";
+                  return `- حجز رقم **${b._id}** لرحلة **${expName}**، الحالة: **${b.status === 'confirmed' ? 'مؤكد ✅' : 'قيد الانتظار ⏳'}**، المشرف المسؤول: **${supervisor}**`;
+                }).join("\n");
+                aiReply = `أهلاً بك! لقد فحصت الحجوزات الخاصة بك في النظام ووجدت الآتي:\n\n${bookingListStr}\n\nهل هناك أي شيء آخر يمكنني مساعدتك به بخصوص رحلتك؟`;
+              } else {
+                const bookingListStr = userBookings.map(b => {
+                  const expName = b.experience ? b.experience.name : (b.snapshot?.title || "Custom Itinerary");
+                  const supervisor = b.experience?.supervisor ? `${b.experience.supervisor.firstName} ${b.experience.supervisor.lastName}` : "Not assigned yet";
+                  return `- Booking ID **${b._id}** for **${expName}**, Status: **${b.status}**, Responsible Guide: **${supervisor}**`;
+                }).join("\n");
+                aiReply = `Hello! I checked your active bookings in our system:\n\n${bookingListStr}\n\nIs there anything else I can help you with?`;
+              }
+            } else {
+              if (isArabic) {
+                aiReply = "لم أعثر على أي حجوزات نشطة مسجلة باسمك حالياً في النظام. يمكنك تصفح باقاتنا وحجز رحلتك الأولى للبدء!";
+              } else {
+                aiReply = "I couldn't find any active bookings registered under your account in our system. Browse our packages to book your first trip!";
+              }
+            }
+          } else if (recommendedPackages.length > 0) {
+            if (isArabic) {
+              aiReply = `لقد بحثت في قاعدة البيانات ووجدت لك ${recommendedPackages.length} من الرحلات الفاخرة المميزة المناسبة لطلبك في ${extractedDestination}. يمكنك استعراض تفاصيلها وحجزها مباشرة عبر البطاقات التفاعلية أدناه:`;
+            } else {
+              aiReply = `I have successfully checked our database and found ${recommendedPackages.length} matching premium travel experiences for you in ${extractedDestination}! You can view their details or book them directly using the interactive cards below.`;
+            }
           } else {
-            // General friendly fallback response that answers in a helpful way
-            const isArabic = userMessage.match(/[\u0600-\u06FF]/);
             if (isArabic) {
               aiReply = `مرحباً بك! أنا مساعد ClearPath الذكي. لمساعدتك في التخطيط لرحلتك المميزة في مصر، يمكنك:\n1. استكشاف الوجهات الرائعة المتوفرة على منصتنا.\n2. تصميم رحلتك الخاصة بالكامل (Custom Trip) وإضافة الفنادق والأنشطة التي تفضلها.\n3. تصفح وحجز الرحلات الفاخرة الجاهزة.\n\nما هي المدينة التي ترغب في زيارتها، أو ما هي ميزانيتك المتوقعة بالجنيه المصري؟`;
             } else {
