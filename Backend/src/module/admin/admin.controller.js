@@ -106,7 +106,7 @@ export const getIntelligenceDashboard = async (req, res, next) => {
           userName,
           severity: cancelled >= 2 ? "High Risk / خطر عالي" : "Medium Risk / خطر متوسط",
           isFlagged: false,
-          message: `User has cancelled ${cancelled} out of ${total} booking(s) (${Math.round(cancellationRate * 100)}% cancellation rate).`,
+          message: `User has cancelled ${cancelled} out of ${total} booking(s) (${Math.round(cancellationRate * 100)}% cancellation rate). Potential spam behavior.`,
           actionRecommended: "Flag Account"
         });
       }
