@@ -54,7 +54,7 @@ export const getIntelligenceDashboard = async (req, res, next) => {
     }
 
     // 2. Fraud & Scam Risk Detection (Rule-Based from DB)
-    const users = await User.find({ role: "user" }).lean();
+    const users = await User.find({}).lean();
     
     for (const user of users) {
       if (user.isFlagged) {
