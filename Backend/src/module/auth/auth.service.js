@@ -74,11 +74,18 @@ class AuthService {
         try {
             const { email, password } = req.body;
             const user = await userRepo.getOne({ email });
-            
+
+            if (!user) {
+                throw new AppError.forbiddenException("Invalid credentials");
+            }
 
             const passwordMatch = await comparePassword(password, user.password);
-            if (!user || !passwordMatch) {
+            if (!passwordMatch) {
                 throw new AppError.forbiddenException("Invalid credentials");
+            }
+
+            if (!user.isVerified) {
+                throw new AppError.forbiddenException("Please verify your email before logging in");
             }
            
 
