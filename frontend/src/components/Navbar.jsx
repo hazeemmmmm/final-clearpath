@@ -214,7 +214,7 @@ const Navbar = ({ isScrolled, dashboardMode }) => {
         <div className="tw-hidden md:tw-flex tw-items-center tw-gap-4 lg:tw-gap-8">
           <Link 
             to="/" 
-            className="tw-text-sm tw-font-semibold tw-text-amber-500 dark:tw-text-amber-500 hover:tw-text-slate-900 dark:hover:tw-text-white tw-transition-colors tw-pb-1 tw-border-b-2 tw-border-amber-500 hover:tw-border-slate-900 dark:hover:tw-border-white"
+            className={getLinkClass('/')}
           >
             {lang === 'AR' ? 'الرئيسية' : 'Home'}
           </Link>
