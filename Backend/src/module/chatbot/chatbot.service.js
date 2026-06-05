@@ -92,7 +92,11 @@ export class ChatbotService {
       return `- Booking ID: ${b._id}\n  Package: "${expName}"\n  Status: ${b.status}\n  Total Paid/Amount: ${b.total_amount || 0} EGP\n  Date: ${b.createdAt ? new Date(b.createdAt).toLocaleDateString() : "N/A"}\n  Supervisor: ${supervisor}`;
     }).join("\n") || "No active bookings found for this user.";
 
-    // 4. Extract Destination and Budget
+    // 4. Extract Date, Destination, and Budget
+    let extractedDate = null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     let extractedDestination = null;
     let extractedBudget = null;
 
@@ -134,10 +138,6 @@ User message: "${userMessage}"
     }
 
     // --- Date extraction from user message ---
-    let extractedDate = null;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
     // Arabic/English day keywords
     if (/اليوم|today/i.test(userMessage)) {
       extractedDate = new Date(today);
@@ -154,13 +154,28 @@ User message: "${userMessage}"
       } else {
         const monthMapAR = { 'يناير':0,'فبراير':1,'مارس':2,'ابريل':3,'أبريل':3,'مايو':4,'يونيو':5,'يوليو':6,'أغسطس':7,'اغسطس':7,'سبتمبر':8,'أكتوبر':9,'اكتوبر':9,'نوفمبر':10,'ديسمبر':11 };
         const monthMapEN = { 'jan':0,'feb':1,'mar':2,'apr':3,'may':4,'jun':5,'jul':6,'aug':7,'sep':8,'oct':9,'nov':10,'dec':11,'january':0,'february':1,'march':2,'april':3,'june':5,'july':6,'august':7,'september':8,'october':9,'november':10,'december':11 };
+        let foundMonth = false;
         for (const [name, idx] of Object.entries({...monthMapAR,...monthMapEN})) {
           const re = new RegExp(`(\\d{1,2})\\s*${name}`, 'i');
           const m2 = userMessage.match(re);
           if (m2) {
             extractedDate = new Date(today.getFullYear(), idx, parseInt(m2[1]));
             if (extractedDate < today) extractedDate.setFullYear(today.getFullYear() + 1);
+            foundMonth = true;
             break;
+          }
+        }
+        
+        // If no full date is matched, search for a plain day number (e.g. "27" or "يوم 27")
+        if (!foundMonth) {
+          const dayOnlyMatch = userMessage.match(/(?:يوم\s*)?\b([1-9]|[12]\d|3[01])\b/);
+          if (dayOnlyMatch) {
+            const day = parseInt(dayOnlyMatch[1]);
+            extractedDate = new Date(today.getFullYear(), today.getMonth(), day);
+            if (extractedDate < today) {
+              // If it has already passed this month, look in the next month
+              extractedDate.setMonth(today.getMonth() + 1);
+            }
           }
         }
       }

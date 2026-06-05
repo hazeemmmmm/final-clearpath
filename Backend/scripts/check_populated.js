@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import { Experience } from './src/db/models/experience.model.js';
-import { User } from './src/db/models/user.model.js';
+import { Experience } from '../src/db/models/experience.model.js';
+import { User } from '../src/db/models/user.model.js';
 
 dotenv.config();
 

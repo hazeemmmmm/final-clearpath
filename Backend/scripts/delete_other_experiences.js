@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
-import { devConfig } from './src/config/env/dev.config.js';
-import { Experience } from './src/db/models/experience.model.js';
+import { devConfig } from '../src/config/env/dev.config.js';
+import { Experience } from '../src/db/models/experience.model.js';
 
 const DB_URL = devConfig.DB_URL;
 

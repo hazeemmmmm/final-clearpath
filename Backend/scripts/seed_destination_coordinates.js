@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
-import { devConfig } from './src/config/env/dev.config.js';
-import { Destination } from './src/db/models/destination.model.js';
+import { devConfig } from '../src/config/env/dev.config.js';
+import { Destination } from '../src/db/models/destination.model.js';
 
 // GeoJSON format: coordinates = [longitude, latitude]
 const COORDS = {

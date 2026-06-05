@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
-import { devConfig } from './src/config/env/dev.config.js';
-import { Destination } from './src/db/models/destination.model.js';
-import { Experience } from './src/db/models/experience.model.js';
-import { Provider } from './src/db/models/provider.model.js';
-import { Activity } from './src/db/models/Activity.model.js';
-import { PackingGuide } from './src/db/models/packingguide.model.js';
+import { devConfig } from '../src/config/env/dev.config.js';
+import { Destination } from '../src/db/models/destination.model.js';
+import { Experience } from '../src/db/models/experience.model.js';
+import { Provider } from '../src/db/models/provider.model.js';
+import { Activity } from '../src/db/models/Activity.model.js';
+import { PackingGuide } from '../src/db/models/packingguide.model.js';
 
 async function seedDayuseCairo() {
   try {

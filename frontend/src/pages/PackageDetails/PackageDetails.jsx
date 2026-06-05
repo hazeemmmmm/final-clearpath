@@ -193,11 +193,13 @@ const PackageDetails = () => {
       const end = new Date(start);
       end.setDate(start.getDate() + (duration > 1 ? duration - 1 : 0));
       
-      const endDateStr = end.toISOString().split('T')[0];
+      const nextDay = new Date(end);
+      nextDay.setDate(end.getDate() + 1);
+      const nextDayDateStr = nextDay.toISOString().split('T')[0];
       
       try {
         setLoadingChain(true);
-        const res = await getTripExtensions(endDateStr);
+        const res = await getTripExtensions(nextDayDateStr);
         let filtered = [];
         if (res && res.success && res.data) {
           filtered = res.data.filter(exp => exp._id !== id);
@@ -213,7 +215,7 @@ const PackageDetails = () => {
               .filter(exp => exp._id !== id)
               .map(exp => ({
                 ...exp,
-                availableDates: [{ date: new Date(end.getTime()) }]
+                availableDates: [{ date: new Date(nextDay.getTime()) }]
               }));
           }
         }
@@ -951,8 +953,8 @@ const PackageDetails = () => {
         id: selectedChainExp._id,
         name: selectedChainExp.name,
         image: selectedChainExp.image,
-        start: new Date(end.getTime()).toLocaleDateString(lang === 'AR' ? 'ar-EG' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        end: new Date(end.getTime() + ((selectedChainExp.duration_days || 1) - 1) * 86400000).toLocaleDateString(lang === 'AR' ? 'ar-EG' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        start: new Date(nextDay.getTime()).toLocaleDateString(lang === 'AR' ? 'ar-EG' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        end: new Date(nextDay.getTime() + ((selectedChainExp.duration_days || 1) - 1) * 86400000).toLocaleDateString(lang === 'AR' ? 'ar-EG' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
         guestCount: guestCount,
         price: selectedChainExp.calculatedPrice || selectedChainExp.base_price,
         selectedAddons: [],
@@ -1134,6 +1136,14 @@ const PackageDetails = () => {
 
   const endFormatted = end
     ? end.toLocaleDateString(lang === 'AR' ? 'ar-EG' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    : '—';
+
+  const nextDay = end ? new Date(end) : null;
+  if (nextDay) {
+    nextDay.setDate(nextDay.getDate() + 1);
+  }
+  const nextDayFormatted = nextDay
+    ? nextDay.toLocaleDateString(lang === 'AR' ? 'ar-EG' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : '—';
 
   const getDayDate = (dayNumber) => {
@@ -2487,8 +2497,8 @@ const PackageDetails = () => {
                               </h4>
                               <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: '0', lineHeight: '1.4' }}>
                                 {lang === 'AR'
-                                  ? `رحلتك الحالية تنتهي في ${endFormatted}. يمكنك فوراً حجز رحلة أخرى أو داي يوز يبدأ في نفس اليوم (${endFormatted}) لبناء سلسلة رحلات متصلة وخلق تجربة خالية من الفجوات الموقوتة!`
-                                  : `Your current experience ends on ${endFormatted}. You can instantly stack another package or dayuse starting the same day (${endFormatted}) to build a seamless Trip Chain without overlapping schedules!`}
+                                  ? `رحلتك الحالية تنتهي في ${endFormatted}. يمكنك فوراً حجز رحلة أخرى أو داي يوز يبدأ في اليوم التالي (${nextDayFormatted}) لبناء سلسلة رحلات متصلة وخلق تجربة خالية من الفجوات الموقوتة!`
+                                  : `Your current experience ends on ${endFormatted}. You can instantly stack another package or dayuse starting the next day (${nextDayFormatted}) to build a seamless Trip Chain without overlapping schedules!`}
                               </p>
                               
                               <button
@@ -3641,8 +3651,8 @@ const PackageDetails = () => {
               </h3>
               <p style={{ color: '#94a3b8', fontSize: '0.9rem', maxWidth: '700px', margin: '0 auto' }}>
                 {lang === 'AR'
-                  ? `رحلتك تنتهي في ${endFormatted}. يمكنك فوراً ربط رحلة أخرى أو داي يوز يبدأ في نفس اليوم (${endFormatted}) لتخلق سلسلة رحلات متصلة ممتازة!`
-                  : `Your current experience ends on ${endFormatted}. You can instantly stack another package starting the same day (${endFormatted}) to build a seamless Trip Chain!`}
+                  ? `رحلتك تنتهي في ${endFormatted}. يمكنك فوراً ربط رحلة أخرى تبدأ في اليوم التالي (${nextDayFormatted}) لتخلق سلسلة رحلات متصلة ممتازة!`
+                  : `Your current experience ends on ${endFormatted}. You can instantly stack another package starting the next day (${nextDayFormatted}) to build a seamless Trip Chain!`}
               </p>
             </div>
 
@@ -3719,7 +3729,7 @@ const PackageDetails = () => {
                   }}>
                     {chainExperiences.map((exp, idx) => {
                       const isSelected = selectedChainId === exp._id;
-                      const formattedStartDate = new Date(end.getTime()).toLocaleDateString(lang === 'AR' ? 'ar-EG' : 'en-US', { month: 'short', day: 'numeric' });
+                      const formattedStartDate = new Date(nextDay.getTime()).toLocaleDateString(lang === 'AR' ? 'ar-EG' : 'en-US', { month: 'short', day: 'numeric' });
                       
                       return (
                         <div
@@ -3843,25 +3853,49 @@ const PackageDetails = () => {
                               </span>
                             </div>
 
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedChainId(exp._id);
-                              }}
-                              style={{
-                                background: isSelected ? '#f59e0b' : 'rgba(255,255,255,0.05)',
-                                color: isSelected ? '#000' : '#fff',
-                                border: 'none',
-                                padding: '6px 12px',
-                                borderRadius: '8px',
-                                fontSize: '0.78rem',
-                                fontWeight: 'bold',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                              }}
-                            >
-                              {lang === 'AR' ? 'اختر الرحلة' : 'Select/View'}
-                            </button>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedChainId(exp._id);
+                                }}
+                                style={{
+                                  background: isSelected ? '#f59e0b' : 'rgba(255,255,255,0.05)',
+                                  color: isSelected ? '#000' : '#fff',
+                                  border: 'none',
+                                  padding: '6px 12px',
+                                  borderRadius: '8px',
+                                  fontSize: '0.78rem',
+                                  fontWeight: 'bold',
+                                  cursor: 'pointer',
+                                  transition: 'all 0.2s'
+                                }}
+                              >
+                                {isSelected ? (lang === 'AR' ? 'تم الاختيار' : 'Selected') : (lang === 'AR' ? 'اختيار' : 'Select')}
+                              </button>
+                              <a
+                                href={`/package-details/${exp._id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                style={{
+                                  background: 'rgba(255,255,255,0.1)',
+                                  color: '#fff',
+                                  border: '1px solid rgba(255,255,255,0.2)',
+                                  padding: '6px 12px',
+                                  borderRadius: '8px',
+                                  fontSize: '0.78rem',
+                                  fontWeight: 'bold',
+                                  cursor: 'pointer',
+                                  textDecoration: 'none',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  transition: 'all 0.2s'
+                                }}
+                              >
+                                {lang === 'AR' ? 'عرض' : 'View'}
+                              </a>
+                            </div>
                           </div>
                         </div>
                       );

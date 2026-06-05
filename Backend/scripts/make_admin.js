@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import { User } from "./src/db/models/user.model.js";
-import { devConfig } from "./src/config/env/dev.config.js";
+import { User } from "../src/db/models/user.model.js";
+import { devConfig } from "../src/config/env/dev.config.js";
 
 async function makeAdmin() {
   try {

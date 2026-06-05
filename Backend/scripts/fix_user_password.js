@@ -10,7 +10,7 @@
 
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
-import { devConfig } from './src/config/env/dev.config.js';
+import { devConfig } from '../src/config/env/dev.config.js';
 
 const [,, email, newPassword] = process.argv;
 

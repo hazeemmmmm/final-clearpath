@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { Booking } from './src/db/models/booking.model.js';
+import { Booking } from '../src/db/models/booking.model.js';
 
 const mongooseUri = 'mongodb://127.0.0.1:27017/clearpath';
 

@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
-import { Review } from './src/db/models/review.model.js';
-import { Booking } from './src/db/models/booking.model.js';
-import { CustomTrip } from './src/db/models/customtrip.model.js';
-import ReviewService from './src/module/review/review.service.js';
+import { Review } from '../src/db/models/review.model.js';
+import { Booking } from '../src/db/models/booking.model.js';
+import { CustomTrip } from '../src/db/models/customtrip.model.js';
+import ReviewService from '../src/module/review/review.service.js';
 
 const mockReviews = [
   { name: 'Sarah Ahmed', rating: 5, comment: 'This tour was absolutely incredible and amazing. snorkeling was beautiful.', isConfirmed: true },

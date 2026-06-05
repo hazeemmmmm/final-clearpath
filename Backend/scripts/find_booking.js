@@ -1,13 +1,13 @@
 import mongoose from 'mongoose';
-import { Booking } from './src/db/models/booking.model.js';
-import { CustomTrip } from './src/db/models/customtrip.model.js';
-import { Experience } from './src/db/models/experience.model.js';
-import { User } from './src/db/models/user.model.js';
-import { Coupon } from './src/db/models/coupon.model.js';
-import { Activity } from './src/db/models/activity.model.js';
-import { Provider } from './src/db/models/provider.model.js';
-import { devConfig } from './src/config/env/dev.config.js';
-import { calculateBookingTotal } from './src/utils/pricingHelper.js';
+import { Booking } from '../src/db/models/booking.model.js';
+import { CustomTrip } from '../src/db/models/customtrip.model.js';
+import { Experience } from '../src/db/models/experience.model.js';
+import { User } from '../src/db/models/user.model.js';
+import { Coupon } from '../src/db/models/coupon.model.js';
+import { Activity } from '../src/db/models/activity.model.js';
+import { Provider } from '../src/db/models/provider.model.js';
+import { devConfig } from '../src/config/env/dev.config.js';
+import { calculateBookingTotal } from '../src/utils/pricingHelper.js';
 
 async function find() {
   await mongoose.connect(devConfig.DB_URL);

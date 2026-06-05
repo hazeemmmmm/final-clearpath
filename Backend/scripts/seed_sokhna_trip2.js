@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
-import { devConfig } from './src/config/env/dev.config.js';
-import { Destination } from './src/db/models/destination.model.js';
-import { Experience } from './src/db/models/experience.model.js';
-import { Provider } from './src/db/models/provider.model.js';
-import { Activity } from './src/db/models/Activity.model.js';
-import { PackingGuide } from './src/db/models/packingguide.model.js';
+import { devConfig } from '../src/config/env/dev.config.js';
+import { Destination } from '../src/db/models/destination.model.js';
+import { Experience } from '../src/db/models/experience.model.js';
+import { Provider } from '../src/db/models/provider.model.js';
+import { Activity } from '../src/db/models/Activity.model.js';
+import { PackingGuide } from '../src/db/models/packingguide.model.js';
 
 async function seedSokhnaTrip2() {
   try {
@@ -169,7 +169,7 @@ async function seedSokhnaTrip2() {
       capacity: 10,
       destination: sokhnaDest._id,
       availableDates: [
-        { date: new Date('2026-06-27'), availableSeats: 10 },
+        { date: new Date('2026-06-28'), availableSeats: 10 },
         { date: new Date('2026-07-11'), availableSeats: 10 },
         { date: new Date('2026-07-25'), availableSeats: 10 },
         { date: new Date('2026-08-08'), availableSeats: 10 }

@@ -607,7 +607,7 @@
           "_id": "6a208e2c213451db7092525c"
         },
         {
-          "date": "2026-06-27T00:00:00.000Z",
+          "date": "2026-06-28T00:00:00.000Z",
           "availableSeats": 15,
           "_id": "6a208e2c213451db7092525d"
         },
@@ -1062,7 +1062,7 @@
       "capacity": 14,
       "availableDates": [
         {
-          "date": "2026-06-27T00:00:00.000Z",
+          "date": "2026-06-28T00:00:00.000Z",
           "availableSeats": 14,
           "_id": "6a208e55de083b8c104bf2e6"
         },
@@ -1229,7 +1229,7 @@
       "capacity": 12,
       "availableDates": [
         {
-          "date": "2026-06-26T00:00:00.000Z",
+          "date": "2026-06-28T00:00:00.000Z",
           "availableSeats": 12,
           "_id": "6a208e6c7bfacec7132eb0f3"
         },
@@ -1388,7 +1388,7 @@
       "capacity": 10,
       "availableDates": [
         {
-          "date": "2026-06-27T00:00:00.000Z",
+          "date": "2026-06-28T00:00:00.000Z",
           "availableSeats": 10,
           "_id": "6a208e73337972073708a0c8"
         },

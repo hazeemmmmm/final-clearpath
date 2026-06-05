@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
-import { devConfig } from './src/config/env/dev.config.js';
-import { Destination } from './src/db/models/destination.model.js';
-import { Provider } from './src/db/models/provider.model.js';
-import { Activity } from './src/db/models/activity.model.js';
-import { Experience } from './src/db/models/experience.model.js';
-import { User } from './src/db/models/user.model.js';
+import { devConfig } from '../src/config/env/dev.config.js';
+import { Destination } from '../src/db/models/destination.model.js';
+import { Provider } from '../src/db/models/provider.model.js';
+import { Activity } from '../src/db/models/activity.model.js';
+import { Experience } from '../src/db/models/experience.model.js';
+import { User } from '../src/db/models/user.model.js';
 
 async function run() {
   console.log('🌱 Connecting to MongoDB...');
@@ -234,7 +234,7 @@ async function run() {
     availableDates: [
       { date: new Date('2026-06-12'), availableSeats: 10 },
       { date: new Date('2026-06-19'), availableSeats: 10 },
-      { date: new Date('2026-06-26'), availableSeats: 10 }
+      { date: new Date('2026-06-28'), availableSeats: 10 }
     ],
     priceBreakdown: [
       { label: 'Boutique Hotel in Zamalek (2 Nights)', amount: 1500 },
@@ -348,7 +348,7 @@ async function run() {
     availableDates: [
       { date: new Date('2026-06-13'), availableSeats: 12 },
       { date: new Date('2026-06-20'), availableSeats: 12 },
-      { date: new Date('2026-06-27'), availableSeats: 12 }
+      { date: new Date('2026-06-28'), availableSeats: 12 }
     ],
     priceBreakdown: [
       { label: 'Sea-View Hotel Stay (1 Night)', amount: 1200 },

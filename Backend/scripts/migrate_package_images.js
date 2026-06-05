@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
-import "./src/db/models/user.model.js";
-import "./src/db/models/provider.model.js";
-import "./src/db/models/destination.model.js";
-import "./src/db/models/Activity.model.js";
-import { Experience } from "./src/db/models/experience.model.js";
-import "./src/db/models/customtrip.model.js";
-import { devConfig } from "./src/config/env/dev.config.js";
+import "../src/db/models/user.model.js";
+import "../src/db/models/provider.model.js";
+import "../src/db/models/destination.model.js";
+import "../src/db/models/Activity.model.js";
+import { Experience } from "../src/db/models/experience.model.js";
+import "../src/db/models/customtrip.model.js";
+import { devConfig } from "../src/config/env/dev.config.js";
 
 // Curated 12 completely unique photo sets (each with 4 different real Egyptian photos)
 const UNIQUE_PHOTO_SETS = [

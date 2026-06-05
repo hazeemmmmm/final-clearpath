@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
-import { Experience } from "./src/db/models/experience.model.js";
-import { User } from "./src/db/models/user.model.js";
-import { Destination } from "./src/db/models/destination.model.js";
-import ExperienceService from "./src/module/experience/experience.service.js";
-import { devConfig } from "./src/config/env/dev.config.js";
+import { Experience } from "../src/db/models/experience.model.js";
+import { User } from "../src/db/models/user.model.js";
+import { Destination } from "../src/db/models/destination.model.js";
+import ExperienceService from "../src/module/experience/experience.service.js";
+import { devConfig } from "../src/config/env/dev.config.js";
 
 async function populateExperiences() {
   try {
