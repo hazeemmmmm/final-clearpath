@@ -248,6 +248,79 @@ const AdminDashboard = () => {
     setForecastInsights(insights);
   };
 
+  const handleDownloadReport = () => {
+    try {
+      // 1. Compile Header & Metrics
+      let csvRows = [];
+      csvRows.push("ClearPath Admin Dashboard Report");
+      csvRows.push(`Generated At,${new Date().toLocaleString()}`);
+      csvRows.push("");
+
+      csvRows.push("--- SUMMARY METRICS ---");
+      csvRows.push(`Total Experiences,${packages.length}`);
+      csvRows.push(`Gross Sales Value,EGP ${totalRevenue.toLocaleString()}`);
+      csvRows.push(`Total Registered Users,${users.length}`);
+      csvRows.push(`Total Bookings,${bookings.length}`);
+      csvRows.push("");
+
+      // 2. Add Bookings details
+      csvRows.push("--- ACTIVE BOOKINGS ---");
+      csvRows.push("Booking ID,Customer Name,Customer Email,Experience Name,Amount (EGP),Status,Booking Date");
+      const activeBookings = bookings.length > 0 ? bookings : mockBookings;
+      activeBookings.forEach(b => {
+        const customerName = b.user ? `${b.user.firstName || ''} ${b.user.lastName || ''}`.trim() : "N/A";
+        const customerEmail = b.user?.email || "N/A";
+        const expName = b.experience?.name || b.experience || "N/A";
+        const amount = b.total_amount || 0;
+        const status = b.status || "Pending";
+        const bookingDate = b.booking_date ? new Date(b.booking_date).toLocaleDateString() : "N/A";
+
+        // Escape commas and double quotes for CSV safety
+        const cleanName = `"${customerName.replace(/"/g, '""')}"`;
+        const cleanEmail = `"${customerEmail.replace(/"/g, '""')}"`;
+        const cleanExp = `"${expName.replace(/"/g, '""')}"`;
+
+        csvRows.push(`${b._id},${cleanName},${cleanEmail},${cleanExp},${amount},${status},${bookingDate}`);
+      });
+      csvRows.push("");
+
+      // 3. Add Experiences details
+      csvRows.push("--- EXPERIENCES INVENTORY ---");
+      csvRows.push("Experience ID,Name,Type,Destination,Base Price (EGP),Duration,Capacity");
+      packages.forEach(pkg => {
+        const name = pkg.name || "N/A";
+        const type = pkg.type || "Trip";
+        const destination = pkg.destination?.name || pkg.destination || "N/A";
+        const price = pkg.price || pkg.base_price || 0;
+        const duration = pkg.duration_days ? `${pkg.duration_days} Days` : "N/A";
+        const capacity = pkg.capacity || 0;
+
+        const cleanName = `"${name.replace(/"/g, '""')}"`;
+        const cleanDest = `"${destination.replace(/"/g, '""')}"`;
+
+        csvRows.push(`${pkg._id},${cleanName},${type},${cleanDest},${price},${duration},${capacity}`);
+      });
+
+      // 4. Create Blob and trigger download
+      const csvString = csvRows.join("\n");
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `clearpath_admin_report_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast('Report compiled and downloaded successfully!');
+    } catch (err) {
+      console.error(err);
+      toast('Failed to download report.');
+    }
+  };
+
   const addActivityToDay = (dayIdx) => {
     setItinerary(prev => prev.map((d, idx) => {
       if (idx === dayIdx) {
@@ -1066,7 +1139,7 @@ const AdminDashboard = () => {
                           <span>Register User</span>
                         </div>
 
-                        <div className="action-btn-widget" onClick={() => toast('Feature incoming: Admin Activity Log report is compiled ready for secure delivery.')}>
+                        <div className="action-btn-widget" onClick={handleDownloadReport}>
                           <div className="action-icon mauve-glow"><i className="fa-solid fa-print"></i></div>
                           <span>Download Report</span>
                         </div>
