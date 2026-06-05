@@ -348,12 +348,6 @@ const Home = () => {
             >
               {lang === 'AR' ? 'تصفح الباقات' : 'EXPLORE PACKAGES'}
             </button>
-            <button 
-              onClick={() => setIsProtocolModalOpen(true)}
-              className="tw-w-full sm:tw-w-auto tw-bg-transparent tw-border tw-border-slate-300 dark:tw-border-slate-600 hover:tw-border-amber-500 dark:hover:tw-border-amber-500 tw-text-slate-700 dark:tw-text-white hover:tw-text-amber-500 dark:hover:tw-text-amber-500 tw-font-bold tw-py-4 tw-px-8 tw-rounded-sm tw-transition-all tw-tracking-wide"
-            >
-              {lang === 'AR' ? 'بروتوكولنا' : 'OUR PROTOCOL'}
-            </button>
           </div>
         </div>
       </section>
