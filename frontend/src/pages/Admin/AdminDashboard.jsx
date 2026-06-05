@@ -1139,11 +1139,6 @@ const AdminDashboard = () => {
                           <span>Register User</span>
                         </div>
 
-                        <div className="action-btn-widget" onClick={handleDownloadReport}>
-                          <div className="action-icon mauve-glow"><i className="fa-solid fa-print"></i></div>
-                          <span>Download Report</span>
-                        </div>
-
                         <div className="action-btn-widget" onClick={() => setActiveTab('bookings')}>
                           <div className="action-icon teal-glow"><i className="fa-solid fa-clipboard-list"></i></div>
                           <span>Check Bookings</span>
