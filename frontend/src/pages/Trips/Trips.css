@@ -7,7 +7,7 @@
 .experiences-page {
   padding-top: 80px;
   min-height: 100vh;
-  background-color: var(--bg-secondary);
+  background-color: transparent;
   padding-bottom: 50px;
   animation: fadeInPage 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
@@ -686,7 +686,49 @@ body.dark-mode .skeleton-btn {
 @media (max-width: 768px) {
   .experiences-header h1 { font-size: 2rem; }
   .experiences-grid { grid-template-columns: 1fr; }
+
+  /* Airbnb Search Bar Responsive Overrides */
+  .airbnb-search-bar-container {
+    width: 95%;
+    margin: 10px auto 15px auto;
+  }
+  .airbnb-search-bar-container.sticky {
+    top: 70px;
+    width: 95%;
+    max-width: 95%;
+  }
+  .search-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    border-radius: 20px;
+    padding: 12px;
+    gap: 8px;
+  }
+  .lang-ar .search-filter-bar {
+    padding: 12px;
+  }
+  .search-item {
+    padding: 10px 14px;
+    border-radius: 12px;
+    justify-content: flex-start;
+  }
+  .search-divider {
+    display: none;
+  }
+  .search-action-btn {
+    width: 100%;
+    height: 48px;
+    border-radius: 12px;
+    margin-top: 4px;
+  }
+  .search-dropdown, .price-dropdown {
+    width: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: 100% !important;
+  }
 }
+
 
 /* -- Airbnb Destination Sections -- */
 .airbnb-dest-section {

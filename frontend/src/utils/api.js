@@ -74,6 +74,8 @@ export const removeFromWishlist = async (experienceId) => removeWishlist(experie
 
 export const processPayment = async (bookingId, currency = 'EGP') => createOrder(bookingId, currency);
 export const confirmPayment = async (orderId) => captureOrder(orderId);
+export const getPaymentHistory = async () =>
+  apiCall(`${BASE_URL}/payment/history`, { method: 'GET', headers: getHeaders(true) });
 
 // Reviews API
 export const createReview = async (data) => addReview(data);

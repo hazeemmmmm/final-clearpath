@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+}
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -56,7 +62,79 @@ body {
   margin: 0;
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* ── Fallback backgrounds (ThemeContext sets inline style directly) ── */
+html:not(.dark) body {
+  color: #000000;
+}
+
+/* ── Global light mode: fix invisible text across ALL pages ── */
+/* Elements with inline styles that have light/white colors */
+html:not(.dark) .page-container li[style]:not(.login-page-container *):not(.register-page-container *):not(.forgot-password-page-container *):not(.verify-page-container *):not(.cancellation-modal-wrapper *):not(.ppm-modal *):not(.ppm-overlay *):not(.premium-admin-theme *):not(.supervisor-theme *):not(.intel-dashboard-theme *),
+html:not(.dark) .page-container span[style]:not([class*="tw-text-amber"]):not([class*="tw-text-green"]):not([class*="tw-text-red"]):not(.login-page-container *):not(.register-page-container *):not(.forgot-password-page-container *):not(.verify-page-container *):not(.cancellation-modal-wrapper *):not(.ppm-modal *):not(.ppm-overlay *):not(.premium-admin-theme *):not(.supervisor-theme *):not(.intel-dashboard-theme *) {
+  color: #000000 !important;
+}
+/* Force all headings and titles to be dark in light mode, except status/brand colors */
+html:not(.dark) h1:not(.login-page-container *):not(.register-page-container *):not(.forgot-password-page-container *):not(.verify-page-container *):not([class*="text-amber"]):not([class*="text-yellow"]):not([class*="text-green"]):not([class*="text-red"]):not(.egypt-flag-text):not(.premium-admin-theme *):not(.supervisor-theme *):not(.cancellation-modal-wrapper *):not(.ppm-modal *):not(.ppm-overlay *):not(.chatbot-container *):not(.intel-dashboard-theme *),
+html:not(.dark) h2:not(.login-page-container *):not(.register-page-container *):not(.forgot-password-page-container *):not(.verify-page-container *):not([class*="text-amber"]):not([class*="text-yellow"]):not([class*="text-green"]):not([class*="text-red"]):not(.premium-admin-theme *):not(.supervisor-theme *):not(.cancellation-modal-wrapper *):not(.ppm-modal *):not(.ppm-overlay *):not(.chatbot-container *):not(.intel-dashboard-theme *),
+html:not(.dark) h3:not(.login-page-container *):not(.register-page-container *):not(.forgot-password-page-container *):not(.verify-page-container *):not([class*="text-amber"]):not([class*="text-yellow"]):not([class*="text-green"]):not([class*="text-red"]):not(.day-badge):not(.premium-admin-theme *):not(.supervisor-theme *):not(.cancellation-modal-wrapper *):not(.ppm-modal *):not(.ppm-overlay *):not(.chatbot-container *):not(.intel-dashboard-theme *),
+html:not(.dark) h4:not(.login-page-container *):not(.register-page-container *):not(.forgot-password-page-container *):not(.verify-page-container *):not([class*="text-amber"]):not([class*="text-yellow"]):not([class*="text-green"]):not([class*="text-red"]):not(.premium-admin-theme *):not(.supervisor-theme *):not(.cancellation-modal-wrapper *):not(.ppm-modal *):not(.ppm-overlay *):not(.chatbot-container *):not(.intel-dashboard-theme *),
+html:not(.dark) h5:not(.login-page-container *):not(.register-page-container *):not(.forgot-password-page-container *):not(.verify-page-container *):not([class*="text-amber"]):not([class*="text-yellow"]):not([class*="text-green"]):not([class*="text-red"]):not(.premium-admin-theme *):not(.supervisor-theme *):not(.cancellation-modal-wrapper *):not(.ppm-modal *):not(.ppm-overlay *):not(.chatbot-container *):not(.intel-dashboard-theme *),
+html:not(.dark) h6:not(.login-page-container *):not(.register-page-container *):not(.forgot-password-page-container *):not(.verify-page-container *):not([class*="text-amber"]):not([class*="text-yellow"]):not([class*="text-green"]):not([class*="text-red"]):not(.premium-admin-theme *):not(.supervisor-theme *):not(.cancellation-modal-wrapper *):not(.ppm-modal *):not(.ppm-overlay *):not(.chatbot-container *):not(.intel-dashboard-theme *),
+html:not(.dark) .title:not(.login-page-container *):not(.register-page-container *):not(.forgot-password-page-container *):not(.verify-page-container *):not([class*="text-amber"]):not([class*="text-yellow"]):not(.premium-admin-theme *):not(.supervisor-theme *):not(.cancellation-modal-wrapper *):not(.ppm-modal *):not(.ppm-overlay *):not(.chatbot-container *):not(.intel-dashboard-theme *),
+html:not(.dark) [class*="title"]:not(.login-page-container *):not(.register-page-container *):not(.forgot-password-page-container *):not(.verify-page-container *):not([class*="text-amber"]):not([class*="text-yellow"]):not([class*="text-green"]):not(.egypt-flag-text):not(.premium-admin-theme *):not(.supervisor-theme *):not(.cancellation-modal-wrapper *):not(.ppm-modal *):not(.ppm-overlay *):not(.chatbot-container *):not(.intel-dashboard-theme *),
+html:not(.dark) [class*="heading"]:not(.login-page-container *):not(.register-page-container *):not(.forgot-password-page-container *):not(.verify-page-container *):not([class*="text-amber"]):not([class*="text-yellow"]):not([class*="text-green"]):not(.premium-admin-theme *):not(.supervisor-theme *):not(.cancellation-modal-wrapper *):not(.ppm-modal *):not(.ppm-overlay *):not(.chatbot-container *):not(.intel-dashboard-theme *) {
+  color: #000000 !important; /* Force black */
+}
+/* Keep amber/status colors */
+html:not(.dark) .page-container .tw-text-amber-500,
+html:not(.dark) .page-container [style*="#f59e0b"],
+html:not(.dark) .page-container [style*="#fbbf24"],
+html:not(.dark) .page-container [style*="#22c55e"],
+html:not(.dark) .page-container [style*="#ef4444"],
+html:not(.dark) .page-container [style*="#10b981"],
+html:not(.dark) .page-container [style*="#d4af37"] {
+  color: inherit;
+}
+/* Packing checklist items fix */
+html:not(.dark) .package-details-page li[style] {
+  color: #000000 !important;
+}
+html:not(.dark) .package-details-page .packing-guide-section p[style],
+html:not(.dark) .package-details-page .packing-guide-section h2[style],
+html:not(.dark) .package-details-page .packing-guide-section h3[style] {
+  color: #000000 !important;
+}
+html:not(.dark) .package-details-page .packing-guide-section [style*="rgba(255,255,255"] {
+  border-color: #e2e8f0 !important;
+  background-color: #f1f5f9 !important;
+  color: #000000 !important;
+}
+
+/* ── Dark mode base ─────────────────────────────────── */
+html.dark body {
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Make ALL page containers transparent so body gradient shows */
+html.dark .page-container,
+html.dark .experiences-page,
+html.dark .payment-page-wrapper,
+html.dark .premium-admin-theme,
+html.dark .admin-dashboard-container,
+html.dark .supervisor-theme,
+html.dark .sv-dashboard-layout,
+html:not(.dark) body.page-bg .page-container,
+html:not(.dark) body.page-bg .experiences-page,
+html:not(.dark) body.page-bg .payment-page-wrapper,
+html:not(.dark) body.page-bg .premium-admin-theme,
+html:not(.dark) body.page-bg .admin-dashboard-container,
+html:not(.dark) body.page-bg .supervisor-theme,
+html:not(.dark) body.page-bg .sv-dashboard-layout {
+  background: transparent !important;
 }
 
 #root {
@@ -509,4 +587,232 @@ body.dark-mode .nav-profile-dropdown-content a:hover i {
 .supervisor-badge.small { padding: 4px 8px; font-size: 0.85rem; }
 .supervisor-badge.small .supervisor-avatar { width: 22px; height: 22px; font-size: 0.78rem; }
 
+/* ── Force Cancellation Modal text legibility in Light Mode ── */
+html:not(.dark) .cancellation-modal-wrapper h3,
+html:not(.dark) .cancellation-modal-wrapper h4,
+html:not(.dark) .cancellation-modal-wrapper p,
+html:not(.dark) .cancellation-modal-wrapper span,
+html:not(.dark) .cancellation-modal-wrapper div {
+  color: #ffffff !important;
+}
+
+html:not(.dark) .cancellation-modal-wrapper p {
+  color: #94a3b8 !important; /* Muted description text */
+}
+
+/* Maintain accent status colors */
+html:not(.dark) .cancellation-modal-wrapper .fa-check { color: #10b981 !important; }
+html:not(.dark) .cancellation-modal-wrapper .fa-clock { color: #f59e0b !important; }
+html:not(.dark) .cancellation-modal-wrapper .fa-calendar-minus { color: #ef4444 !important; }
+html:not(.dark) .cancellation-modal-wrapper .fa-circle-exclamation { color: #ef4444 !important; }
+html:not(.dark) .cancellation-modal-wrapper .fa-circle-info { color: #3b82f6 !important; }
+
+html:not(.dark) .cancellation-modal-wrapper span[style*="color:#10b981"],
+html:not(.dark) .cancellation-modal-wrapper span[style*="color: #10b981"],
+html:not(.dark) .cancellation-modal-wrapper span[style*="color: rgb(16, 185, 129)"] {
+  color: #10b981 !important;
+}
+html:not(.dark) .cancellation-modal-wrapper span[style*="color:#f59e0b"],
+html:not(.dark) .cancellation-modal-wrapper span[style*="color: #f59e0b"],
+html:not(.dark) .cancellation-modal-wrapper span[style*="color: rgb(245, 158, 11)"] {
+  color: #f59e0b !important;
+}
+html:not(.dark) .cancellation-modal-wrapper span[style*="color:#ef4444"],
+html:not(.dark) .cancellation-modal-wrapper span[style*="color: #ef4444"],
+html:not(.dark) .cancellation-modal-wrapper span[style*="color: rgb(239, 68, 68)"] {
+  color: #ef4444 !important;
+}
+
+/* ==========================================================================
+   GLOBAL LIGHT MODE STYLING & HIGH CONTRAST RULES
+   ========================================================================== */
+
+/* 1. Set global text color variables to pure black in light mode */
+html:not(.dark) {
+  --text-primary: #000000;
+  --text-secondary: #000000;
+  --text-muted: #1a202c;
+  --text-main: #000000;
+}
+
+html:not(.dark) body {
+  color: #000000 !important;
+}
+
+/* Force text on all light mode pages to be solid black, except in dark layouts/containers */
+html:not(.dark) :is(p, label, li, td, th, input:not([type="submit"]):not([type="button"]), select, textarea, span):not(.login-page-container *):not(.register-page-container *):not(.forgot-password-page-container *):not(.verify-page-container *):not(.hero-section *):not(.hero-banner *):not(.ppm-modal *):not(.ppm-overlay *):not(.activity-form-modal-wrapper *):not(.edit-package-modal *):not([class*="bg-black"] *):not([class*="bg-slate-900"] *):not([class*="bg-slate-950"] *):not([class*="bg-slate-800"] *):not([class*="bg-zinc-900"] *):not([class*="bg-gray-900"] *):not([class*="bg-[#"]:not([class*="dark:bg-[#"]):not([class*="dark:tw-bg-[#"]) *):not(.cancellation-modal-wrapper *):not(.chatbot-container *):not(.chat-message *):not(.modal-backdrop-aura *):not(.admin-card *):not(.aura-form *):not(.intel-dashboard-theme *):not([class*="tw-text-white"]):not([class*="tw-text-amber"]):not([class*="tw-text-green"]):not([class*="tw-text-red"]):not([class*="tw-text-emerald"]):not([class*="tw-text-rose"]):not([class*="tw-text-cyan"]):not([class*="tw-text-blue"]):not([class*="tw-text-teal"]):not([class*="text-amber"]):not([class*="text-yellow"]):not([class*="text-green"]):not([class*="text-red"]):not(.status-badge):not(.supervisor-avatar):not(.tw-absolute) {
+  color: #000000 !important;
+}
+
+/* Force headings on all light mode pages to be solid black, except in dark layouts/containers */
+html:not(.dark) :is(h1, h2, h3, h4, h5, h6, .title, [class*="title"], [class*="heading"]):not(.login-page-container *):not(.register-page-container *):not(.forgot-password-page-container *):not(.verify-page-container *):not(.hero-section *):not(.hero-banner *):not(.ppm-modal *):not(.ppm-overlay *):not(.activity-form-modal-wrapper *):not(.edit-package-modal *):not([class*="bg-black"] *):not([class*="bg-slate-900"] *):not([class*="bg-slate-950"] *):not([class*="bg-slate-800"] *):not([class*="bg-zinc-900"] *):not([class*="bg-gray-900"] *):not([class*="bg-[#"]:not([class*="dark:bg-[#"]):not([class*="dark:tw-bg-[#"]) *):not(.cancellation-modal-wrapper *):not(.chatbot-container *):not(.chat-message *):not(.modal-backdrop-aura *):not(.admin-card *):not(.aura-form *):not(.intel-dashboard-theme *):not([class*="text-amber"]):not([class*="text-yellow"]):not([class*="text-green"]):not([class*="text-red"]):not([class*="text-white"]):not([class*="tw-text-white"]):not([class*="tw-text-amber"]):not(.egypt-flag-text):not(.day-badge) {
+  color: #000000 !important;
+}
+
+/* Force inline styled white texts to change to black on light pages, except in designated dark containers */
+html:not(.dark) :is([style*="color:#fff"], [style*="color: #fff"], [style*="color: rgb(255, 255, 255)"], [style*="color: #ffffff"]):not(.login-page-container *):not(.register-page-container *):not(.forgot-password-page-container *):not(.verify-page-container *):not(.hero-section *):not(.hero-banner *):not(.ppm-modal *):not(.ppm-overlay *):not(.activity-form-modal-wrapper *):not(.edit-package-modal *):not([class*="bg-black"] *):not([class*="bg-slate-900"] *):not([class*="bg-slate-950"] *):not([class*="bg-slate-800"] *):not([class*="bg-zinc-900"] *):not([class*="bg-gray-900"] *):not([class*="bg-[#"]:not([class*="dark:bg-[#"]):not([class*="dark:tw-bg-[#"]) *):not(.cancellation-modal-wrapper *):not(.chatbot-container *):not(.chatbot-header *):not(.modal-backdrop-aura *):not(.admin-card *):not(.aura-form *):not(.premium-admin-theme *):not(.supervisor-theme *):not(.intel-dashboard-theme *) {
+  color: #000000 !important;
+}
+
+/* 2. Force text inside BLACK/DARK containers in light mode to be white */
+html:not(.dark) .tw-bg-black,
+html:not(.dark) .bg-black,
+html:not(.dark) .tw-bg-slate-900,
+html:not(.dark) .tw-bg-slate-950,
+html:not(.dark) .tw-bg-zinc-900,
+html:not(.dark) .tw-bg-gray-900,
+html:not(.dark) [class*="bg-[#"]:not([class*="dark:bg-[#"]):not([class*="dark:tw-bg-[#"]),
+html:not(.dark) .bg-slate-900,
+html:not(.dark) .cancellation-modal-wrapper,
+html:not(.dark) .chatbot-container,
+html:not(.dark) .chat-message,
+html:not(.dark) .login-page-container,
+html:not(.dark) .register-page-container,
+html:not(.dark) .forgot-password-page-container,
+html:not(.dark) .verify-page-container,
+html:not(.dark) .hero-section,
+html:not(.dark) .hero-banner,
+html:not(.dark) .ppm-modal,
+html:not(.dark) .ppm-overlay,
+html:not(.dark) .activity-form-modal-wrapper,
+html:not(.dark) .edit-package-modal {
+  color: #ffffff !important;
+}
+
+html:not(.dark) .tw-bg-black *,
+html:not(.dark) .bg-black *,
+html:not(.dark) .tw-bg-slate-900 *,
+html:not(.dark) .tw-bg-slate-950 *,
+html:not(.dark) .tw-bg-zinc-900 *,
+html:not(.dark) .tw-bg-gray-900 *,
+html:not(.dark) [class*="bg-[#"]:not([class*="dark:bg-[#"]):not([class*="dark:tw-bg-[#"]) *,
+html:not(.dark) .bg-slate-900 *,
+html:not(.dark) .cancellation-modal-wrapper *,
+html:not(.dark) .chatbot-container *,
+html:not(.dark) .chat-message *,
+html:not(.dark) .hero-section *,
+html:not(.dark) .hero-banner *,
+html:not(.dark) .ppm-modal *,
+html:not(.dark) .ppm-overlay *,
+html:not(.dark) .activity-form-modal-wrapper *,
+html:not(.dark) .edit-package-modal * {
+  color: #ffffff !important;
+}
+
+/* Allow text color classes starting with text-amber, text-yellow, text-green, text-red inside dark containers */
+html:not(.dark) [class*="bg-black"] [class*="tw-text-amber"],
+html:not(.dark) [class*="bg-black"] [class*="text-amber"],
+html:not(.dark) [class*="bg-black"] [class*="tw-text-yellow"],
+html:not(.dark) [class*="bg-black"] [class*="tw-text-green"],
+html:not(.dark) [class*="bg-black"] [class*="tw-text-emerald"],
+html:not(.dark) [class*="bg-black"] [class*="tw-text-red"],
+html:not(.dark) [class*="bg-black"] [class*="tw-text-rose"],
+html:not(.dark) [class*="bg-slate-900"] [class*="tw-text-amber"],
+html:not(.dark) [class*="bg-slate-900"] [class*="tw-text-green"],
+html:not(.dark) [class*="bg-slate-900"] [class*="tw-text-emerald"],
+html:not(.dark) [class*="bg-slate-900"] [class*="tw-text-red"],
+html:not(.dark) [class*="bg-[#"]:not([class*="dark:bg-[#"]):not([class*="dark:tw-bg-[#"]) [class*="tw-text-amber"],
+html:not(.dark) [class*="bg-[#"]:not([class*="dark:bg-[#"]):not([class*="dark:tw-bg-[#"]) [class*="text-amber"],
+html:not(.dark) [class*="bg-[#"]:not([class*="dark:bg-[#"]):not([class*="dark:tw-bg-[#"]) [class*="tw-text-yellow"],
+html:not(.dark) [class*="bg-[#"]:not([class*="dark:bg-[#"]):not([class*="dark:tw-bg-[#"]) [class*="tw-text-green"],
+html:not(.dark) [class*="bg-[#"]:not([class*="dark:bg-[#"]):not([class*="dark:tw-bg-[#"]) [class*="tw-text-emerald"],
+html:not(.dark) [class*="bg-[#"]:not([class*="dark:bg-[#"]):not([class*="dark:tw-bg-[#"]) [class*="tw-text-red"],
+html:not(.dark) [class*="bg-[#"]:not([class*="dark:bg-[#"]):not([class*="dark:tw-bg-[#"]) [class*="tw-text-rose"],
+html:not(.dark) .cancellation-modal-wrapper [class*="tw-text-amber"],
+html:not(.dark) .cancellation-modal-wrapper [class*="tw-text-green"],
+html:not(.dark) .cancellation-modal-wrapper [class*="tw-text-emerald"],
+html:not(.dark) .cancellation-modal-wrapper [class*="tw-text-red"],
+html:not(.dark) .payment-page-wrapper [class*="tw-text-amber"],
+html:not(.dark) .payment-page-wrapper [class*="tw-text-green"],
+html:not(.dark) .payment-page-wrapper [class*="tw-text-emerald"],
+html:not(.dark) .payment-page-wrapper [class*="tw-text-red"] {
+  color: inherit !important;
+}
+
+/* Fix input fields inside dark containers/forms to have white backgrounds and black text */
+html:not(.dark) .tw-bg-black input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]),
+html:not(.dark) .tw-bg-black select,
+html:not(.dark) .tw-bg-black textarea,
+html:not(.dark) [class*="bg-black"] input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]),
+html:not(.dark) [class*="bg-black"] select,
+html:not(.dark) [class*="bg-black"] textarea,
+html:not(.dark) [class*="bg-slate-900"] input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]),
+html:not(.dark) [class*="bg-slate-900"] select,
+html:not(.dark) [class*="bg-slate-900"] textarea,
+html:not(.dark) [class*="bg-[#"]:not([class*="dark:bg-[#"]):not([class*="dark:tw-bg-[#"]):not(.login-page-container):not(.register-page-container) input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]),
+html:not(.dark) [class*="bg-[#"]:not([class*="dark:bg-[#"]):not([class*="dark:tw-bg-[#"]):not(.login-page-container):not(.register-page-container) select,
+html:not(.dark) [class*="bg-[#"]:not([class*="dark:bg-[#"]):not([class*="dark:tw-bg-[#"]):not(.login-page-container):not(.register-page-container) textarea,
+html:not(.dark) .cancellation-modal-wrapper input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]),
+html:not(.dark) .cancellation-modal-wrapper select,
+html:not(.dark) .cancellation-modal-wrapper textarea,
+html:not(.dark) .modal-backdrop-aura input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]),
+html:not(.dark) .modal-backdrop-aura select,
+html:not(.dark) .modal-backdrop-aura textarea,
+html:not(.dark) .admin-card input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]),
+html:not(.dark) .admin-card select,
+html:not(.dark) .admin-card textarea,
+html:not(.dark) .aura-form input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]),
+html:not(.dark) .aura-form select,
+html:not(.dark) .aura-form textarea,
+html:not(.dark) .payment-page-wrapper input:not([type="submit"]):not([type="button"]):not(.stripe-card-input):not([type="checkbox"]):not([type="radio"]),
+html:not(.dark) .payment-page-wrapper select,
+html:not(.dark) .payment-page-wrapper textarea {
+  color: #000000 !important;
+  background-color: #ffffff !important;
+}
+
+/* Ensure inputs, selects, textareas, and placeholders on dark pages / custom dark backgrounds have white text and readable placeholders in Light Mode */
+html:not(.dark) :is(.login-page-container, .register-page-container, .forgot-password-page-container, .verify-page-container, .hero-section, .hero-banner, .ppm-modal, .ppm-overlay, .activity-form-modal-wrapper, .edit-package-modal, [class*="bg-[#"]:not([class*="dark:bg-[#"]):not([class*="dark:tw-bg-[#"]), .intel-dashboard-theme) :is(input, textarea, select) {
+  color: #ffffff !important;
+}
+
+html:not(.dark) :is(.login-page-container, .register-page-container, .forgot-password-page-container, .verify-page-container, .hero-section, .hero-banner, .ppm-modal, .ppm-overlay, .activity-form-modal-wrapper, .edit-package-modal, [class*="bg-[#"]:not([class*="dark:bg-[#"]):not([class*="dark:tw-bg-[#"]), .intel-dashboard-theme) :is(input, textarea, select)::placeholder {
+  color: rgba(255, 255, 255, 0.65) !important;
+  opacity: 1 !important;
+}
+
+html:not(.dark) :is(.login-page-container, .register-page-container, .forgot-password-page-container, .verify-page-container, .hero-section, .hero-banner, .ppm-modal, .ppm-overlay, .activity-form-modal-wrapper, .edit-package-modal, [class*="bg-[#"]:not([class*="dark:bg-[#"]):not([class*="dark:tw-bg-[#"]), .intel-dashboard-theme) :is(input, textarea, select):-webkit-input-placeholder {
+  color: rgba(255, 255, 255, 0.65) !important;
+  opacity: 1 !important;
+}
+
+html:not(.dark) :is(.login-page-container, .register-page-container, .forgot-password-page-container, .verify-page-container, .hero-section, .hero-banner, .ppm-modal, .ppm-overlay, .activity-form-modal-wrapper, .edit-package-modal, [class*="bg-[#"]:not([class*="dark:bg-[#"]):not([class*="dark:tw-bg-[#"]), .intel-dashboard-theme) :is(input, textarea, select)::-webkit-input-placeholder {
+  color: rgba(255, 255, 255, 0.65) !important;
+  opacity: 1 !important;
+}
+
+html:not(.dark) :is(.login-page-container, .register-page-container, .forgot-password-page-container, .verify-page-container, .hero-section, .hero-banner, .ppm-modal, .ppm-overlay, .activity-form-modal-wrapper, .edit-package-modal, [class*="bg-[#"]:not([class*="dark:bg-[#"]):not([class*="dark:tw-bg-[#"]), .intel-dashboard-theme) :is(input, textarea, select)::-moz-placeholder {
+  color: rgba(255, 255, 255, 0.65) !important;
+  opacity: 1 !important;
+}
+
+html:not(.dark) :is(.login-page-container, .register-page-container, .forgot-password-page-container, .verify-page-container) :is(input[type="checkbox"]) {
+  border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Ensure login and register inputs have transparent backgrounds, white text, and visible calendar pickers in Light Mode */
+html:not(.dark) :is(.login-page-container, .register-page-container, .forgot-password-page-container, .verify-page-container) :is(input:not([type="submit"]):not([type="button"]), select, textarea) {
+  background-color: transparent !important;
+  color: #ffffff !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+html:not(.dark) :is(.login-page-container, .register-page-container, .forgot-password-page-container, .verify-page-container) :is(input[type="date"]) {
+  color-scheme: dark !important;
+}
+
+html:not(.dark) :is(.login-page-container, .register-page-container, .forgot-password-page-container, .verify-page-container) .tw-relative i {
+  color: #94a3b8 !important;
+}
+
+/* Chrome/Safari Autofill styles override to match the transparent dark design */
+html:not(.dark) :is(.login-page-container, .register-page-container, .forgot-password-page-container, .verify-page-container) input:-webkit-autofill,
+html:not(.dark) :is(.login-page-container, .register-page-container, .forgot-password-page-container, .verify-page-container) input:-webkit-autofill:hover,
+html:not(.dark) :is(.login-page-container, .register-page-container, .forgot-password-page-container, .verify-page-container) input:-webkit-autofill:focus,
+html:not(.dark) :is(.login-page-container, .register-page-container, .forgot-password-page-container, .verify-page-container) input:-webkit-autofill:active {
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: #ffffff !important;
+  transition: background-color 5000s ease-in-out 0s;
+  box-shadow: inset 0 0 20px 20px #0f1014 !important;
+}
 

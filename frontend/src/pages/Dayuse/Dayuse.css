@@ -9,7 +9,7 @@
 .experiences-page {
   padding-top: 80px;
   min-height: 100vh;
-  background-color: var(--bg-secondary);
+  background-color: transparent;
   padding-bottom: 50px;
   animation: fadeInPage 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }

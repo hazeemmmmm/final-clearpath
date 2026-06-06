@@ -13,16 +13,17 @@ export const ThemeProvider = ({ children }) => {
   });
 
   useEffect(() => {
-    // Apply class to html element for Tailwind global CSS targeting
     if (isDarkMode) {
       document.documentElement.classList.add('dark', 'tw-dark');
-      document.body.classList.add('tw-bg-[#0a0b0d]', 'tw-text-white');
-      document.body.classList.remove('tw-bg-slate-50', 'tw-text-slate-900');
+      document.body.classList.remove('tw-bg-slate-50', 'tw-bg-[#0a0b0d]', 'tw-text-slate-900');
+      document.body.classList.add('tw-text-white', 'dark-mode');
+      document.body.style.background = 'linear-gradient(to right, #363795, #005C97)';
       localStorage.setItem('clearpath_theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark', 'tw-dark');
-      document.body.classList.add('tw-bg-slate-50', 'tw-text-slate-900');
-      document.body.classList.remove('tw-bg-[#0a0b0d]', 'tw-text-white');
+      document.body.classList.remove('tw-bg-[#0a0b0d]', 'tw-text-white', 'dark-mode');
+      document.body.classList.add('tw-text-slate-900');
+      document.body.style.background = '#FFFAF2';
       localStorage.setItem('clearpath_theme', 'light');
     }
   }, [isDarkMode]);

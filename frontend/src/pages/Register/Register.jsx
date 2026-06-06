@@ -63,7 +63,7 @@ const Register = () => {
   };
 
   return (
-    <div className={`tw-h-screen tw-w-full tw-flex ${lang === 'AR' ? 'tw-flex-row-reverse tw-text-right' : 'tw-flex-row tw-text-left'} tw-bg-[#0f1014] tw-overflow-hidden`}>
+    <div className={`register-page-container tw-h-screen tw-w-full tw-flex ${lang === 'AR' ? 'tw-flex-row-reverse tw-text-right' : 'tw-flex-row tw-text-left'} tw-bg-[#0f1014] tw-overflow-hidden`}>
       
       {/* Image Half */}
       <div className="tw-hidden lg:tw-block tw-w-1/2 tw-h-full tw-relative">
@@ -130,7 +130,7 @@ const Register = () => {
                   {lang === 'AR' ? 'الاسم الأول' : 'FIRST NAME'}
                 </label>
                 <div className="tw-relative tw-flex tw-items-center">
-                  <i className={`fa-regular fa-user tw-absolute tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
+                  <i className={`fa-regular fa-user tw-absolute tw-z-10 tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
                   <input
                     type="text"
                     required
@@ -146,7 +146,7 @@ const Register = () => {
                   {lang === 'AR' ? 'الاسم الأخير' : 'LAST NAME'}
                 </label>
                 <div className="tw-relative tw-flex tw-items-center">
-                  <i className={`fa-regular fa-user tw-absolute tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
+                  <i className={`fa-regular fa-user tw-absolute tw-z-10 tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
                   <input
                     type="text"
                     required
@@ -164,7 +164,7 @@ const Register = () => {
                   {lang === 'AR' ? 'البريد الإلكتروني' : 'EMAIL'}
                 </label>
                 <div className="tw-relative tw-flex tw-items-center">
-                  <i className={`fa-regular fa-envelope tw-absolute tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
+                  <i className={`fa-regular fa-envelope tw-absolute tw-z-10 tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
                   <input
                     type="email"
                     required
@@ -180,7 +180,7 @@ const Register = () => {
                   {lang === 'AR' ? 'رقم الهاتف' : 'PHONE NUMBER'}
                 </label>
                 <div className="tw-relative tw-flex tw-items-center">
-                  <i className={`fa-solid fa-phone tw-absolute tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
+                  <i className={`fa-solid fa-phone tw-absolute tw-z-10 tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
                   <input
                     type="tel"
                     required
@@ -214,7 +214,7 @@ const Register = () => {
                   {lang === 'AR' ? 'الجنسية' : 'NATIONALITY'}
                 </label>
                 <div className="tw-relative tw-flex tw-items-center">
-                  <i className={`fa-solid fa-globe tw-absolute tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
+                  <i className={`fa-solid fa-globe tw-absolute tw-z-10 tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
                   <input
                     type="text"
                     list="country-list"
@@ -239,7 +239,7 @@ const Register = () => {
                   {lang === 'AR' ? 'كلمة المرور' : 'PASSWORD'}
                 </label>
                 <div className="tw-relative tw-flex tw-items-center">
-                  <i className={`fa-solid fa-lock tw-absolute tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
+                  <i className={`fa-solid fa-lock tw-absolute tw-z-10 tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
                   <input
                     type="password"
                     required
@@ -256,7 +256,7 @@ const Register = () => {
                   {lang === 'AR' ? 'تأكيد كلمة المرور' : 'CONFIRM PASSWORD'}
                 </label>
                 <div className="tw-relative tw-flex tw-items-center">
-                  <i className={`fa-solid fa-lock tw-absolute tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
+                  <i className={`fa-solid fa-lock tw-absolute tw-z-10 tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
                   <input
                     type="password"
                     required

@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { ThemeContext } from '../../context/ThemeContext';
+import { LanguageContext } from '../../context/LanguageContext';
 import { toast } from '../../utils/toast';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
@@ -33,6 +35,8 @@ import './AdminDashboard.css';
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isDarkMode } = useContext(ThemeContext);
+  const { lang } = useContext(LanguageContext);
   const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'overview'); // overview, packages, forecast, bookings, users, supervisors, reviews, settings
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
@@ -313,7 +317,6 @@ const AdminDashboard = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
       toast('Report compiled and downloaded successfully!');
     } catch (err) {
       console.error(err);
@@ -916,51 +919,51 @@ const AdminDashboard = () => {
           <ul className="aura-menu" style={{ marginTop: '100px' }}>
             <li className={activeTab === 'overview' ? 'active' : ''} onClick={() => setActiveTab('overview')}>
               <i className="fa-solid fa-chart-pie"></i>
-              <span>Dashboard Overview</span>
-            </li>
-            <li className={activeTab === 'packages' ? 'active' : ''} onClick={() => setActiveTab('packages')}>
-              <i className="fa-solid fa-box"></i>
-              <span>Experiences</span>
-            </li>
-            <li className={activeTab === 'activities' ? 'active' : ''} onClick={() => setActiveTab('activities')}>
-              <i className="fa-solid fa-person-running"></i>
-              <span>Manage Activities</span>
-            </li>
-            <li className={activeTab === 'forecast' ? 'active' : ''} onClick={() => setActiveTab('forecast')}>
-              <i className="fa-solid fa-chart-line" style={{ color: '#06b6d4' }}></i>
-              <span style={{ color: '#06b6d4', fontWeight: 'bold' }}>AI Forecast</span>
-            </li>
-            <li className={activeTab === 'analytics' ? 'active' : ''} onClick={() => setActiveTab('analytics')}>
-              <i className="fa-solid fa-chart-column" style={{ color: '#e5c158' }}></i>
-              <span style={{ color: '#e5c158', fontWeight: 'bold' }}>Behavior Analytics</span>
-            </li>
-            <li className={activeTab === 'bookings' ? 'active' : ''} onClick={() => setActiveTab('bookings')}>
-              <i className="fa-solid fa-calendar-check"></i>
-              <span>Manage Bookings</span>
-            </li>
-            <li className={activeTab === 'users' ? 'active' : ''} onClick={() => setActiveTab('users')}>
-              <i className="fa-solid fa-users"></i>
-              <span>Manage Users</span>
-            </li>
-            <li className={activeTab === 'supervisors' ? 'active' : ''} onClick={() => setActiveTab('supervisors')}>
-              <i className="fa-solid fa-user-shield"></i>
-              <span>Manage Supervisors</span>
-            </li>
-            <li className={activeTab === 'reviews' ? 'active' : ''} onClick={() => setActiveTab('reviews')}>
-              <i className="fa-solid fa-star"></i>
-              <span>Customer Reviews</span>
-            </li>
-            <li className={activeTab === 'packing-guides' ? 'active' : ''} onClick={() => setActiveTab('packing-guides')}>
-              <i className="fa-solid fa-suitcase-rolling"></i>
-              <span>Packing Guides</span>
+              <span>{lang === 'AR' ? 'نظرة عامة' : 'Dashboard Overview'}</span>
             </li>
             <li className={activeTab === 'destinations' ? 'active' : ''} onClick={() => setActiveTab('destinations')}>
               <i className="fa-solid fa-map-location-dot"></i>
-              <span>Destinations</span>
+              <span>{lang === 'AR' ? 'الوجهات' : 'Destinations'}</span>
             </li>
             <li className={activeTab === 'providers' ? 'active' : ''} onClick={() => setActiveTab('providers')}>
               <i className="fa-solid fa-handshake"></i>
-              <span>Providers</span>
+              <span>{lang === 'AR' ? 'مزودو الخدمات' : 'Providers'}</span>
+            </li>
+            <li className={activeTab === 'activities' ? 'active' : ''} onClick={() => setActiveTab('activities')}>
+              <i className="fa-solid fa-person-running"></i>
+              <span>{lang === 'AR' ? 'إدارة الأنشطة' : 'Manage Activities'}</span>
+            </li>
+            <li className={activeTab === 'packages' ? 'active' : ''} onClick={() => setActiveTab('packages')}>
+              <i className="fa-solid fa-box"></i>
+              <span>{lang === 'AR' ? 'التجارب' : 'Experiences'}</span>
+            </li>
+            <li className={activeTab === 'packing-guides' ? 'active' : ''} onClick={() => setActiveTab('packing-guides')}>
+              <i className="fa-solid fa-suitcase-rolling"></i>
+              <span>{lang === 'AR' ? 'أدلة التعبئة' : 'Packing Guides'}</span>
+            </li>
+            <li className={activeTab === 'forecast' ? 'active' : ''} onClick={() => setActiveTab('forecast')}>
+              <i className="fa-solid fa-chart-line" style={{ color: '#06b6d4' }}></i>
+              <span style={{ color: '#06b6d4', fontWeight: 'bold' }}>{lang === 'AR' ? 'توقعات الذكاء الاصطناعي' : 'AI Forecast'}</span>
+            </li>
+            <li className={activeTab === 'analytics' ? 'active' : ''} onClick={() => setActiveTab('analytics')}>
+              <i className="fa-solid fa-chart-column" style={{ color: '#e5c158' }}></i>
+              <span style={{ color: '#e5c158', fontWeight: 'bold' }}>{lang === 'AR' ? 'تحليلات السلوك' : 'Behavior Analytics'}</span>
+            </li>
+            <li className={activeTab === 'bookings' ? 'active' : ''} onClick={() => setActiveTab('bookings')}>
+              <i className="fa-solid fa-calendar-check"></i>
+              <span>{lang === 'AR' ? 'إدارة الحجوزات' : 'Manage Bookings'}</span>
+            </li>
+            <li className={activeTab === 'users' ? 'active' : ''} onClick={() => setActiveTab('users')}>
+              <i className="fa-solid fa-users"></i>
+              <span>{lang === 'AR' ? 'إدارة المستخدمين' : 'Manage Users'}</span>
+            </li>
+            <li className={activeTab === 'supervisors' ? 'active' : ''} onClick={() => setActiveTab('supervisors')}>
+              <i className="fa-solid fa-user-shield"></i>
+              <span>{lang === 'AR' ? 'إدارة المشرفين' : 'Manage Supervisors'}</span>
+            </li>
+            <li className={activeTab === 'reviews' ? 'active' : ''} onClick={() => setActiveTab('reviews')}>
+              <i className="fa-solid fa-star"></i>
+              <span>{lang === 'AR' ? 'آراء العملاء' : 'Customer Reviews'}</span>
             </li>
           </ul>
 
@@ -1090,10 +1093,10 @@ const AdminDashboard = () => {
                             </linearGradient>
                           </defs>
                           {/* Grid Lines */}
-                          <line x1="0" y1="30" x2="500" y2="30" stroke="rgba(255,255,255,0.04)" strokeDasharray="3,3" />
-                          <line x1="0" y1="70" x2="500" y2="70" stroke="rgba(255,255,255,0.04)" strokeDasharray="3,3" />
-                          <line x1="0" y1="110" x2="500" y2="110" stroke="rgba(255,255,255,0.04)" strokeDasharray="3,3" />
-                          <line x1="0" y1="150" x2="500" y2="150" stroke="rgba(255,255,255,0.04)" strokeDasharray="3,3" />
+                          <line x1="0" y1="30" x2="500" y2="30" stroke={isDarkMode ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.06)"} strokeDasharray="3,3" />
+                          <line x1="0" y1="70" x2="500" y2="70" stroke={isDarkMode ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.06)"} strokeDasharray="3,3" />
+                          <line x1="0" y1="110" x2="500" y2="110" stroke={isDarkMode ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.06)"} strokeDasharray="3,3" />
+                          <line x1="0" y1="150" x2="500" y2="150" stroke={isDarkMode ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.06)"} strokeDasharray="3,3" />
 
                           {/* Sales Area & Line (Lavender/Purple) */}
                           <path d="M 10 140 Q 90 90, 170 120 T 330 50 T 490 30 L 490 160 L 10 160 Z" fill="url(#chartGrad)" />
@@ -1104,18 +1107,18 @@ const AdminDashboard = () => {
                           <path d="M 10 150 Q 80 130, 160 140 T 320 80 T 490 60" fill="none" stroke="#73749B" strokeWidth="2.5" strokeDasharray="1,1" />
 
                           {/* Data points */}
-                          <circle cx="170" cy="120" r="4.5" fill="#8E6B92" stroke="#1A1A24" strokeWidth="2" />
-                          <circle cx="330" cy="50" r="4.5" fill="#8E6B92" stroke="#1A1A24" strokeWidth="2" />
-                          <circle cx="490" cy="30" r="4.5" fill="#8E6B92" stroke="#1A1A24" strokeWidth="2" />
+                          <circle cx="170" cy="120" r="4.5" fill="#8E6B92" stroke={isDarkMode ? "#1A1A24" : "#ffffff"} strokeWidth="2" />
+                          <circle cx="330" cy="50" r="4.5" fill="#8E6B92" stroke={isDarkMode ? "#1A1A24" : "#ffffff"} strokeWidth="2" />
+                          <circle cx="490" cy="30" r="4.5" fill="#8E6B92" stroke={isDarkMode ? "#1A1A24" : "#ffffff"} strokeWidth="2" />
 
                           {/* Labels */}
-                          <text x="10" y="175" fill="rgba(255,255,255,0.4)" fontSize="10">Mon</text>
-                          <text x="90" y="175" fill="rgba(255,255,255,0.4)" fontSize="10">Tue</text>
-                          <text x="170" y="175" fill="rgba(255,255,255,0.4)" fontSize="10">Wed</text>
-                          <text x="250" y="175" fill="rgba(255,255,255,0.4)" fontSize="10">Thu</text>
-                          <text x="330" y="175" fill="rgba(255,255,255,0.4)" fontSize="10">Fri</text>
-                          <text x="410" y="175" fill="rgba(255,255,255,0.4)" fontSize="10">Sat</text>
-                          <text x="475" y="175" fill="rgba(255,255,255,0.4)" fontSize="10">Sun</text>
+                          <text x="10" y="175" fill={isDarkMode ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.6)"} fontSize="10">Mon</text>
+                          <text x="90" y="175" fill={isDarkMode ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.6)"} fontSize="10">Tue</text>
+                          <text x="170" y="175" fill={isDarkMode ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.6)"} fontSize="10">Wed</text>
+                          <text x="250" y="175" fill={isDarkMode ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.6)"} fontSize="10">Thu</text>
+                          <text x="330" y="175" fill={isDarkMode ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.6)"} fontSize="10">Fri</text>
+                          <text x="410" y="175" fill={isDarkMode ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.6)"} fontSize="10">Sat</text>
+                          <text x="475" y="175" fill={isDarkMode ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.6)"} fontSize="10">Sun</text>
                         </svg>
                       </div>
                       <div className="chart-legend">
@@ -1183,24 +1186,24 @@ const AdminDashboard = () => {
                           <circle cx="100" cy="100" r="70" fill="transparent" stroke="#ef4444" strokeWidth="22" strokeDasharray="66 439.8" strokeDashoffset="-373.8" style={{ transition: 'stroke-dasharray 0.5s ease' }} />
                           
                           {/* Center Cutout for Donut effect */}
-                          <circle cx="100" cy="100" r="55" fill="#1b1b27" />
+                          <circle cx="100" cy="100" r="55" fill={isDarkMode ? "#1b1b27" : "#ffffff"} />
                         </svg>
 
                         <div className="donut-legend" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                           <div className="donut-legend-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.82rem' }}>
                             <span className="dot" style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#10b981', display: 'inline-block' }}></span>
-                            <span className="label" style={{ color: '#94a3b8', minWidth: '80px' }}>Confirmed</span>
-                            <strong className="value" style={{ color: '#ffffff' }}>62%</strong>
+                            <span className="label" style={{ color: isDarkMode ? '#94a3b8' : 'var(--text-muted)', minWidth: '80px' }}>Confirmed</span>
+                            <strong className="value" style={{ color: isDarkMode ? '#ffffff' : 'var(--text-main)' }}>62%</strong>
                           </div>
                           <div className="donut-legend-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.82rem' }}>
                             <span className="dot" style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#fbbf24', display: 'inline-block' }}></span>
-                            <span className="label" style={{ color: '#94a3b8', minWidth: '80px' }}>Pending</span>
-                            <strong className="value" style={{ color: '#ffffff' }}>23%</strong>
+                            <span className="label" style={{ color: isDarkMode ? '#94a3b8' : 'var(--text-muted)', minWidth: '80px' }}>Pending</span>
+                            <strong className="value" style={{ color: isDarkMode ? '#ffffff' : 'var(--text-main)' }}>23%</strong>
                           </div>
                           <div className="donut-legend-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.82rem' }}>
                             <span className="dot" style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ef4444', display: 'inline-block' }}></span>
-                            <span className="label" style={{ color: '#94a3b8', minWidth: '80px' }}>Cancelled</span>
-                            <strong className="value" style={{ color: '#ffffff' }}>15%</strong>
+                            <span className="label" style={{ color: isDarkMode ? '#94a3b8' : 'var(--text-muted)', minWidth: '80px' }}>Cancelled</span>
+                            <strong className="value" style={{ color: isDarkMode ? '#ffffff' : 'var(--text-main)' }}>15%</strong>
                           </div>
                         </div>
                       </div>
@@ -1216,40 +1219,40 @@ const AdminDashboard = () => {
                         
                         <div className="share-item">
                           <div className="share-meta" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '5px' }}>
-                            <span style={{ color: '#e2e8f0', fontWeight: '500' }}>Historical Sightseeing</span>
+                            <span style={{ color: isDarkMode ? '#e2e8f0' : 'var(--text-main)', fontWeight: '500' }}>Historical Sightseeing</span>
                             <strong style={{ color: '#8E6B92' }}>45%</strong>
                           </div>
-                          <div className="share-bar-container" style={{ height: '6px', backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: '10px', overflow: 'hidden' }}>
+                          <div className="share-bar-container" style={{ height: '6px', backgroundColor: isDarkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)', borderRadius: '10px', overflow: 'hidden' }}>
                             <div className="share-bar-fill purple-fill" style={{ height: '100%', width: '45%', borderRadius: '10px', background: 'linear-gradient(90deg, #73749B, #8E6B92)' }}></div>
                           </div>
                         </div>
 
                         <div className="share-item">
                           <div className="share-meta" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '5px' }}>
-                            <span style={{ color: '#e2e8f0', fontWeight: '500' }}>Beach & Marine Resorts</span>
+                            <span style={{ color: isDarkMode ? '#e2e8f0' : 'var(--text-main)', fontWeight: '500' }}>Beach & Marine Resorts</span>
                             <strong style={{ color: '#73749B' }}>30%</strong>
                           </div>
-                          <div className="share-bar-container" style={{ height: '6px', backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: '10px', overflow: 'hidden' }}>
+                          <div className="share-bar-container" style={{ height: '6px', backgroundColor: isDarkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)', borderRadius: '10px', overflow: 'hidden' }}>
                             <div className="share-bar-fill indigo-fill" style={{ height: '100%', width: '30%', borderRadius: '10px', background: 'linear-gradient(90deg, #3b82f6, #73749B)' }}></div>
                           </div>
                         </div>
 
                         <div className="share-item">
                           <div className="share-meta" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '5px' }}>
-                            <span style={{ color: '#e2e8f0', fontWeight: '500' }}>Desert Safari Camps</span>
+                            <span style={{ color: isDarkMode ? '#e2e8f0' : 'var(--text-main)', fontWeight: '500' }}>Desert Safari Camps</span>
                             <strong style={{ color: '#fbbf24' }}>15%</strong>
                           </div>
-                          <div className="share-bar-container" style={{ height: '6px', backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: '10px', overflow: 'hidden' }}>
+                          <div className="share-bar-container" style={{ height: '6px', backgroundColor: isDarkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)', borderRadius: '10px', overflow: 'hidden' }}>
                             <div className="share-bar-fill" style={{ height: '100%', width: '15%', borderRadius: '10px', backgroundColor: '#fbbf24' }}></div>
                           </div>
                         </div>
 
                         <div className="share-item">
                           <div className="share-meta" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '5px' }}>
-                            <span style={{ color: '#e2e8f0', fontWeight: '500' }}>Adventure Hiking & Climbing</span>
+                            <span style={{ color: isDarkMode ? '#e2e8f0' : 'var(--text-main)', fontWeight: '500' }}>Adventure Hiking & Climbing</span>
                             <strong style={{ color: '#ef4444' }}>10%</strong>
                           </div>
-                          <div className="share-bar-container" style={{ height: '6px', backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: '10px', overflow: 'hidden' }}>
+                          <div className="share-bar-container" style={{ height: '6px', backgroundColor: isDarkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)', borderRadius: '10px', overflow: 'hidden' }}>
                             <div className="share-bar-fill" style={{ height: '100%', width: '10%', borderRadius: '10px', backgroundColor: '#ef4444' }}></div>
                           </div>
                         </div>

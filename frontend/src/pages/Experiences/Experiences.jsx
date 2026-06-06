@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-import { addToWishlist, getTrips, getDestinations, trackInteraction } from '../../utils/api';
+import { addToWishlist, removeFromWishlist, getTrips, getDestinations, trackInteraction } from '../../utils/api';
 import { LanguageContext } from '../../context/LanguageContext';
 import { CurrencyContext } from '../../context/CurrencyContext';
 

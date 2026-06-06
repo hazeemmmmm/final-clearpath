@@ -1,7 +1,9 @@
 /* 🌌 Aura Premium Dark Theme Stylesheet for ClearPath Admin Dashboard */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-:root {
+/* Dark mode variables (default) */
+html.dark .premium-admin-theme,
+.premium-admin-theme {
   --bg-darker: #0f0f15;
   --bg-dark: #14141f;
   --bg-card: #1b1b27;
@@ -9,24 +11,53 @@
   --color-primary: #73749B;
   --color-secondary: #76758B;
   --color-accent: #8E6B92;
-  
+
   --text-main: #e2e8f0;
   --text-muted: #94a3b8;
   --text-dim: #64748b;
-  
+
   --status-pending: #fbbf24;
   --status-pending-bg: rgba(251, 191, 36, 0.1);
   --status-confirmed: #10b981;
   --status-confirmed-bg: rgba(16, 185, 129, 0.1);
   --status-cancelled: #ef4444;
   --status-cancelled-bg: rgba(239, 68, 68, 0.1);
-  
+
   --border-light: rgba(255, 255, 255, 0.05);
   --border-hover: rgba(255, 255, 255, 0.12);
-  
+
   --glow-purple: 0 0 15px rgba(142, 107, 146, 0.25);
   --glow-indigo: 0 0 15px rgba(115, 116, 155, 0.25);
   --glow-teal: 0 0 15px rgba(20, 184, 166, 0.25);
+}
+
+/* Light mode overrides */
+html:not(.dark) .premium-admin-theme {
+  --bg-darker: #f1f5f9;
+  --bg-dark: #e2e8f0;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f8fafc;
+  --color-primary: #6366f1;
+  --color-secondary: #8b5cf6;
+  --color-accent: #7c3aed;
+
+  --text-main: #000000;
+  --text-muted: #111111;
+  --text-dim: #222222;
+
+  --status-pending: #d97706;
+  --status-pending-bg: rgba(217, 119, 6, 0.1);
+  --status-confirmed: #059669;
+  --status-confirmed-bg: rgba(5, 150, 105, 0.1);
+  --status-cancelled: #dc2626;
+  --status-cancelled-bg: rgba(220, 38, 38, 0.1);
+
+  --border-light: rgba(0, 0, 0, 0.08);
+  --border-hover: rgba(0, 0, 0, 0.15);
+
+  --glow-purple: 0 0 15px rgba(99, 102, 241, 0.15);
+  --glow-indigo: 0 0 15px rgba(139, 92, 246, 0.15);
+  --glow-teal: 0 0 15px rgba(20, 184, 166, 0.15);
 }
 
 .premium-admin-theme {
@@ -36,6 +67,43 @@
   min-height: 100vh;
   padding-top: 0 !important; /* Overriding offset from main layout to merge topbars */
   overflow-x: hidden;
+}
+
+/* Light mode overrides for hardcoded colors in form sub-pages */
+html:not(.dark) .premium-admin-theme input:not(.ppm-modal *):not(.ppm-overlay *):not(.activity-form-modal-wrapper *):not(.edit-package-modal *):not(.intel-dashboard-theme *),
+html:not(.dark) .premium-admin-theme textarea:not(.ppm-modal *):not(.ppm-overlay *):not(.activity-form-modal-wrapper *):not(.edit-package-modal *):not(.intel-dashboard-theme *),
+html:not(.dark) .premium-admin-theme select:not(.ppm-modal *):not(.ppm-overlay *):not(.activity-form-modal-wrapper *):not(.edit-package-modal *):not(.intel-dashboard-theme *) {
+  color: var(--text-main) !important;
+  background-color: var(--bg-darker) !important;
+  border-color: var(--border-light) !important;
+}
+
+html:not(.dark) .premium-admin-theme [style*="color: '#fff'"]:not(.ppm-modal *):not(.ppm-overlay *):not(.activity-form-modal-wrapper *):not(.edit-package-modal *):not(.intel-dashboard-theme *),
+html:not(.dark) .premium-admin-theme [style*='color: "#fff"']:not(.ppm-modal *):not(.ppm-overlay *):not(.activity-form-modal-wrapper *):not(.edit-package-modal *):not(.intel-dashboard-theme *) {
+  color: var(--text-main) !important;
+}
+
+html:not(.dark) .premium-admin-theme h2:not(.ppm-modal *):not(.ppm-overlay *):not(.activity-form-modal-wrapper *):not(.edit-package-modal *):not(.intel-dashboard-theme *),
+html:not(.dark) .premium-admin-theme h3:not(.ppm-modal *):not(.ppm-overlay *):not(.activity-form-modal-wrapper *):not(.edit-package-modal *):not(.intel-dashboard-theme *),
+html:not(.dark) .premium-admin-theme h4:not(.ppm-modal *):not(.ppm-overlay *):not(.activity-form-modal-wrapper *):not(.edit-package-modal *):not(.intel-dashboard-theme *) {
+  color: var(--text-main) !important;
+}
+
+html:not(.dark) .aura-menu li.active {
+  color: #000000 !important;
+  font-weight: 700;
+}
+
+html:not(.dark) .aura-menu li.active i {
+  color: #8349FF !important;
+}
+
+html:not(.dark) .pkg-emphasis {
+  color: var(--text-main) !important;
+}
+
+html:not(.dark) .action-btn-widget:hover span {
+  color: #000000 !important;
 }
 
 .admin-dashboard-container {
@@ -142,6 +210,15 @@
 .aura-menu li:hover {
   color: white;
   background-color: rgba(255, 255, 255, 0.03);
+}
+
+html:not(.dark) .aura-menu li:hover {
+  color: #8349FF;
+  background-color: rgba(131, 73, 255, 0.08);
+}
+
+html:not(.dark) .aura-menu li:hover i {
+  color: #8349FF;
 }
 
 .aura-menu li.active {
@@ -470,7 +547,7 @@
 .metric-value h3 {
   font-size: 2.1rem;
   font-weight: 800;
-  color: white;
+  color: var(--text-main);
   margin: 0 0 6px 0;
 }
 
@@ -487,6 +564,16 @@
 .trend.positive {
   color: #10b981;
   background-color: rgba(16, 185, 129, 0.08);
+}
+
+.trend.warning {
+  color: #fbbf24;
+  background-color: rgba(251, 191, 36, 0.08);
+}
+
+html:not(.dark) .trend.warning {
+  color: #d97706;
+  background-color: rgba(217, 119, 6, 0.1);
 }
 
 .trend-neutral {
@@ -528,7 +615,7 @@
 .insight-card h4 {
   font-size: 1.1rem;
   font-weight: 700;
-  color: white;
+  color: var(--text-main);
   margin: 0;
 }
 
@@ -1374,4 +1461,20 @@
   .topbar-search:focus-within {
     width: 240px;
   }
+}
+
+/* Light mode button hover overrides to color #8349FF */
+html:not(.dark) .premium-admin-theme .btn-primary:hover,
+html:not(.dark) .premium-admin-theme .btn-primary-form:hover:not(:disabled) {
+  background-color: #8349FF !important;
+  color: #ffffff !important;
+  border-color: #8349FF !important;
+  box-shadow: 0 0 15px rgba(131, 73, 255, 0.4) !important;
+}
+
+html:not(.dark) .premium-admin-theme .btn-secondary:hover,
+html:not(.dark) .premium-admin-theme .btn-secondary-xs:hover {
+  background-color: rgba(131, 73, 255, 0.08) !important;
+  color: #8349FF !important;
+  border-color: #8349FF !important;
 }

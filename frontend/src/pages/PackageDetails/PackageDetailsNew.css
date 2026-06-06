@@ -1533,6 +1533,36 @@ html:not(.dark) .package-details-page .review-form textarea {
   border-color: rgba(0,0,0,0.12) !important;
 }
 
+/* Page container and Review statistics panel in Light Mode */
+html:not(.dark) .package-details-page {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+html:not(.dark) .package-details-page .stats-panel-grid {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.07) !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04) !important;
+  color: #0f172a !important;
+}
+html:not(.dark) .package-details-page .stats-summary-box {
+  border-right: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+html:not(.dark) .package-details-page .average-number {
+  color: var(--primary-color) !important;
+}
+html:not(.dark) .package-details-page .total-label {
+  color: var(--text-muted) !important;
+}
+html:not(.dark) .package-details-page .star-num {
+  color: var(--text-dark) !important;
+}
+html:not(.dark) .package-details-page .star-pct {
+  color: var(--text-muted) !important;
+}
+html:not(.dark) .package-details-page .progress-bar-bg {
+  background: #f1f5f9 !important;
+}
+
 /* Text helper classes */
 html:not(.dark) .package-details-page .description-text   { color: #334155 !important; }
 html:not(.dark) .package-details-page .quick-overview-bar { color: #64748b !important; }

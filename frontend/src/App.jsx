@@ -12,6 +12,7 @@ import MyBookings from './pages/MyBookings'
 import CancelConfirm from './pages/CancelConfirm/CancelConfirm'
 import PackageDetails from './pages/PackageDetails/PackageDetails'
 import Payment from './pages/Payment/Payment'
+import PaymentMockCheckout from './pages/Payment/PaymentMockCheckout'
 import PaymentSuccess from './pages/Payment/PaymentSuccess'
 import PaymentCancel from './pages/Payment/PaymentCancel'
 import AdminDashboard from './pages/Admin/AdminDashboard'
@@ -70,6 +71,7 @@ function App() {
         <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
         <Route path="/booking/:id/cancel" element={<ProtectedRoute><CancelConfirm /></ProtectedRoute>} />
         <Route path="/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
+        <Route path="/payment/mock-checkout" element={<ProtectedRoute><PaymentMockCheckout /></ProtectedRoute>} />
         <Route path="/payment/success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
         <Route path="/payment/cancel" element={<ProtectedRoute><PaymentCancel /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />

@@ -48,7 +48,7 @@ const Login = () => {
   };
 
   return (
-    <div className={`tw-h-screen tw-w-full tw-flex ${lang === 'AR' ? 'tw-flex-row-reverse tw-text-right' : 'tw-flex-row tw-text-left'} tw-bg-[#0f1014] tw-overflow-hidden`}>
+    <div className={`login-page-container tw-h-screen tw-w-full tw-flex ${lang === 'AR' ? 'tw-flex-row-reverse tw-text-right' : 'tw-flex-row tw-text-left'} tw-bg-[#0f1014] tw-overflow-hidden`}>
       
       {/* Image Half */}
       <div className="tw-hidden md:tw-block tw-w-1/2 tw-h-full tw-relative">
@@ -101,7 +101,7 @@ const Login = () => {
                 {lang === 'AR' ? 'البريد الإلكتروني' : 'EMAIL'}
               </label>
               <div className="tw-relative tw-flex tw-items-center">
-                <i className={`fa-regular fa-envelope tw-absolute tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
+                <i className={`fa-regular fa-envelope tw-absolute tw-z-10 tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
                 <input
                   type="email"
                   required
@@ -123,7 +123,7 @@ const Login = () => {
                 </Link>
               </div>
               <div className="tw-relative tw-flex tw-items-center">
-                <i className={`fa-solid fa-lock tw-absolute tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
+                <i className={`fa-solid fa-lock tw-absolute tw-z-10 tw-text-slate-400 tw-text-sm ${lang === 'AR' ? 'tw-right-2' : 'tw-left-2'}`}></i>
                 <input
                   type={showPassword ? "text" : "password"}
                   required
@@ -133,7 +133,7 @@ const Login = () => {
                   placeholder="••••••••"
                 />
                 <i 
-                  className={`fa-solid ${showPassword ? 'fa-eye' : 'fa-eye-slash'} tw-absolute tw-text-slate-500 tw-cursor-pointer hover:tw-text-white tw-transition-colors tw-text-sm ${lang === 'AR' ? 'tw-left-2' : 'tw-right-2'}`}
+                  className={`fa-solid ${showPassword ? 'fa-eye' : 'fa-eye-slash'} tw-absolute tw-z-10 tw-text-slate-500 tw-cursor-pointer hover:tw-text-white tw-transition-colors tw-text-sm ${lang === 'AR' ? 'tw-left-2' : 'tw-right-2'}`}
                   onClick={() => setShowPassword(!showPassword)}
                 ></i>
               </div>

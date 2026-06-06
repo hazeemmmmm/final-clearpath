@@ -1,13 +1,39 @@
 /* 💳 Premium Stripe Secure Checkout CSS */
 
 .payment-page-wrapper {
-  background: #0b0f19;
-  color: #fff;
+  background: transparent;
+  color: var(--payment-text-main, #ffffff);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   font-family: 'Outfit', 'Inter', sans-serif;
   overflow-x: hidden;
+
+  /* CSS Theme Variables - Default Dark Mode */
+  --payment-bg: radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.08) 0%, transparent 60%);
+  --payment-card-bg: rgba(21, 29, 43, 0.7);
+  --payment-card-border: rgba(212, 175, 55, 0.15);
+  --payment-box-bg: rgba(11, 15, 25, 0.6);
+  --payment-box-border: rgba(255, 255, 255, 0.05);
+  --payment-text-main: #ffffff;
+  --payment-text-muted: #94a3b8;
+  --payment-input-bg: rgba(0, 0, 0, 0.25);
+  --payment-input-border: rgba(255, 255, 255, 0.1);
+  --payment-divider: rgba(255, 255, 255, 0.08);
+}
+
+/* Light Mode Overrides */
+html:not(.dark) .payment-page-wrapper {
+  --payment-bg: #f4f7f6;
+  --payment-card-bg: #ffffff;
+  --payment-card-border: rgba(0, 0, 0, 0.08);
+  --payment-box-bg: #f8fafc;
+  --payment-box-border: rgba(0, 0, 0, 0.05);
+  --payment-text-main: #000000;
+  --payment-text-muted: #475569;
+  --payment-input-bg: #ffffff;
+  --payment-input-border: rgba(0, 0, 0, 0.15);
+  --payment-divider: rgba(0, 0, 0, 0.08);
 }
 
 .payment-main-content {
@@ -16,14 +42,14 @@
   justify-content: center;
   align-items: center;
   padding: 120px 20px 80px;
-  background: radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.08) 0%, transparent 60%);
+  background: var(--payment-bg);
 }
 
 .payment-card-premium {
-  background: rgba(21, 29, 43, 0.7);
+  background: var(--payment-card-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(212, 175, 55, 0.15);
+  border: 1px solid var(--payment-card-border);
   border-radius: 24px;
   padding: 45px 40px;
   max-width: 580px;
@@ -33,6 +59,10 @@
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 40px rgba(212, 175, 55, 0.05);
   position: relative;
   transition: all 0.3s ease;
+}
+
+html:not(.dark) .payment-card-premium {
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05), 0 0 20px rgba(0, 0, 0, 0.02);
 }
 
 .payment-card-premium:hover {
@@ -90,7 +120,7 @@
 }
 
 .payment-card-premium p.payment-desc {
-  color: #94a3b8;
+  color: var(--payment-text-muted);
   font-size: 0.95rem;
   line-height: 1.6;
   margin: 0 auto 30px;
@@ -98,8 +128,8 @@
 }
 
 .booking-summary-box {
-  background: rgba(11, 15, 25, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--payment-box-bg);
+  border: 1px solid var(--payment-box-border);
   border-radius: 16px;
   padding: 24px;
   text-align: left;
@@ -124,7 +154,7 @@
   display: flex;
   justify-content: space-between;
   font-size: 0.9rem;
-  color: #94a3b8;
+  color: var(--payment-text-muted);
   margin-bottom: 8px;
 }
 
@@ -133,7 +163,7 @@
 }
 
 .summary-detail-row span.detail-val {
-  color: #fff;
+  color: var(--payment-text-main);
   font-weight: 600;
 }
 
@@ -268,3 +298,164 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ── Theme-Responsive Elements ── */
+.payment-page-wrapper h2 {
+  color: var(--payment-text-main) !important;
+}
+
+.payment-page-wrapper .total-lbl {
+  color: var(--payment-text-main) !important;
+}
+
+.payment-page-wrapper .total-val {
+  color: #10b981 !important;
+}
+
+.payment-page-wrapper .stripe-logos-footer span {
+  color: var(--payment-text-muted) !important;
+}
+
+.payment-page-wrapper .stripe-cards-icons {
+  color: var(--payment-text-muted) !important;
+}
+
+.payment-page-wrapper input {
+  background: var(--payment-input-bg) !important;
+  border: 1px solid var(--payment-input-border) !important;
+  color: var(--payment-text-main) !important;
+}
+
+.payment-page-wrapper input:focus {
+  border-color: #d4af37 !important;
+}
+
+.summary-divider-dashed {
+  border-top: 1px dashed var(--payment-divider) !important;
+}
+
+.payment-page-wrapper .tw-border-dashed {
+  border-color: var(--payment-divider) !important;
+}
+
+.success-total-card {
+  border-color: var(--payment-card-border) !important;
+}
+
+/* Light Mode Premium Heading Gradient Override */
+html:not(.dark) .payment-card-premium h2 {
+  background: linear-gradient(135deg, #0b0f19 40%, #aa8c2c) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+/* Chained Trip Items */
+.payment-chain-item {
+  background: var(--payment-box-bg) !important;
+  border: 1px solid var(--payment-card-border) !important;
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.25s ease;
+}
+
+.payment-chain-item-index {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.payment-chain-item-title {
+  color: var(--payment-text-main) !important;
+  font-weight: 700;
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.payment-chain-item-subtitle {
+  color: var(--payment-text-muted) !important;
+  font-size: 0.78rem;
+}
+
+.payment-chain-item-price {
+  color: #f59e0b !important;
+  font-weight: 900;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+/* Promo Code Section */
+.promo-section {
+  margin-top: 20px;
+  padding: 15px;
+  background: var(--payment-box-bg) !important;
+  border: 1px solid var(--payment-box-border) !important;
+  border-radius: 12px;
+}
+
+.promo-section label {
+  display: block;
+  color: var(--payment-text-muted) !important;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
+.promo-section input {
+  flex: 1;
+  padding: 10px 15px;
+  background: var(--payment-input-bg) !important;
+  border: 1px solid var(--payment-input-border) !important;
+  color: var(--payment-text-main) !important;
+  border-radius: 8px;
+  text-transform: uppercase;
+}
+
+.promo-section input:focus {
+  border-color: #d4af37 !important;
+  outline: none;
+}
+
+.promo-section button {
+  background: #d4af37 !important;
+  color: #0b0f19 !important;
+  border: none;
+  padding: 0 20px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.promo-section button:hover {
+  background: #e5c35b !important;
+  transform: translateY(-1px);
+}
+
+.promo-discount-message {
+  color: #10b981 !important;
+  font-size: 0.9rem;
+  margin-top: 10px;
+  font-weight: 600;
+}
+
+/* Mock Card Input Transparency */
+.stripe-card-input {
+  background: transparent !important;
+  border: none !important;
+  color: var(--payment-text-main) !important;
+}
+
+

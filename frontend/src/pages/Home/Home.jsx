@@ -330,8 +330,8 @@ const Home = () => {
 
       <section className="tw-relative tw-py-32 tw-overflow-hidden">
         <div className="tw-absolute tw-inset-0">
-          <img src="https://images.unsplash.com/photo-1539650116574-8efeb43e2750?q=80&w=2000&auto=format&fit=crop" alt="CTA Background" className="tw-w-full tw-h-full tw-object-cover tw-opacity-20 dark:tw-opacity-40" />
-          <div className="tw-absolute tw-inset-0 tw-bg-gradient-to-t tw-from-slate-50 dark:tw-from-[#0a0b0d] tw-via-slate-50/80 dark:tw-via-[#0a0b0d]/80 tw-to-slate-50 dark:tw-to-[#0a0b0d]"></div>
+          <img src="https://images.unsplash.com/photo-1539650116574-8efeb43e2750?q=80&w=2000&auto=format&fit=crop" alt="CTA Background" className="tw-w-full tw-h-full tw-object-cover tw-opacity-50 dark:tw-opacity-50" />
+          <div className="tw-absolute tw-inset-0 tw-bg-gradient-to-t tw-from-[#FFFAF2]/60 dark:tw-from-[#363795]/60 tw-via-transparent tw-to-transparent"></div>
         </div>
         
         <div className="tw-container tw-mx-auto tw-px-4 tw-relative tw-z-10 tw-text-center">

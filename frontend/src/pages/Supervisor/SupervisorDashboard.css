@@ -4,6 +4,8 @@
 /* ═══════════════════════════════════════════════════
    Design System Variables — Teal Accent Palette
    ═══════════════════════════════════════════════════ */
+/* Dark mode variables (default) */
+html.dark .supervisor-theme,
 .supervisor-theme {
   overflow: hidden;
   --sv-bg-darker: #0b0f14;
@@ -40,6 +42,41 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
+}
+
+/* Light mode overrides */
+html:not(.dark) .supervisor-theme {
+  --sv-bg-darker: #f0fdf4;
+  --sv-bg-dark: #f8fafc;
+  --sv-bg-card: #ffffff;
+  --sv-bg-card-hover: #f1f5f9;
+  --sv-accent: #0d9488;
+  --sv-accent-light: #14b8a6;
+  --sv-accent-secondary: #0369a1;
+  --sv-accent-glow: rgba(13, 148, 136, 0.15);
+  --sv-accent-gradient: linear-gradient(135deg, #0d9488, #0369a1);
+
+  --sv-text: #000000;
+  --sv-text-muted: #111111;
+  --sv-text-dim: #222222;
+
+  --sv-border: rgba(0, 0, 0, 0.08);
+  --sv-border-hover: rgba(0, 0, 0, 0.15);
+
+  --sv-success: #059669;
+  --sv-success-bg: rgba(5, 150, 105, 0.1);
+  --sv-warning: #d97706;
+  --sv-warning-bg: rgba(217, 119, 6, 0.1);
+  --sv-danger: #dc2626;
+  --sv-danger-bg: rgba(220, 38, 38, 0.1);
+  --sv-info: #2563eb;
+  --sv-info-bg: rgba(37, 99, 235, 0.1);
+
+  --sv-glow-teal: 0 0 20px rgba(13, 148, 136, 0.1);
+  --sv-glow-cyan: 0 0 20px rgba(3, 105, 161, 0.1);
+
+  background-color: var(--sv-bg-darker);
+  color: var(--sv-text);
 }
 
 /* ═══════════════════════════════════════════════════

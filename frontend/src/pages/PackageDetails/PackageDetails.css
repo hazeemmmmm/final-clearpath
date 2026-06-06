@@ -4,8 +4,8 @@
   --primary-color: #e5c158;
   --secondary-color: #d5b266;
   --accent-color: #d4af37;
-  --bg-main: #09090b;
-  --card-bg: #14141a;
+  --bg-main: transparent;
+  --card-bg: rgba(20, 20, 26, 0.85);
   --text-dark: #ffffff;
   --text-muted: #94a3b8;
   --border-light: #27272a;
@@ -18,10 +18,10 @@
 
 .package-details-page {
   font-family: var(--font-family);
-  background-color: var(--bg-main);
+  background-color: transparent;
   color: var(--text-dark);
   min-height: 100vh;
-  padding-top: 80px; /* offset for fixed header */
+  padding-top: 80px;
   line-height: 1.6;
 }
 
@@ -1150,8 +1150,26 @@ body:not(.dark-mode) .packing-card h3 {
   --glass-border: rgba(229, 193, 88, 0.1);
 }
 
+/* Light Mode Variables Override */
+html:not(.dark), body:not(.dark-mode),
+html:not(.dark) .package-details-page, body:not(.dark-mode) .package-details-page {
+  --primary-color: #003d59;
+  --secondary-color: #001f2f;
+  --accent-color: #d4af37;
+  --bg-main: #ffffff;
+  --card-bg: #f8fafc;
+  --text-dark: #0f172a;
+  --text-muted: #475569;
+  --border-light: #e2e8f0;
+  --success-color: #10b981;
+  --error-color: #ef4444;
+  --box-shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.04);
+  --glass-border: rgba(0, 0, 0, 0.08);
+}
+
 /* Dark Mode Overrides (Same as above) */
-.dark, body.dark-mode {
+.dark, body.dark-mode,
+.dark .package-details-page, body.dark-mode .package-details-page {
   --primary-color: #e5c158;
   --secondary-color: #d5b266;
   --accent-color: #d4af37;

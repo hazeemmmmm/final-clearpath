@@ -218,7 +218,14 @@ const Navbar = ({ isScrolled, dashboardMode }) => {
           >
             {lang === 'AR' ? 'الرئيسية' : 'Home'}
           </Link>
-          <Link to="/experiences" className={getLinkClass('/experiences')}>
+          <Link 
+            to="/experiences" 
+            className={getLinkClass('/experiences')}
+            onClick={(e) => {
+              e.preventDefault();
+              navigate('/experiences');
+            }}
+          >
             {lang === 'AR' ? 'الباقات' : 'Packages'}
           </Link>
           <Link to="/my-bookings" className={getLinkClass('/my-bookings')}>

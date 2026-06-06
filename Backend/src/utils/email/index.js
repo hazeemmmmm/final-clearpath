@@ -19,7 +19,7 @@ export const sendMail = async ({ to, subject, html }) => {
     });
     console.log(`Email successfully sent to ${to}`);
   } catch (error) {
-    console.warn("⚠️ Email not sent due to missing/invalid credentials. Logged instead:");
+    console.warn("⚠️ Email not sent due to error:", error);
     console.warn(`To: ${to}\nSubject: ${subject}\n`);
     // Do not throw the error so the app can continue working without real email credentials
   }
