@@ -227,10 +227,10 @@ const Profile = () => {
                       )}
                     </button>
                   ))}
-                  {profile?.role === 'admin' && (
-                    <Link to="/admin" className="tw-w-full tw-flex tw-items-center tw-text-rose-600 dark:tw-text-rose-400 tw-px-5 tw-py-3.5 tw-rounded-xl tw-font-semibold hover:tw-bg-rose-50 dark:hover:tw-bg-rose-500/10 tw-transition-all">
+                  {(profile?.role === 'admin' || profile?.role === 'supervisor' || profile?.role === 'provider') && (
+                    <Link to={profile.role === 'admin' ? "/admin" : "/supervisor"} className="tw-w-full tw-flex tw-items-center tw-text-rose-600 dark:tw-text-rose-400 tw-px-5 tw-py-3.5 tw-rounded-xl tw-font-semibold hover:tw-bg-rose-50 dark:hover:tw-bg-rose-500/10 tw-transition-all">
                       <i className={`fa-solid fa-user-shield tw-w-6 ${lang === 'AR' ? 'tw-ml-2' : 'tw-mr-2'}`}></i>
-                      {lang === 'AR' ? 'لوحة التحكم' : 'Admin Dashboard'}
+                      {lang === 'AR' ? 'لوحة التحكم' : (profile.role === 'admin' ? 'Admin Dashboard' : 'Supervisor Dashboard')}
                     </Link>
                   )}
                 </div>

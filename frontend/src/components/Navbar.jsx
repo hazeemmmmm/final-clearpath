@@ -425,7 +425,7 @@ const Navbar = ({ isScrolled, dashboardMode }) => {
               </div>
               
               <div className="tw-py-2 tw-px-2 tw-flex tw-flex-col tw-gap-1">
-                {(currentUser?.role === 'admin' || currentUser?.role === 'supervisor') && (
+                {(currentUser?.role === 'admin' || currentUser?.role === 'supervisor' || currentUser?.role === 'provider') && (
                   <button onClick={() => { setIsDropdownOpen(false); navigate(currentUser.role === 'admin' ? '/admin' : '/supervisor'); }} className="tw-w-full tw-bg-transparent tw-border-none tw-text-left tw-px-4 tw-py-2.5 tw-text-sm tw-text-slate-600 dark:tw-text-slate-300 hover:tw-bg-slate-50 dark:hover:tw-bg-slate-800/80 hover:tw-text-amber-600 dark:hover:tw-text-white tw-rounded-xl tw-flex tw-items-center tw-gap-3 tw-transition-colors">
                     <i className="fa-solid fa-user-shield tw-w-5 tw-text-center"></i> {lang === 'AR' ? 'لوحة التحكم' : 'Dashboard'}
                   </button>
